@@ -1,0 +1,568 @@
+🌐 ApiService inicializado
+AuthService.js:314 🔐 AuthService inicializado
+PadronComponent.js:1060 🖥️ PadronComponent cargado
+app.js:193 🔧 App.js cargado
+app.js:12 🚀 Iniciando aplicación...
+ApiService.js:41 🌐 API Request: POST http://localhost:8080/api/auth/verify
+AuthService.js:311 ⏰ InactivityService inicializado
+PadronComponent.js:20 🖥️ Inicializando componente de Padrón...
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/filtros
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/estadisticas
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/votantes?pagina=1&limite=50&ordenCampo=apellido&ordenDireccion=asc
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/16194886
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/27524680
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/17349966
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/5270588
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/4603837
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/4990566
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/5923431
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/3546514
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/22294686
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/780386
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/17349935
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/22523919
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/38885224
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/35213615
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/18375965
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/4603873
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/38020124
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/33524976
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/17855958
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/5004793
+:8080/padron/detalle-votante/18375965:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 4)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 18375965
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/38020124:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 6)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 38020124
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/4603873:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 5)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 4603873
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/17855958:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 8)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 17855958
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/33524976:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 7)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 33524976
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/5004793:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 5004793
+(anónimas) @ PadronComponent.js:1031
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/6653187
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/6639311
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/38885226
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/41695804
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/11461192
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/3208992
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/2927049
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/16972742
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/32113114
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/11578141
+:8080/padron/detalle-votante/6653187:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 0)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 6653187
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/41695804:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 3)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 41695804
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/38885226:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 2)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 38885226
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/11461192:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 4)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 11461192
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/6639311:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 1)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 6639311
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/3208992:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 5)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 3208992
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/2927049:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 6)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 2927049
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/16972742:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 7)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 16972742
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/32113114:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 8)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 32113114
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/11578141:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 11578141
+(anónimas) @ PadronComponent.js:1031
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/40974182
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/21757839
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/28958141
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/39611066
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/42513329
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/34335436
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/13731837
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/23137992
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/10367119
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/17818601
+:8080/padron/detalle-votante/40974182:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 0)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 40974182
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/21757839:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 1)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 21757839
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/28958141:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 2)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 28958141
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/42513329:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 4)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 42513329
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/39611066:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 3)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 39611066
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/13731837:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 6)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 13731837
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/34335436:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 5)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 34335436
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/23137992:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 7)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 23137992
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/10367119:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 8)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 10367119
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/17818601:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 17818601
+(anónimas) @ PadronComponent.js:1031
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/26590565
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/28958125
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/8401349
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/6592238
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/38885762
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/24747008
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/13274666
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/42183717
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/4781277
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/30705020
+:8080/padron/detalle-votante/26590565:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 0)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 26590565
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/28958125:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 1)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 28958125
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/8401349:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 2)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 8401349
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/6592238:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 3)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 6592238
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/38885762:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 4)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 38885762
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/24747008:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 5)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 24747008
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/13274666:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 6)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 13274666
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/42183717:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 7)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 42183717
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/4781277:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 8)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 4781277
+(anónimas) @ PadronComponent.js:1031
+:8080/padron/detalle-votante/30705020:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1024:42
+    at async Promise.all (:3000/index 9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
+    at async PadronComponent.init (PadronComponent.js:36:9)
+    at async App.initMainApp (app.js:52:34)
+    at async App.init (app.js:26:9)
+request @ ApiService.js:67
+PadronComponent.js:1031 No se pudo cargar detalle para DNI 30705020
+(anónimas) @ PadronComponent.js:1031
+PadronComponent.js:38 ✅ Componente de Padrón inicializado
+app.js:54 ✅ Padrón inicializado correctamente
+app.js:28 🎉 Aplicación iniciada

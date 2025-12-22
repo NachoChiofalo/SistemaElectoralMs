@@ -1,0 +1,452 @@
+/* ==========================================
+   ESTILOS PARA DETALLE VOTANTE COMPONENT
+   ========================================== */
+
+/* Modal de detalle votante */
+#modal-detalle-votante .modal-content {
+    max-width: 600px;
+    width: 90%;
+}
+
+/* Información del votante */
+.votante-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--color-primary);
+}
+
+.info-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.info-item {
+    flex: 1;
+}
+
+.info-item label {
+    font-weight: 600;
+    color: #666;
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.info-item .value {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* Grid de condiciones */
+.condiciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.condicion-item {
+    background: white;
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.condicion-item:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0,123,255,0.15);
+}
+
+/* Checkboxes personalizados */
+.checkbox-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-container input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.checkbox-container:hover .checkmark {
+    border-color: var(--color-primary);
+}
+
+.checkbox-container input[type="checkbox"]:checked + .checkmark {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-container input[type="checkbox"]:checked + .checkmark:after {
+    display: block;
+}
+
+.label-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+/* Iconos de condiciones */
+.icon-nuevo { color: #28a745; }
+.icon-fallecido { color: #dc3545; }
+.icon-empleado { color: #007bff; }
+.icon-ayuda { color: #ffc107; }
+
+.description {
+    display: block;
+    color: #666;
+    font-style: italic;
+    margin-top: 0.5rem;
+    line-height: 1.3;
+}
+
+/* Sección de observaciones */
+.observaciones-section {
+    margin-bottom: 1.5rem;
+}
+
+.observaciones-section label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.observaciones-section textarea {
+    width: 100%;
+    min-height: 80px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+}
+
+.observaciones-section textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+/* Información de fecha */
+.fecha-info {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
+
+.fecha-info i {
+    margin-right: 0.5rem;
+    color: #666;
+}
+
+/* Iconos en tabla de padron */
+.condiciones-iconos {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.condiciones-iconos i {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.3rem;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid currentColor;
+}
+
+.condiciones-cell {
+    text-align: center;
+    min-width: 80px;
+}
+
+.sin-condiciones {
+    color: #999;
+    font-style: italic;
+}
+
+/* Responsive design para móviles */
+@media (max-width: 768px) {
+    .info-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .condiciones-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .condicion-item {
+        padding: 1rem;
+    }
+    
+    #modal-detalle-votante .modal-content {
+        width: 95%;
+        margin: 1rem auto;
+    }
+    
+    /* Iconos más pequeños en móvil */
+    .condiciones-iconos {
+        justify-content: center;
+    }
+    
+    .condiciones-iconos i {
+        font-size: 0.8rem;
+        padding: 0.15rem 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .votante-info {
+        padding: 1rem;
+    }
+    
+    .info-item .value {
+        font-size: 1rem;
+    }
+    
+    .condicion-item {
+        padding: 0.75rem;
+    }
+    
+    .label-text {
+        font-size: 0.9rem;
+    }
+    
+    .checkmark {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .checkmark:after {
+        left: 5px;
+        top: 1px;
+        width: 5px;
+        height: 10px;
+    }
+}
+
+/* Estados de carga */
+.cargando .btn-primary {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Mejoras para tabla principal con condiciones */
+.tabla-padron .condiciones-cell {
+    text-align: center;
+    padding: 0.5rem;
+    vertical-align: middle;
+}
+
+.tabla-padron .acciones .btn-gestionar {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.tabla-padron .acciones .btn-gestionar:hover {
+    background: linear-gradient(135deg, #218838, #17a2b8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Toast/Notificación personalizada para detalles */
+.notificacion.detalle-guardado {
+    border-left-color: #28a745;
+}
+
+.notificacion.detalle-eliminado {
+    border-left-color: #ffc107;
+}
+
+/* Tooltips mejorados para iconos */
+.condiciones-iconos i[title] {
+    position: relative;
+    cursor: help;
+}
+
+.condiciones-iconos i[title]:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+/* ==========================================
+   CONTROLES INLINE PARA CONDICIONES
+   ========================================== */
+
+.condiciones-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    min-width: 180px;
+}
+
+.condiciones-checkboxes {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.checkbox-inline {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.checkbox-inline:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.05);
+}
+
+.checkbox-inline input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkbox-inline i {
+    font-size: 18px;
+    transition: all 0.2s ease;
+    opacity: 0.4;
+}
+
+.checkbox-inline input[type="checkbox"]:checked + i {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Colores específicos para cada condición */
+.checkbox-inline input[type="checkbox"]:checked + .icon-nuevo { color: #28a745; }
+.checkbox-inline input[type="checkbox"]:checked + .icon-fallecido { color: #dc3545; }
+.checkbox-inline input[type="checkbox"]:checked + .icon-empleado { color: #007bff; }
+.checkbox-inline input[type="checkbox"]:checked + .icon-ayuda { color: #ffc107; }
+
+.observaciones-preview {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+    cursor: help;
+}
+
+.observaciones-preview i {
+    font-size: 12px;
+    color: #007bff;
+}
+
+/* Fila con condiciones modificadas */
+.fila-votante.condiciones-modificadas {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid #ffc107;
+}
+
+.fila-votante.condiciones-modificadas .btn-guardar-inline {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+/* Botón guardar inline */
+.btn-guardar-inline {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+}
+
+.btn-guardar-inline:hover {
+    opacity: 1 !important;
+    background: linear-gradient(135deg, #218838, #17a2b8);
+}
+
+/* Responsive para móviles - controles inline */
+@media (max-width: 768px) {
+    .condiciones-inline {
+        min-width: 120px;
+    }
+    
+    .condiciones-checkboxes {
+        gap: 8px;
+    }
+    
+    .checkbox-inline {
+        padding: 4px;
+    }
+    
+    .checkbox-inline i {
+        font-size: 16px;
+    }
+    
+    .observaciones-preview {
+        font-size: 10px;
+    }
+    
+    .condiciones-cell {
+        min-width: 150px;
+        padding: 0.75rem 0.5rem;
+    }
+}

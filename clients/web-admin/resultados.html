@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados Electorales - Sistema Electoral</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="src/styles/padron-styles.css">
+    <link rel="stylesheet" href="src/styles/resultados-styles.css">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 10px;
+            line-height: 1.4;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .navigation {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-link {
+            color: #3498db;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        
+        .nav-link:hover {
+            background-color: #ecf0f1;
+        }
+        
+        .nav-link.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        /* Mobile First Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .navigation {
+                padding: 10px 15px;
+                margin-bottom: 10px;
+                border-radius: 8px;
+            }
+            
+            .nav-links {
+                gap: 8px;
+                justify-content: space-between;
+            }
+            
+            .nav-link {
+                padding: 8px 12px;
+                font-size: 12px;
+                min-height: 40px;
+            }
+            
+            .nav-link i {
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 13px;
+                min-height: 40px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-links {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .nav-link {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navegación -->
+        <nav class="navigation">
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-users"></i> Padrón
+                </a>
+                <a href="resultados.html" class="nav-link active">
+                    <i class="fas fa-chart-bar"></i> Resultados
+                </a>
+                <span style="flex: 1;"></span>
+                <div class="user-actions" style="display: flex; align-items: center; gap: 15px;">
+                    <span class="user-info" id="user-info" style="color: #7f8c8d; font-size: 14px;">
+                        <i class="fas fa-user"></i>
+                        <span id="username">Usuario</span>
+                    </span>
+                    <button class="logout-btn" id="logout-btn" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.3s ease;" title="Cerrar Sesión">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Salir</span>
+                    </button>
+                    <span style="color: #7f8c8d; font-size: 14px;">
+                        <i class="fas fa-vote-yea"></i> Sistema Electoral
+                    </span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenedor de Resultados -->
+        <div id="resultados-container">
+            <!-- El componente se cargará aquí -->
+        </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Servicios y Componentes -->
+    <script src="src/services/ApiService.js"></script>
+    <script src="src/services/AuthService.js"></script>
+    <script src="src/components/ResultadosComponent.js"></script>
+    
+    <script>
+        // Función para manejar logout
+        async function handleLogout() {
+            const confirmed = confirm('¿Está seguro que desea cerrar sesión?');
+            if (confirmed) {
+                try {
+                    await window.authService.logout();
+                } catch (error) {
+                    console.error('Error en logout:', error);
+                    window.location.href = '/';
+                }
+            }
+        }
+        
+        // Inicializar componente cuando la página esté lista
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Iniciando aplicación de Resultados...');
+            
+            try {
+                // Verificar autenticación
+                const isAuthenticated = await window.authService.init();
+                
+                if (!isAuthenticated) {
+                    window.location.href = '/';
+                    return;
+                }
+                
+                // Mostrar información del usuario
+                const user = window.authService.getCurrentUser();
+                const usernameElement = document.getElementById('username');
+                if (usernameElement && user) {
+                    usernameElement.textContent = user.nombre_completo || user.username;
+                }
+                
+                // Configurar botón de logout
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', handleLogout);
+                }
+                
+                // Inicializar componente de resultados
+                const exito = await window.resultadosComponent.init('resultados-container');
+                
+                if (exito) {
+                    console.log('✅ Aplicación de Resultados iniciada correctamente');
+                } else {
+                    console.error('❌ Error iniciando la aplicación');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error fatal:', error);
+                
+                // Mostrar error en la página
+                const container = document.getElementById('resultados-container');
+                container.innerHTML = `
+                    <div class="error-container" style="display: block;">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Error Fatal</h3>
+                            <p>No se pudo cargar la aplicación: ${error.message}</p>
+                            <p style="margin-top: 15px;">
+                                <button onclick="location.reload()" class="btn btn-primary">
+                                    <i class="fas fa-redo"></i> Reintentar
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        // Manejar errores globales
+        window.addEventListener('error', (event) => {
+            console.error('❌ Error global:', event.error);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('❌ Promesa rechazada:', event.reason);
+        });
+    </script>
+</body>
+</html>

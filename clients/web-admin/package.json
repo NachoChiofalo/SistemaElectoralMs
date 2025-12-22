@@ -1,0 +1,20 @@
+{
+  "name": "web-admin-client",
+  "version": "1.0.0",
+  "description": "Cliente web para administración del sistema electoral",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "serve -s . -l 3000",
+    "dev": "live-server --port=3000",
+    "build": "echo 'No build process needed for static files'"
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "keywords": ["electoral", "admin", "client"],
+  "author": "Sistema Electoral",
+  "license": "MIT"
+}

@@ -1,0 +1,122 @@
+services:
+  # API Gateway (Punto de entrada único)
+  api-gateway:
+    build: ./services/gateway-service
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - GATEWAY_PORT=8080
+      - AUTH_SERVICE_URL=http://auth-service:3002
+      - PADRON_SERVICE_URL=http://padron-service:3001
+      - WEB_ADMIN_URL=http://web-admin:3000
+      - FRONTEND_URL=http://localhost:8080
+    depends_on:
+      - auth-service
+      - padron-service
+      - web-admin
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Servicio de Autenticación
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - AUTH_PORT=3002
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=sistema_electoral
+      - DB_USER=electoral_user
+      - DB_PASSWORD=electoral_password
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRATION=1m
+      - REFRESH_TOKEN_EXPIRATION=1m
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Servicio de Padrón Electoral
+  padron-service:
+    build: ./services/padron-service
+    container_name: padron-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=sistema_electoral
+      - DB_USER=electoral_user
+      - DB_PASSWORD=electoral_password
+    volumes:
+      - ./services/padron-service/uploads:/app/uploads
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Cliente Web de Administración
+  web-admin:
+    build: ./clients/web-admin
+    container_name: web-admin-client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - padron-service
+      - auth-service
+    restart: unless-stopped
+
+  # Base de datos (PostgreSQL) - Para futuro uso
+  postgres:
+    image: postgres:15-alpine
+    container_name: electoral-db
+    environment:
+      - POSTGRES_DB=sistema_electoral
+      - POSTGRES_USER=electoral_user
+      - POSTGRES_PASSWORD=electoral_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  # Redis para caché (opcional, para futuro uso)
+  redis:
+    image: redis:7-alpine
+    container_name: electoral-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: electoral-network
+    driver: bridge
