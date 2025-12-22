@@ -42,7 +42,7 @@ class DetalleVotanteComponent {
     async cargarDatosVotante(dni) {
         try {
             // Cargar datos básicos del votante
-            const respuestaVotante = await this.apiService.obtenerVotantePorDni(dni);
+            const respuestaVotante = await this.apiService.obtenerVotantePorDNI(dni);
             if (!respuestaVotante.success) {
                 throw new Error('No se pudo cargar la información del votante');
             }
@@ -50,7 +50,7 @@ class DetalleVotanteComponent {
 
             // Cargar detalle existente (puede no existir)
             try {
-                const respuestaDetalle = await this.apiService.request(`/padron/detalle-votante/${dni}`);
+                const respuestaDetalle = await this.apiService.request(`/api/padron/detalle-votante/${dni}`);
 
                 if (respuestaDetalle.success) {
                     this.estado.detalleActual = respuestaDetalle.data;
@@ -245,7 +245,7 @@ class DetalleVotanteComponent {
 
             const formData = this.obtenerDatosFormulario();
             
-            const response = await this.apiService.request('/padron/detalle-votante', {
+            const response = await this.apiService.request('/api/padron/detalle-votante', {
                 method: 'POST',
                 body: JSON.stringify({
                     dni: this.estado.votanteActual.dni,
@@ -281,7 +281,7 @@ class DetalleVotanteComponent {
         try {
             this.estado.cargando = true;
 
-            const response = await this.apiService.request(`/padron/detalle-votante/${this.estado.votanteActual.dni}`, {
+            const response = await this.apiService.request(`/api/padron/detalle-votante/${this.estado.votanteActual.dni}`, {
                 method: 'DELETE'
             });
 

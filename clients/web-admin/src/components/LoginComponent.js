@@ -143,9 +143,9 @@ class LoginComponent {
             // Mostrar mensaje de éxito
             this.showSuccess(`¡Bienvenido/a, ${result.user.nombre_completo}!`);
             
-            // Esperar un momento y luego recargar para mostrar la app
+            // Esperar un momento y luego redirigir al dashboard
             setTimeout(() => {
-                window.location.reload();
+                window.location.href = 'dashboard.html';
             }, 1500);
 
         } catch (error) {

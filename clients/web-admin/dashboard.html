@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema Electoral</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="src/styles/navbar-styles.css">
+    <link rel="stylesheet" href="src/styles/padron-styles.css">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            line-height: 1.4;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header del Dashboard */
+        .dashboard-header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-title h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dashboard-title i {
+            font-size: 2rem;
+            color: #667eea;
+            filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+        }
+
+        .dashboard-subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .welcome-text {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            color: #495057;
+        }
+
+        .welcome-text strong {
+            color: #2c3e50;
+        }
+
+        /* Grid de Módulos */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            border-color: rgba(102, 126, 234, 0.2);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .module-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .module-card.disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .module-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .module-card.padron .module-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .module-card.fiscales .module-icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .module-card.comicio .module-icon {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .module-card.resultados .module-icon {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .module-content h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .module-content p {
+            margin: 0 0 15px 0;
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+
+        .module-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .module-features li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .module-features li i {
+            color: #28a745;
+            font-size: 0.8rem;
+            width: 12px;
+        }
+
+        .module-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+
+        .module-status.available {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .module-status.coming-soon {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        /* Estadísticas rápidas */
+        .quick-stats {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .quick-stats h3 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-stats h3 i {
+            color: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 0 15px;
+            }
+
+            .dashboard-header {
+                padding: 20px;
+            }
+
+            .dashboard-title h1 {
+                font-size: 1.8rem;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .module-card {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .dashboard-title h1 {
+                font-size: 1.6rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .module-features {
+                display: none;
+            }
+        }
+
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .module-card {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .module-card:nth-child(1) { animation-delay: 0.1s; }
+        .module-card:nth-child(2) { animation-delay: 0.2s; }
+        .module-card:nth-child(3) { animation-delay: 0.3s; }
+        .module-card:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <!-- Barra de navegación unificada -->
+    <div id="navbar-container"></div>
+
+    <main class="dashboard-container">
+        <!-- Header del Dashboard -->
+        <header class="dashboard-header">
+            <div class="dashboard-title">
+                <i class="fas fa-tachometer-alt"></i>
+                <h1>Panel de Control Electoral</h1>
+            </div>
+            <p class="dashboard-subtitle">Gestión integral del proceso electoral municipal</p>
+            <div class="welcome-text">
+                Bienvenido/a <strong id="username">Usuario</strong> - 
+                <span id="user-role">Administrador</span>
+            </div>
+        </header>
+
+        <!-- Estadísticas rápidas -->
+        <section class="quick-stats" id="quick-stats" style="display: none;">
+            <h3>
+                <i class="fas fa-chart-line"></i>
+                Resumen del Sistema
+            </h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-total">0</div>
+                    <div class="stat-label">Total de Votantes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-relevados">0</div>
+                    <div class="stat-label">Relevamientos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-pendientes">0</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-progreso">0%</div>
+                    <div class="stat-label">Progreso</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid de Módulos del Sistema -->
+        <section class="modules-grid" id="modules-grid">
+            <!-- Los módulos se cargarán dinámicamente -->
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="src/components/NavbarComponent.js"></script>
+    <script src="src/services/ApiService.js"></script>
+    <script src="src/services/AuthService.js"></script>
+    
+    <script>
+        // Configuración de módulos por rol
+        const MODULES_CONFIG = {
+            administrador: [
+                {
+                    id: 'padron',
+                    title: 'Padrón Electoral',
+                    description: 'Gestión completa del padrón electoral municipal con herramientas de relevamiento.',
+                    icon: 'fa-users-cog',
+                    href: 'index.html',
+                    status: 'available',
+                    features: [
+                        'Consulta de votantes',
+                        'Relevamiento de preferencias',
+                        'Gestión de condiciones especiales',
+                        'Exportación de datos'
+                    ]
+                },
+                {
+                    id: 'resultados',
+                    title: 'Resultados y Estadísticas',
+                    description: 'Análisis detallado de resultados del relevamiento con gráficos interactivos.',
+                    icon: 'fa-chart-pie',
+                    href: 'resultados.html',
+                    status: 'available',
+                    features: [
+                        'Gráficos interactivos',
+                        'Estadísticas por barrio',
+                        'Análisis de tendencias',
+                        'Reportes automáticos'
+                    ]
+                },
+                {
+                    id: 'fiscales',
+                    title: 'Gestión de Fiscales',
+                    description: 'Administración de fiscales de mesa y coordinadores de comicio.',
+                    icon: 'fa-user-shield',
+                    href: 'fiscales.html',
+                    status: 'coming-soon',
+                    features: [
+                        'Registro de fiscales',
+                        'Asignación de mesas',
+                        'Capacitación online',
+                        'Control de asistencia'
+                    ]
+                },
+                {
+                    id: 'comicio',
+                    title: 'Gestión de Comicio',
+                    description: 'Configuración y administración de lugares de votación y mesas electorales.',
+                    icon: 'fa-building',
+                    href: 'comicio.html',
+                    status: 'coming-soon',
+                    features: [
+                        'Configuración de escuelas',
+                        'Distribución de mesas',
+                        'Logística electoral',
+                        'Materiales de votación'
+                    ]
+                }
+            ],
+            encargado_relevamiento: [
+                {
+                    id: 'padron',
+                    title: 'Relevamiento de Padrón',
+                    description: 'Acceso a las herramientas de relevamiento del padrón electoral.',
+                    icon: 'fa-clipboard-check',
+                    href: 'index.html',
+                    status: 'available',
+                    features: [
+                        'Carga de relevamientos',
+                        'Actualización de datos',
+                        'Consulta de votantes',
+                        'Reportes de progreso'
+                    ]
+                }
+            ],
+            consultor: [
+                {
+                    id: 'resultados',
+                    title: 'Estadísticas y Reportes',
+                    description: 'Consulta de estadísticas y análisis de datos electorales.',
+                    icon: 'fa-chart-bar',
+                    href: 'resultados.html',
+                    status: 'available',
+                    features: [
+                        'Dashboards interactivos',
+                        'Reportes estadísticos',
+                        'Análisis de tendencias',
+                        'Exportación de gráficos'
+                    ]
+                }
+            ]
+        };
+
+        // Estado de la aplicación
+        let currentUser = null;
+        let currentUserRole = null;
+        let userPermissions = [];
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Iniciando Dashboard...');
+            console.log('📋 Servicios disponibles:', {
+                authService: !!window.authService,
+                apiService: !!window.apiService,
+                navbarComponent: !!window.navbarComponent
+            });
+            
+            try {
+                // Inicializar navbar
+                if (window.navbarComponent && typeof window.navbarComponent.init === 'function') {
+                    window.navbarComponent.init('navbar-container', 'dashboard');
+                    console.log('✅ Navbar inicializado');
+                }
+
+                // Verificar autenticación y obtener datos del usuario
+                const isAuthenticated = await initAuth();
+                console.log('🔐 Estado de autenticación:', isAuthenticated);
+                
+                if (!isAuthenticated) {
+                    console.warn('⚠️ No autenticado - redirigiendo a index.html');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Obtener información completa del usuario
+                await loadUserInfo();
+                console.log('👤 Usuario actual:', {
+                    user: currentUser?.username,
+                    role: currentUserRole,
+                    permissions: userPermissions.length
+                });
+
+                // Cargar dashboard
+                await loadDashboard();
+                console.log('📊 Dashboard cargado con', userPermissions.length, 'permisos');
+                
+                console.log('✅ Dashboard iniciado correctamente');
+                
+            } catch (error) {
+                console.error('❌ Error iniciando dashboard:', error);
+                showError('Error al cargar el panel de control: ' + error.message);
+            }
+        });
+
+        // Inicializar autenticación
+        async function initAuth() {
+            try {
+                if (window.authService && window.authService.init) {
+                    const isAuthenticated = await window.authService.init();
+                    if (isAuthenticated) {
+                        currentUser = window.authService.getCurrentUser();
+                        return true;
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.error('Error en autenticación:', error);
+                return false;
+            }
+        }
+
+        // Obtener información completa del usuario desde el backend
+        async function loadUserInfo() {
+            try {
+                const response = await window.apiService.request('/api/auth/me', {
+                    method: 'GET'
+                });
+
+                if (response.success && response.data) {
+                    currentUser = response.data;
+                    currentUserRole = response.data.rol;
+                    userPermissions = response.data.permisos || [];
+                    
+                    console.log('✅ Usuario cargado:', {
+                        nombre: currentUser.nombre_completo,
+                        rol: currentUserRole,
+                        permisos: userPermissions
+                    });
+                    
+                    updateUserInfo();
+                } else {
+                    throw new Error('No se pudo obtener información del usuario');
+                }
+            } catch (error) {
+                console.error('❌ Error cargando información del usuario:', error);
+                // Si falla, usar datos básicos del authService
+                if (currentUser) {
+                    currentUserRole = 'administrador'; // Fallback por defecto
+                    // Asignar permisos por defecto para administrador
+                    userPermissions = ['padron.view', 'padron.edit', 'padron.relevamiento', 'padron.export', 
+                                     'resultados.view', 'resultados.export', 'fiscales.view', 'fiscales.edit',
+                                     'comicio.view', 'comicio.edit', 'reportes.view'];
+                    updateUserInfo();
+                }
+            }
+        }
+
+        // Actualizar información del usuario
+        function updateUserInfo() {
+            if (currentUser) {
+                const usernameEl = document.getElementById('username');
+                const userRoleEl = document.getElementById('user-role');
+                
+                if (usernameEl) {
+                    usernameEl.textContent = currentUser.nombre_completo || currentUser.username || 'Usuario';
+                }
+                
+                if (userRoleEl) {
+                    userRoleEl.textContent = getRoleDisplayName(currentUserRole);
+                }
+            }
+        }
+
+        // Obtener nombre de rol para mostrar
+        function getRoleDisplayName(role) {
+            const roleNames = {
+                'administrador': 'Administrador',
+                'encargado_relevamiento': 'Encargado de Relevamiento',
+                'consultor': 'Consultor'
+            };
+            return roleNames[role] || 'Usuario';
+        }
+
+        // Cargar dashboard según rol y permisos
+        async function loadDashboard() {
+            // Usar configuración basada en permisos
+            const modules = getModulesForUser();
+            renderModules(modules);
+            
+            // Cargar estadísticas si tiene permisos para ver padrón
+            const hasAccessToPadron = hasPermission('padron.view');
+            if (hasAccessToPadron) {
+                await loadQuickStats();
+            }
+        }
+
+        // Obtener módulos basados en los permisos del usuario
+        function getModulesForUser() {
+            const availableModules = [];
+
+            // Módulo Dashboard (siempre disponible)
+            
+            // Módulo Padrón
+            if (hasPermission('padron.view')) {
+                availableModules.push({
+                    id: 'padron',
+                    title: 'Padrón Electoral',
+                    description: 'Gestión del padrón electoral municipal con herramientas de relevamiento.',
+                    icon: 'fa-users-cog',
+                    href: 'index.html',
+                    status: 'available',
+                    features: getFeaturesByPermissions('padron')
+                });
+            }
+
+            // Módulo Resultados/Estadísticas
+            if (hasPermission('resultados.view')) {
+                availableModules.push({
+                    id: 'resultados',
+                    title: 'Resultados y Estadísticas',
+                    description: 'Análisis detallado de resultados del relevamiento con gráficos interactivos.',
+                    icon: 'fa-chart-pie',
+                    href: 'resultados.html',
+                    status: 'available',
+                    features: getFeaturesByPermissions('resultados')
+                });
+            }
+
+            // Módulo Fiscales (futuro)
+            if (hasPermission('fiscales.view')) {
+                availableModules.push({
+                    id: 'fiscales',
+                    title: 'Gestión de Fiscales',
+                    description: 'Administración de fiscales de mesa y coordinadores de comicio.',
+                    icon: 'fa-user-shield',
+                    href: 'fiscales.html',
+                    status: 'coming-soon',
+                    features: getFeaturesByPermissions('fiscales')
+                });
+            }
+
+            // Módulo Comicio (futuro)
+            if (hasPermission('comicio.view')) {
+                availableModules.push({
+                    id: 'comicio',
+                    title: 'Gestión de Comicio',
+                    description: 'Configuración y administración de lugares de votación y mesas electorales.',
+                    icon: 'fa-building',
+                    href: 'comicio.html',
+                    status: 'coming-soon',
+                    features: getFeaturesByPermissions('comicio')
+                });
+            }
+
+            return availableModules;
+        }
+
+        // Verificar si el usuario tiene un permiso específico
+        function hasPermission(permission) {
+            return userPermissions.includes(permission);
+        }
+
+        // Obtener características del módulo según permisos
+        function getFeaturesByPermissions(module) {
+            const featureMap = {
+                padron: {
+                    'padron.view': 'Consulta de votantes',
+                    'padron.edit': 'Modificación de datos',
+                    'padron.relevamiento': 'Relevamiento de preferencias',
+                    'padron.export': 'Exportación de datos'
+                },
+                resultados: {
+                    'resultados.view': 'Gráficos interactivos',
+                    'resultados.export': 'Reportes automáticos'
+                },
+                fiscales: {
+                    'fiscales.view': 'Consulta de fiscales',
+                    'fiscales.edit': 'Gestión completa'
+                },
+                comicio: {
+                    'comicio.view': 'Consulta de lugares',
+                    'comicio.edit': 'Gestión completa'
+                }
+            };
+
+            const moduleFeatures = featureMap[module] || {};
+            const availableFeatures = [];
+
+            for (const [permission, feature] of Object.entries(moduleFeatures)) {
+                if (hasPermission(permission)) {
+                    availableFeatures.push(feature);
+                }
+            }
+
+            return availableFeatures.length > 0 ? availableFeatures : ['Acceso básico'];
+        }
+
+        // Renderizar módulos
+        function renderModules(modules) {
+            const container = document.getElementById('modules-grid');
+            if (!container) return;
+
+            container.innerHTML = modules.map(module => `
+                <a href="${module.href}" class="module-card ${module.id} ${module.status === 'coming-soon' ? 'disabled' : ''}"
+                   onclick="${module.status === 'coming-soon' ? 'return false;' : ''}">
+                    <div class="module-icon">
+                        <i class="fas ${module.icon}"></i>
+                    </div>
+                    <div class="module-content">
+                        <h3>${module.title}</h3>
+                        <p>${module.description}</p>
+                        <ul class="module-features">
+                            ${module.features.map(feature => `
+                                <li><i class="fas fa-check-circle"></i> ${feature}</li>
+                            `).join('')}
+                        </ul>
+                        <span class="module-status ${module.status}">
+                            <i class="fas ${module.status === 'available' ? 'fa-check-circle' : 'fa-clock'}"></i>
+                            ${module.status === 'available' ? 'Disponible' : 'Próximamente'}
+                        </span>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        // Cargar estadísticas rápidas
+        async function loadQuickStats() {
+            try {
+                // TODO: Hacer llamada real a la API para obtener estadísticas
+                // Por ahora usamos datos simulados
+                const stats = {
+                    total: 1250,
+                    relevados: 890,
+                    pendientes: 360,
+                    progreso: Math.round((890 / 1250) * 100)
+                };
+
+                document.getElementById('stat-total').textContent = stats.total.toLocaleString();
+                document.getElementById('stat-relevados').textContent = stats.relevados.toLocaleString();
+                document.getElementById('stat-pendientes').textContent = stats.pendientes.toLocaleString();
+                document.getElementById('stat-progreso').textContent = stats.progreso + '%';
+
+                // Mostrar la sección de estadísticas
+                document.getElementById('quick-stats').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+
+        // Mostrar errores
+        function showError(message) {
+            console.error('❌ Error:', message);
+            // TODO: Implementar sistema de notificaciones
+            alert('Error: ' + message);
+        }
+    </script>
+</body>
+</html>

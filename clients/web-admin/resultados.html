@@ -165,10 +165,10 @@
 </head>
 <body>
     <div class="container">
-        <!-- Botón para regresar al Padrón -->
-        <button class="back-btn" onclick="window.location.href='index.html'">
+        <!-- Botón para regresar al Dashboard -->
+        <button class="back-btn" onclick="window.location.href='dashboard.html'">
             <i class="fas fa-arrow-left"></i>
-            Volver al Padrón Electoral
+            Volver al Dashboard
         </button>
         
         <!-- Contenedor de Resultados -->
@@ -195,9 +195,41 @@
                 const isAuthenticated = await window.authService.init();
                 
                 if (!isAuthenticated) {
-                    window.location.href = '/';
+                    window.location.href = 'dashboard.html';
                     return;
                 }
+                
+                // Cargar permisos del usuario
+                let userPermissions = [];
+                try {
+                    const userInfo = await window.apiService.request('/api/auth/me');
+                    userPermissions = (userInfo && userInfo.data && Array.isArray(userInfo.data.permisos))
+                        ? userInfo.data.permisos
+                        : [];
+                    console.log('✅ Permisos del usuario cargados:', userPermissions);
+                } catch (error) {
+                    console.error('❌ Error al cargar permisos del usuario:', error);
+                }
+                
+                // Verificar si tiene permisos para ver resultados
+                if (!userPermissions.includes('resultados.view')) {
+                    console.log('❌ Usuario sin permisos para ver resultados');
+                    document.getElementById('resultados-container').innerHTML = `
+                        <div class="error-container" style="display: block; max-width: 600px; margin: 50px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
+                            <div class="error-message" style="color: #e74c3c;">
+                                <i class="fas fa-lock" style="font-size: 48px; margin-bottom: 20px;"></i>
+                                <h3 style="margin: 0 0 15px; font-size: 24px;">Acceso Denegado</h3>
+                                <p style="margin: 0 0 25px; font-size: 16px; color: #666;">No tiene permisos para acceder a los resultados del relevamiento.</p>
+                                <button onclick="window.location.href='dashboard.html'" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; text-decoration: none;">
+                                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                console.log('✅ Usuario autenticado con permisos para resultados');
                 
                 // Inicializar componente de resultados
                 const exito = await window.resultadosComponent.init('resultados-container');

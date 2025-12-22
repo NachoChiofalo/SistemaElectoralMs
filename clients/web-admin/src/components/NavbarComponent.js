@@ -3,6 +3,7 @@
 
 (function(global) {
     const NAV_ITEMS = [
+        { href: 'dashboard.html', icon: 'fa-tachometer-alt', label: 'Dashboard', key: 'dashboard' },
         { href: 'index.html', icon: 'fa-users-cog', label: 'Padrón Electoral', key: 'padron' },
         { href: 'fiscales.html', icon: 'fa-user-shield', label: 'Fiscales', key: 'fiscales' },
         { href: 'comicio.html', icon: 'fa-building', label: 'Comicio', key: 'comicio' }

@@ -1,568 +1,2095 @@
-🌐 ApiService inicializado
-AuthService.js:314 🔐 AuthService inicializado
-PadronComponent.js:1060 🖥️ PadronComponent cargado
-app.js:193 🔧 App.js cargado
-app.js:12 🚀 Iniciando aplicación...
+ApiService.js:265 🌐 ApiService inicializado correctamente
+AuthService.js:314 🔐 AuthService inicializado correctamente
+PadronComponent.js:1097 🖥️ PadronComponent cargado correctamente
+app.js:362 🔧 App.js cargado
+app.js:13 🚀 Iniciando aplicación...
+app.js:14 📋 Servicios disponibles: {authService: true, apiService: true, padronComponent: true, loginComponent: true}
 ApiService.js:41 🌐 API Request: POST http://localhost:8080/api/auth/verify
 AuthService.js:311 ⏰ InactivityService inicializado
+app.js:23 🔐 Estado de autenticación: true
+app.js:33 👤 Usuario autenticado: admin
+app.js:50 🔑 Cargando permisos del usuario...
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/auth/me
+app.js:56 ✅ Permisos del usuario cargados: {usuario: 'admin', rol: 'administrador', permisos: 19, lista: Array(19)}
+app.js:37 🔑 Permisos cargados: (19) ['padron.view', 'padron.edit', 'padron.import', 'padron.export', 'resultados.view', 'fiscales.view', 'fiscales.edit', 'usuarios.view', 'usuarios.edit', 'reportes.generate', 'reportes.view', 'comicio.view', 'comicio.edit', 'dashboard.view', 'padron.relevamiento', 'resultados.export', 'admin.users', 'admin.roles', 'admin.system']
+app.js:94 🚀 Iniciando aplicación principal...
+app.js:109 🔐 Verificando permisos: {padron.view: true, padron.edit: true, totalPermisos: 19}
+app.js:117 ✅ Usuario tiene permisos de padrón - inicializando componente...
 PadronComponent.js:20 🖥️ Inicializando componente de Padrón...
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/filtros
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/estadisticas
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/votantes?pagina=1&limite=50&ordenCampo=apellido&ordenDireccion=asc
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/16194886
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/27524680
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/17349966
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/5270588
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/4603837
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/4990566
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/5923431
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/3546514
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/22294686
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/780386
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/17349935
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/22523919
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/38885224
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/35213615
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/18375965
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/4603873
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/38020124
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/33524976
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/17855958
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/5004793
-:8080/padron/detalle-votante/18375965:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+PadronComponent.js:21   - Container ID: padron-container
+PadronComponent.js:29 ✅ Container encontrado: <div id=​"padron-container" class=​"padron-electoral-container">​…​</div>​<div class=​"padron-header">​…​</div>​flex<div id=​"estadisticas-rapidas" class=​"padron-estadisticas-rapidas">​…​</div>​<div class=​"padron-filtros" id=​"filtros-container">​…​</div>​<div class=​"padron-tabla-container">​…​</div>​<div class=​"tabla-header">​…​</div>​flex<div class=​"tabla-info" id=​"tabla-info">​ Cargando... ​</div>​<div class=​"tabla-acciones">​…​</div>​flex<label>​Mostrar​</label>​<select id=​"registros-por-pagina">​…​</select>​<label>​registros​</label>​</div>​</div>​<div class=​"tabla-responsive">​…​</div>​<table class=​"tabla-padron" id=​"tabla-padron">​…​</table>​<thead>​…​</thead>​<tbody id=​"tabla-body">​…​</tbody>​<tr class=​"fila-votante con-relevamiento" data-dni=​"16194886">​…​</tr>​<td class=​"dni" data-label=​"DNI">​16194886​</td>​<td class=​"apellido" data-label=​"Apellido">​ABATANEO​</td>​<td data-label=​"Nombre">​ALICIA GRACIELA​</td>​<td class=​"edad" data-label=​"Edad">​62​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value=​"Prueba" onchange=​"padronComponent.actualizarObservacion('16194886', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"27524680">​…​</tr>​<td class=​"dni" data-label=​"DNI">​27524680​</td>​<td class=​"apellido" data-label=​"Apellido">​ABATANEO​</td>​<td data-label=​"Nombre">​GUSTAVO OMAR​</td>​<td class=​"edad" data-label=​"Edad">​46​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value=​"Prueba desde API" onchange=​"padronComponent.actualizarObservacion('27524680', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"17349966">​…​</tr>​<td class=​"dni" data-label=​"DNI">​17349966​</td>​<td class=​"apellido" data-label=​"Apellido">​ABATANEO​</td>​<td data-label=​"Nombre">​NORMA BEATRIZ​</td>​<td class=​"edad" data-label=​"Edad">​59​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value=​"Prueba" onchange=​"padronComponent.actualizarObservacion('17349966', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"5270588">​…​</tr>​<td class=​"dni" data-label=​"DNI">​5270588​</td>​<td class=​"apellido" data-label=​"Apellido">​ABATANEO​</td>​<td data-label=​"Nombre">​OMAR ALBERTO​</td>​<td class=​"edad" data-label=​"Edad">​76​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('5270588', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"4603837">​…​</tr>​<td class=​"dni" data-label=​"DNI">​4603837​</td>​<td class=​"apellido" data-label=​"Apellido">​ABBA​</td>​<td data-label=​"Nombre">​CELIA FRANCISCA​</td>​<td class=​"edad" data-label=​"Edad">​82​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('4603837', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"4990566">​…​</tr>​<td class=​"dni" data-label=​"DNI">​4990566​</td>​<td class=​"apellido" data-label=​"Apellido">​ABBA​</td>​<td data-label=​"Nombre">​DILMA MARIA​</td>​<td class=​"edad" data-label=​"Edad">​79​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('4990566', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"5923431">​…​</tr>​<td class=​"dni" data-label=​"DNI">​5923431​</td>​<td class=​"apellido" data-label=​"Apellido">​ABBA​</td>​<td data-label=​"Nombre">​MIRTA TERESA​</td>​<td class=​"edad" data-label=​"Edad">​77​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('5923431', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"3546514">​…​</tr>​<td class=​"dni" data-label=​"DNI">​3546514​</td>​<td class=​"apellido" data-label=​"Apellido">​ABBA ALISIARDI​</td>​<td data-label=​"Nombre">​SANTINA DOMINGA ANA​</td>​<td class=​"edad" data-label=​"Edad">​86​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('3546514', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"22294686">​…​</tr>​<td class=​"dni" data-label=​"DNI">​22294686​</td>​<td class=​"apellido" data-label=​"Apellido">​ABRAN​</td>​<td data-label=​"Nombre">​ALEJANDRA KARINA​</td>​<td class=​"edad" data-label=​"Edad">​54​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('22294686', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"780386">​…​</tr>​<td class=​"dni" data-label=​"DNI">​780386​</td>​<td class=​"apellido" data-label=​"Apellido">​ABRATTE​</td>​<td data-label=​"Nombre">​ELBA ILDA​</td>​<td class=​"edad" data-label=​"Edad">​89​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('780386', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"17349935">​…​</tr>​<td class=​"dni" data-label=​"DNI">​17349935​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​ADALBERTO EDUARDO​</td>​<td class=​"edad" data-label=​"Edad">​60​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('17349935', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"22523919">​…​</tr>​<td class=​"dni" data-label=​"DNI">​22523919​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​EZEQUIEL EDGARDO​</td>​<td class=​"edad" data-label=​"Edad">​53​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('22523919', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"38885224">​…​</tr>​<td class=​"dni" data-label=​"DNI">​38885224​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​FACUNDO ANDRES​</td>​<td class=​"edad" data-label=​"Edad">​30​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value=​"Prueba" onchange=​"padronComponent.actualizarObservacion('38885224', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante con-relevamiento" data-dni=​"35213615">​…​</tr>​<td class=​"dni" data-label=​"DNI">​35213615​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​JUAN MANUEL​</td>​<td class=​"edad" data-label=​"Edad">​35​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('35213615', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"18375965">​…​</tr>​<td class=​"dni" data-label=​"DNI">​18375965​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​LEONARDO GERMAN​</td>​<td class=​"edad" data-label=​"Edad">​58​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('18375965', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"4603873">​…​</tr>​<td class=​"dni" data-label=​"DNI">​4603873​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​MARTA ROSA JOSEFA​</td>​<td class=​"edad" data-label=​"Edad">​81​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('4603873', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"38020124">​…​</tr>​<td class=​"dni" data-label=​"DNI">​38020124​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​MATIAS EZEQUIEL​</td>​<td class=​"edad" data-label=​"Edad">​31​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('38020124', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"33524976">​…​</tr>​<td class=​"dni" data-label=​"DNI">​33524976​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​PAMELA ANAHI​</td>​<td class=​"edad" data-label=​"Edad">​37​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('33524976', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"17855958">​…​</tr>​<td class=​"dni" data-label=​"DNI">​17855958​</td>​<td class=​"apellido" data-label=​"Apellido">​ACCENDERE​</td>​<td data-label=​"Nombre">​VIVIANA ANGELICA​</td>​<td class=​"edad" data-label=​"Edad">​59​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('17855958', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"5004793">​…​</tr>​<td class=​"dni" data-label=​"DNI">​5004793​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEBEDO​</td>​<td data-label=​"Nombre">​MARIA INES​</td>​<td class=​"edad" data-label=​"Edad">​75​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('5004793', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"6653187">​…​</tr>​<td class=​"dni" data-label=​"DNI">​6653187​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​ANGEL HORACIO​</td>​<td class=​"edad" data-label=​"Edad">​80​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('6653187', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"6639311">​…​</tr>​<td class=​"dni" data-label=​"DNI">​6639311​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​BENITO MIGUEL​</td>​<td class=​"edad" data-label=​"Edad">​88​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('6639311', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"38885226">​…​</tr>​<td class=​"dni" data-label=​"DNI">​38885226​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​CESAR ALEJANDRO​</td>​<td class=​"edad" data-label=​"Edad">​30​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('38885226', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"41695804">​…​</tr>​<td class=​"dni" data-label=​"DNI">​41695804​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​DANIELA ALEJANDRA​</td>​<td class=​"edad" data-label=​"Edad">​26​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('41695804', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"11461192">​…​</tr>​<td class=​"dni" data-label=​"DNI">​11461192​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​DIONISIA CIRILA​</td>​<td class=​"edad" data-label=​"Edad">​70​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('11461192', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"3208992">​…​</tr>​<td class=​"dni" data-label=​"DNI">​3208992​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​DOMINGA​</td>​<td class=​"edad" data-label=​"Edad">​91​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('3208992', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"2927049">​…​</tr>​<td class=​"dni" data-label=​"DNI">​2927049​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​ELISA​</td>​<td class=​"edad" data-label=​"Edad">​88​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('2927049', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"16972742">​…​</tr>​<td class=​"dni" data-label=​"DNI">​16972742​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​HECTOR OSVALDO​</td>​<td class=​"edad" data-label=​"Edad">​61​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('16972742', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"32113114">​…​</tr>​<td class=​"dni" data-label=​"DNI">​32113114​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​JUAN PABLO​</td>​<td class=​"edad" data-label=​"Edad">​39​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('32113114', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"11578141">​…​</tr>​<td class=​"dni" data-label=​"DNI">​11578141​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​JUANA ROSA​</td>​<td class=​"edad" data-label=​"Edad">​70​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('11578141', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"40974182">​…​</tr>​<td class=​"dni" data-label=​"DNI">​40974182​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​LUCAS LEONEL​</td>​<td class=​"edad" data-label=​"Edad">​26​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('40974182', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"21757839">​…​</tr>​<td class=​"dni" data-label=​"DNI">​21757839​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​MARCELA ALEJANDRA JACINTA​</td>​<td class=​"edad" data-label=​"Edad">​55​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('21757839', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"28958141">​…​</tr>​<td class=​"dni" data-label=​"DNI">​28958141​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​MARIA CRISTINA​</td>​<td class=​"edad" data-label=​"Edad">​44​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('28958141', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"39611066">​…​</tr>​<td class=​"dni" data-label=​"DNI">​39611066​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​MARIA VICTORIA​</td>​<td class=​"edad" data-label=​"Edad">​29​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('39611066', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"42513329">​…​</tr>​<td class=​"dni" data-label=​"DNI">​42513329​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​MILAGROS ANAHI​</td>​<td class=​"edad" data-label=​"Edad">​25​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('42513329', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"34335436">​…​</tr>​<td class=​"dni" data-label=​"DNI">​34335436​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​MONICA BEATRIZ​</td>​<td class=​"edad" data-label=​"Edad">​36​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('34335436', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"13731837">​…​</tr>​<td class=​"dni" data-label=​"DNI">​13731837​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​NORI ESTHER​</td>​<td class=​"edad" data-label=​"Edad">​66​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('13731837', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"23137992">​…​</tr>​<td class=​"dni" data-label=​"DNI">​23137992​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​PEDRO ARIEL​</td>​<td class=​"edad" data-label=​"Edad">​52​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('23137992', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"10367119">​…​</tr>​<td class=​"dni" data-label=​"DNI">​10367119​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​PEDRO MARCELO​</td>​<td class=​"edad" data-label=​"Edad">​73​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('10367119', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"17818601">​…​</tr>​<td class=​"dni" data-label=​"DNI">​17818601​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​ROSA RAMONA​</td>​<td class=​"edad" data-label=​"Edad">​59​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('17818601', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"26590565">​…​</tr>​<td class=​"dni" data-label=​"DNI">​26590565​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​SERGIO DANIEL​</td>​<td class=​"edad" data-label=​"Edad">​47​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('26590565', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"28958125">​…​</tr>​<td class=​"dni" data-label=​"DNI">​28958125​</td>​<td class=​"apellido" data-label=​"Apellido">​ACEVEDO​</td>​<td data-label=​"Nombre">​VERONICA MERCEDES​</td>​<td class=​"edad" data-label=​"Edad">​44​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('28958125', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"8401349">​…​</tr>​<td class=​"dni" data-label=​"DNI">​8401349​</td>​<td class=​"apellido" data-label=​"Apellido">​ACOSTA​</td>​<td data-label=​"Nombre">​ANDRES CARLOS​</td>​<td class=​"edad" data-label=​"Edad">​75​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('8401349', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"6592238">​…​</tr>​<td class=​"dni" data-label=​"DNI">​6592238​</td>​<td class=​"apellido" data-label=​"Apellido">​ACOSTA​</td>​<td data-label=​"Nombre">​BENJAMIN​</td>​<td class=​"edad" data-label=​"Edad">​87​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('6592238', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"38885762">​…​</tr>​<td class=​"dni" data-label=​"DNI">​38885762​</td>​<td class=​"apellido" data-label=​"Apellido">​ACOSTA​</td>​<td data-label=​"Nombre">​DANIA ROMINA​</td>​<td class=​"edad" data-label=​"Edad">​29​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('38885762', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"24747008">​…​</tr>​<td class=​"dni" data-label=​"DNI">​24747008​</td>​<td class=​"apellido" data-label=​"Apellido">​ACOSTA​</td>​<td data-label=​"Nombre">​FERNANDO ARIEL​</td>​<td class=​"edad" data-label=​"Edad">​50​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('24747008', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"13274666">​…​</tr>​<td class=​"dni" data-label=​"DNI">​13274666​</td>​<td class=​"apellido" data-label=​"Apellido">​ACOSTA​</td>​<td data-label=​"Nombre">​GLORIA DIAMANTINA​</td>​<td class=​"edad" data-label=​"Edad">​66​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('13274666', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"42183717">​…​</tr>​<td class=​"dni" data-label=​"DNI">​42183717​</td>​<td class=​"apellido" data-label=​"Apellido">​ACOSTA​</td>​<td data-label=​"Nombre">​GUADALUPE DEL MILAGRO​</td>​<td class=​"edad" data-label=​"Edad">​26​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('42183717', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"4781277">​…​</tr>​<td class=​"dni" data-label=​"DNI">​4781277​</td>​<td class=​"apellido" data-label=​"Apellido">​ACOSTA​</td>​<td data-label=​"Nombre">​ISABEL ELENA​</td>​<td class=​"edad" data-label=​"Edad">​79​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​F​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('4781277', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​<tr class=​"fila-votante sin-relevamiento" data-dni=​"30705020">​…​</tr>​<td class=​"dni" data-label=​"DNI">​30705020​</td>​<td class=​"apellido" data-label=​"Apellido">​ACOSTA​</td>​<td data-label=​"Nombre">​ISIDRO MATIAS​</td>​<td class=​"edad" data-label=​"Edad">​40​</td>​<td data-label=​"Circuito">​162 - ALCIRA​</td>​<td data-label=​"Sexo">​M​</td>​<td data-label=​"Opción Política">​…​</td>​<td data-label=​"Observación">​…​</td>​<input type=​"text" class=​"observacion-input" placeholder=​"Observación..." value onchange=​"padronComponent.actualizarObservacion('30705020', this.value)​">​</td>​<td data-label=​"Condiciones" class=​"condiciones-cell">​…​</td>​<td class=​"acciones" data-label=​"Acciones">​…​</td>​</tr>​</tbody>​</table>​</div>​<div class=​"paginacion-container" id=​"paginacion-container">​…​</div>​flex</div>​<!-- Modal para importar CSV --><div id=​"modal-importar" class=​"modal-overlay" style=​"display:​ none;​">​…​</div>​<!-- Modal para estadísticas --><div id=​"modal-estadisticas" class=​"modal-overlay" style=​"display:​ none;​">​…​</div>​</div>​
+PadronComponent.js:32 🔍 Verificando conexión con API...
+ApiService.js:214 🔍 Verificando estado de API...
+ApiService.js:218   - URL de health: http://localhost:8080/health
+ApiService.js:228   - Response status: 200
+ApiService.js:229   - Response ok: true
+ApiService.js:233   - Health data: {status: 'OK', service: 'api-gateway', timestamp: '2025-12-22T19:06:14.670Z', uptime: 307.038024887, services: {…}}
+PadronComponent.js:35 📡 Estado API: ✅ DISPONIBLE
+PadronComponent.js:49 🎨 Creando interfaz del padrón...
+PadronComponent.js:52 ✅ Interfaz creada
+PadronComponent.js:58 🎪 Inicializando eventos...
+PadronComponent.js:61 ✅ Eventos inicializados
+PadronComponent.js:66 📊 Cargando datos...
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/filtros
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/estadisticas
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/votantes?pagina=1&limite=50&ordenCampo=apellido&ordenDireccion=asc
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/16194886
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/27524680
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/17349966
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/5270588
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/4603837
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/4990566
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/5923431
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/3546514
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/22294686
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/780386
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/17349935
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/22523919
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/38885224
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/35213615
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/18375965
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/4603873
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/38020124
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/33524976
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/17855958
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/5004793
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/18375965 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 4)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 18375965
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/38020124:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 18375965
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/4603873 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 6)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 38020124
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/4603873:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 5)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 4603873
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/17855958:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 4603873
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/38020124 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 8)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.js:1061:42
+    at async Promise.all (:3000/index 6)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 17855958
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/33524976:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 38020124
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/33524976 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 7)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 33524976
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/5004793:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 33524976
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/17855958 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
+    at async Promise.all (:3000/index 8)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 17855958
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/5004793 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
+    at ApiService.request (ApiService.js:56:23)
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 9)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 5004793
-(anónimas) @ PadronComponent.js:1031
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/6653187
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/6639311
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/38885226
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/41695804
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/11461192
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/3208992
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/2927049
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/16972742
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/32113114
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/11578141
-:8080/padron/detalle-votante/6653187:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 5004793
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/6653187
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/6639311
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/38885226
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/41695804
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/11461192
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/3208992
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/2927049
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/16972742
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/32113114
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/11578141
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/3208992' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/3208992 net::ERR_FAILED 429 (Too Many Requests)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 3208992
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/2927049' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/2927049 net::ERR_FAILED 429 (Too Many Requests)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 2927049
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/16972742' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/16972742 net::ERR_FAILED 429 (Too Many Requests)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 16972742
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/6639311 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 0)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 6653187
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/41695804:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 3)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 41695804
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/38885226:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 2)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 38885226
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/11461192:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 4)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 11461192
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/6639311:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 1)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 6639311
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/3208992:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 6639311
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/6653187 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 5)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 3208992
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/2927049:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 6)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 2927049
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/16972742:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 7)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 16972742
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/32113114:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 8)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 32113114
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/11578141:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 9)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 11578141
-(anónimas) @ PadronComponent.js:1031
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/40974182
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/21757839
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/28958141
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/39611066
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/42513329
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/34335436
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/13731837
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/23137992
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/10367119
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/17818601
-:8080/padron/detalle-votante/40974182:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 0)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 40974182
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/21757839:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 6653187
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/32113114' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/32113114 net::ERR_FAILED 429 (Too Many Requests)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 32113114
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/11578141' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/11578141 net::ERR_FAILED 429 (Too Many Requests)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 11578141
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/41695804 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 1)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 21757839
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/28958141:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 2)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 28958141
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/42513329:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 4)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 42513329
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/39611066:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 3)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 39611066
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/13731837:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 41695804
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/38885226 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 6)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 13731837
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/34335436:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 5)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 34335436
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/23137992:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 7)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 23137992
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/10367119:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 8)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 10367119
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/17818601:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 9)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 17818601
-(anónimas) @ PadronComponent.js:1031
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/26590565
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/28958125
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/8401349
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/6592238
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/38885762
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/24747008
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/13274666
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/42183717
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/4781277
-ApiService.js:41 🌐 API Request: GET http://localhost:8080/padron/detalle-votante/30705020
-:8080/padron/detalle-votante/26590565:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 0)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 26590565
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/28958125:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 1)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 28958125
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/8401349:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 2)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 8401349
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/6592238:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 38885226
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/11461192 404 (Not Found)
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
 ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
     at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 3)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
-request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 6592238
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/38885762:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
+    at async PadronComponent.js:1061:42
     at async Promise.all (:3000/index 4)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1073:41)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 38885762
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/24747008:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 5)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 11461192
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/40974182
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/21757839
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/28958141
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/39611066
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/42513329
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/34335436
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/13731837
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/23137992
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/10367119
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/17818601
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/40974182' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/40974182 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 24747008
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/13274666:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 6)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 40974182
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/21757839' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/21757839 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 13274666
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/42183717:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 7)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 21757839
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/28958141' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/28958141 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 42183717
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/4781277:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 8)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 28958141
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/39611066' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/39611066 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 4781277
-(anónimas) @ PadronComponent.js:1031
-:8080/padron/detalle-votante/30705020:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-ApiService.js:67 ❌ Error en API: Error: HTTP 404: Not Found
-    at ApiService.request (ApiService.js:56:23)
-    at async PadronComponent.js:1024:42
-    at async Promise.all (:3000/index 9)
-    at async PadronComponent.enriquecerConDetalles (PadronComponent.js:1036:41)
-    at async PadronComponent.actualizarTabla (PadronComponent.js:347:41)
-    at async PadronComponent.cargarDatos (PadronComponent.js:320:13)
-    at async PadronComponent.init (PadronComponent.js:36:9)
-    at async App.initMainApp (app.js:52:34)
-    at async App.init (app.js:26:9)
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 39611066
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/42513329' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/42513329 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
 request @ ApiService.js:67
-PadronComponent.js:1031 No se pudo cargar detalle para DNI 30705020
-(anónimas) @ PadronComponent.js:1031
-PadronComponent.js:38 ✅ Componente de Padrón inicializado
-app.js:54 ✅ Padrón inicializado correctamente
-app.js:28 🎉 Aplicación iniciada
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 42513329
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/34335436' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/34335436 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 34335436
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/13731837' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/13731837 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 13731837
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/23137992' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/23137992 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 23137992
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/10367119' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/10367119 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 10367119
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/17818601' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/17818601 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 17818601
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/26590565
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/28958125
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/8401349
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/6592238
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/38885762
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/24747008
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/13274666
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/42183717
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/4781277
+ApiService.js:41 🌐 API Request: GET http://localhost:8080/api/padron/detalle-votante/30705020
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/26590565' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/26590565 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 26590565
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/28958125' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/28958125 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 28958125
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/8401349' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/8401349 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 8401349
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/6592238' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/6592238 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 6592238
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/38885762' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/38885762 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 38885762
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/24747008' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/24747008 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 24747008
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/13274666' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/13274666 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 13274666
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/42183717' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/42183717 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 42183717
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/4781277' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/4781277 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 4781277
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+(índice):1 Access to fetch at 'http://localhost:8080/api/padron/detalle-votante/30705020' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+ApiService.js:43  GET http://localhost:8080/api/padron/detalle-votante/30705020 net::ERR_FAILED
+request @ ApiService.js:43
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+ApiService.js:67 ❌ Error en API: TypeError: Failed to fetch
+    at ApiService.request (ApiService.js:43:36)
+    at PadronComponent.js:1061:66
+    at Array.map (<anonymous>)
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1059:46)
+    at async PadronComponent.actualizarTabla (PadronComponent.js:384:41)
+    at async PadronComponent.cargarDatos (PadronComponent.js:357:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+request @ ApiService.js:67
+await in request
+(anónimas) @ PadronComponent.js:1061
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:1068 No se pudo cargar detalle para DNI 30705020
+(anónimas) @ PadronComponent.js:1068
+await in (anónimas)
+enriquecerConDetalles @ PadronComponent.js:1059
+await in enriquecerConDetalles
+actualizarTabla @ PadronComponent.js:384
+await in actualizarTabla
+cargarDatos @ PadronComponent.js:357
+await in cargarDatos
+init @ PadronComponent.js:68
+await in init
+initMainApp @ app.js:119
+init @ app.js:40
+await in init
+(anónimas) @ app.js:352
+PadronComponent.js:69 ✅ Datos cargados
+PadronComponent.js:75 ✅ Componente de Padrón inicializado correctamente
+app.js:121 ✅ Padrón inicializado correctamente
+app.js:142 🎯 Aplicación principal inicializada
+app.js:42 🎉 Aplicación iniciada correctamente

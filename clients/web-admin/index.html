@@ -174,7 +174,25 @@
         <!-- Sección de Padrón Electoral -->
         <section id="padron" class="section active" role="region" aria-label="Gestión de Padrón Electoral">
             <!-- Botón de acceso a Resultados -->
-            <div style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
+            <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <button onclick="window.location.href='dashboard.html'" 
+                        style="display: inline-flex; 
+                               align-items: center; 
+                               gap: 8px; 
+                               padding: 10px 16px; 
+                               background: rgba(108, 117, 125, 0.1); 
+                               color: #6c757d; 
+                               border: 1px solid rgba(108, 117, 125, 0.2); 
+                               border-radius: 6px; 
+                               font-weight: 500; 
+                               cursor: pointer; 
+                               transition: all 0.3s ease;"
+                        onmouseover="this.style.background='rgba(108, 117, 125, 0.2)'; this.style.color='#495057';"
+                        onmouseout="this.style.background='rgba(108, 117, 125, 0.1)'; this.style.color='#6c757d';">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver al Dashboard
+                </button>
+                
                 <button onclick="window.location.href='resultados.html'" 
                         style="display: inline-flex; 
                                align-items: center; 

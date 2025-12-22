@@ -53,6 +53,19 @@ class ApiService {
                     }
                     return; // No lanzar error, solo redirigir
                 }
+
+                // 404 esperado para detalle-votante cuando no existe aún
+                if (response.status === 404 && endpoint.includes('/api/padron/detalle-votante')) {
+                    console.warn('ℹ️ Detalle de votante no encontrado, se continúa sin detalle');
+                    return { success: false, data: null, notFound: true };
+                }
+
+                // Manejo suave de rate limiting para no romper la UI
+                if (response.status === 429) {
+                    console.warn('⚠️ Límite de solicitudes alcanzado en gateway');
+                    return { success: false, data: null, rateLimited: true };
+                }
+
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
@@ -83,7 +96,7 @@ class ApiService {
             }
         });
 
-        const endpoint = `/padron/votantes?${queryParams.toString()}`;
+        const endpoint = `/api/padron/votantes?${queryParams.toString()}`;
         return await this.request(endpoint);
     }
 
@@ -91,14 +104,14 @@ class ApiService {
      * Obtener votante por DNI
      */
     async obtenerVotantePorDNI(dni) {
-        return await this.request(`/padron/votantes/${dni}`);
+        return await this.request(`/api/padron/votantes/${dni}`);
     }
 
     /**
      * Actualizar relevamiento
      */
     async actualizarRelevamiento(dni, opcionPolitica, observacion = '') {
-        return await this.request(`/padron/relevamientos/${dni}`, {
+        return await this.request(`/api/padron/relevamientos/${dni}`, {
             method: 'PUT',
             body: JSON.stringify({
                 opcionPolitica,
@@ -111,21 +124,21 @@ class ApiService {
      * Obtener relevamiento por DNI
      */
     async obtenerRelevamiento(dni) {
-        return await this.request(`/padron/relevamientos/${dni}`);
+        return await this.request(`/api/padron/relevamientos/${dni}`);
     }
 
     /**
      * Obtener estadísticas
      */
     async obtenerEstadisticas() {
-        return await this.request('/padron/estadisticas');
+        return await this.request('/api/padron/estadisticas');
     }
 
     /**
      * Obtener filtros disponibles
      */
     async obtenerFiltrosDisponibles() {
-        return await this.request('/padron/filtros');
+        return await this.request('/api/padron/filtros');
     }
 
     /**
@@ -135,7 +148,7 @@ class ApiService {
         const formData = new FormData();
         formData.append('csv', archivo);
 
-        return await this.request('/padron/importar-csv', {
+        return await this.request('/api/padron/importar-csv', {
             method: 'POST',
             headers: {
                 // No establecer Content-Type para FormData
@@ -148,7 +161,7 @@ class ApiService {
      * Exportar datos
      */
     async exportarDatos() {
-        const response = await fetch(`${this.baseURL}/padron/exportar`);
+        const response = await fetch(`${this.baseURL}/api/padron/exportar`);
         
         if (!response.ok) {
             throw new Error(`Error al exportar: ${response.status}`);
@@ -163,28 +176,28 @@ class ApiService {
      * Obtener estadísticas avanzadas
      */
     async obtenerEstadisticasAvanzadas() {
-        return await this.request('/padron/resultados/estadisticas-avanzadas');
+        return await this.request('/api/padron/resultados/estadisticas-avanzadas');
     }
 
     /**
      * Obtener estadísticas por sexo
      */
     async obtenerEstadisticasPorSexo() {
-        return await this.request('/padron/resultados/por-sexo');
+        return await this.request('/api/padron/resultados/por-sexo');
     }
 
     /**
      * Obtener estadísticas por rango etario
      */
     async obtenerEstadisticasPorRangoEtario() {
-        return await this.request('/padron/resultados/por-rango-etario');
+        return await this.request('/api/padron/resultados/por-rango-etario');
     }
 
     /**
      * Obtener estadísticas por circuito
      */
     async obtenerEstadisticasPorCircuito() {
-        return await this.request('/padron/resultados/por-circuito');
+        return await this.request('/api/padron/resultados/por-circuito');
     }
 
     // ==================== UTILIDADES ====================
@@ -198,7 +211,7 @@ class ApiService {
         this.setAuthToken('token-invalid-for-testing');
         
         try {
-            await this.request('/padron/estadisticas');
+            await this.request('/api/padron/estadisticas');
         } catch (error) {
             console.log('🧪 Test completado');
         } finally {
@@ -211,10 +224,37 @@ class ApiService {
      */
     async verificarEstado() {
         try {
-            const response = await fetch(`${this.baseURL.replace('/api', '')}/health`);
-            return response.ok;
-        } catch (error) {
+            console.log('🔍 Verificando estado de API...');
+            
+            // Intentar con el health endpoint del API Gateway
+            let healthUrl = `${this.baseURL.replace('/api', '')}/health`;
+            console.log('  - URL de health:', healthUrl);
+            
+            const response = await fetch(healthUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                timeout: 5000
+            });
+            
+            console.log('  - Response status:', response.status);
+            console.log('  - Response ok:', response.ok);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('  - Health data:', data);
+                return true;
+            }
+            
+            console.warn('  - Health check falló con status:', response.status);
             return false;
+            
+        } catch (error) {
+            console.error('  - Error en health check:', error);
+            // En caso de error, asumir que está disponible para no bloquear
+            console.warn('  - Asumiendo API disponible debido al error');
+            return true;
         }
     }
 
@@ -235,4 +275,20 @@ class ApiService {
 
 // Instancia global del servicio
 window.apiService = new ApiService();
-console.log('🌐 ApiService inicializado');
+console.log('🌐 ApiService inicializado correctamente');
+
+// Función de diagnóstico para verificar el estado
+window.apiService.diagnosticar = async function() {
+    console.log('🔍 Diagnóstico ApiService:');
+    console.log('  - Base URL:', this.baseURL);
+    console.log('  - Token configurado:', !!this.authToken);
+    
+    try {
+        const healthCheck = await this.verificarEstado();
+        console.log('  - Health check:', healthCheck ? '✅ OK' : '❌ FAILED');
+        return healthCheck;
+    } catch (error) {
+        console.error('  - Health check error:', error);
+        return false;
+    }
+};

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API</title>
+</head>
+<body>
+    <h1>Test API Sistema Electoral</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            
+            try {
+                // 1. Test login
+                results.innerHTML += '<h2>1. Test Login</h2>';
+                const loginResponse = await fetch('http://localhost:8080/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'password' })
+                });
+                const loginData = await loginResponse.json();
+                results.innerHTML += `<p>Login: ${loginData.success ? '✅ OK' : '❌ ERROR'}</p>`;
+                results.innerHTML += `<pre>${JSON.stringify(loginData, null, 2)}</pre>`;
+                
+                if (!loginData.success) return;
+                
+                const token = loginData.data.accessToken;
+                
+                // 2. Test /api/auth/me
+                results.innerHTML += '<h2>2. Test /api/auth/me</h2>';
+                const meResponse = await fetch('http://localhost:8080/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const meData = await meResponse.json();
+                results.innerHTML += `<p>User Info: ${meData.success ? '✅ OK' : '❌ ERROR'}</p>`;
+                results.innerHTML += `<p>Permisos: ${meData.data?.permisos?.length || 0}</p>`;
+                results.innerHTML += `<pre>${JSON.stringify(meData, null, 2)}</pre>`;
+                
+                // 3. Test health
+                results.innerHTML += '<h2>3. Test Health</h2>';
+                const healthResponse = await fetch('http://localhost:8080/health');
+                const healthData = await healthResponse.json();
+                results.innerHTML += `<p>Health: ${healthResponse.ok ? '✅ OK' : '❌ ERROR'}</p>`;
+                results.innerHTML += `<pre>${JSON.stringify(healthData, null, 2)}</pre>`;
+                
+            } catch (error) {
+                results.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+        
+        // Ejecutar test al cargar la página
+        testAPI();
+    </script>
+</body>
+</html>

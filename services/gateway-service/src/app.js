@@ -9,6 +9,7 @@ require('dotenv').config();
 
 const { authMiddleware } = require('./middleware/authMiddleware');
 const errorMiddleware = require('./middleware/errorMiddleware');
+const { requirePermission, requireAnyPermission } = require('./middleware/permissionMiddleware');
 
 class GatewayApp {
   constructor() {
@@ -27,18 +28,7 @@ class GatewayApp {
     // Compresión
     this.app.use(compression());
 
-    // Rate limiting
-    const limiter = rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutos
-      max: 100, // máximo 100 requests por ventana de tiempo
-      message: {
-        success: false,
-        message: 'Demasiadas solicitudes, intente más tarde'
-      }
-    });
-    this.app.use('/api/', limiter);
-
-    // CORS
+    // CORS primero para asegurar headers en cualquier respuesta
     this.app.use(cors({
       origin: [
         'http://localhost:3000',
@@ -47,6 +37,17 @@ class GatewayApp {
       ].filter(Boolean),
       credentials: true
     }));
+
+    // Rate limiting más amplio para evitar 429 en UI
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutos
+      max: 1000, // ampliar límite para evitar bloqueos en lotes de requests
+      message: {
+        success: false,
+        message: 'Demasiadas solicitudes, intente más tarde'
+      }
+    });
+    this.app.use('/api/', limiter);
 
     // Logging
     this.app.use(morgan('combined'));
@@ -84,21 +85,18 @@ class GatewayApp {
       }
     }));
 
-    // Rutas protegidas - Padrón Service
-    this.app.use('/padron', 
-      authMiddleware, // Middleware de autenticación
+    // Rutas protegidas - Padrón Service (con autenticación básica)
+    this.app.use('/api/padron', 
+      authMiddleware,
       createProxyMiddleware({
-        target: process.env.PADRON_SERVICE_URL || 'http://localhost:3001',
+        target: process.env.PADRON_SERVICE_URL || 'http://padron-service:3001',
         changeOrigin: true,
-        pathRewrite: {
-          '^/padron': '/api/padron'
+        logLevel: 'debug',
+        onProxyReq: (proxyReq, req, res) => {
+          console.log('🔄 Proxy request:', req.method, req.url);
         },
-        onError: (err, req, res) => {
-          console.error('Error en proxy padron:', err);
-          res.status(503).json({
-            success: false,
-            message: 'Servicio de padrón no disponible'
-          });
+        onProxyRes: (proxyRes, req, res) => {
+          console.log('📤 Proxy response:', proxyRes.statusCode, req.url);
         }
       })
     );
@@ -130,7 +128,7 @@ class GatewayApp {
       });
     });
 
-    // Servir archivos estáticos de la web admin (con autenticación)
+    // Servir archivos estáticos de la web admin (DEBE IR AL FINAL para no interceptar rutas API)
     this.app.use('/', 
       // Solo aplicar auth middleware a rutas que no sean estáticas
       (req, res, next) => {

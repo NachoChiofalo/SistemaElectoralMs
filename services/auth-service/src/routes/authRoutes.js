@@ -101,4 +101,38 @@ router.post('/refresh', async (req, res, next) => {
   }
 });
 
+// GET /api/auth/me - Obtener información del usuario actual
+router.get('/me', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token no proporcionado'
+      });
+    }
+
+    const token = authHeader.substring(7);
+    const userData = await authService.verifyToken(token);
+    
+    if (!userData) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token inválido'
+      });
+    }
+
+    // Obtener información completa del usuario con permisos
+    const userInfo = await authService.getUserWithPermissions(userData.id);
+    
+    res.json({
+      success: true,
+      message: 'Usuario obtenido exitosamente',
+      data: userInfo
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

@@ -18,24 +18,61 @@ class PadronComponent {
      */
     async init(containerId = 'padron-container') {
         console.log('🖥️ Inicializando componente de Padrón...');
+        console.log('  - Container ID:', containerId);
         
         this.container = document.getElementById(containerId);
         if (!this.container) {
-            throw new Error(`Contenedor ${containerId} no encontrado`);
+            const error = `Contenedor ${containerId} no encontrado`;
+            console.error('❌ Error:', error);
+            throw new Error(error);
         }
+        console.log('✅ Container encontrado:', this.container);
 
         // Verificar conexión con API
-        const apiDisponible = await window.apiService.verificarEstado();
-        if (!apiDisponible) {
-            this.mostrarError('No se puede conectar con el servicio de padrón. Verifique que esté ejecutándose en el puerto 3001.');
+        console.log('🔍 Verificando conexión con API...');
+        try {
+            const apiDisponible = await window.apiService.verificarEstado();
+            console.log('📡 Estado API:', apiDisponible ? '✅ DISPONIBLE' : '❌ NO DISPONIBLE');
+            
+            if (!apiDisponible) {
+                const mensaje = 'No se puede conectar con el servicio de padrón. Verifique que esté ejecutándose.';
+                console.error('❌ API no disponible:', mensaje);
+                this.mostrarError(mensaje);
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Error al verificar API:', error);
+            this.mostrarError('Error al verificar la conexión con la API: ' + error.message);
             return false;
         }
 
-        this.crearInterfaz();
-        this.inicializarEventos();
-        await this.cargarDatos();
+        console.log('🎨 Creando interfaz del padrón...');
+        try {
+            this.crearInterfaz();
+            console.log('✅ Interfaz creada');
+        } catch (error) {
+            console.error('❌ Error al crear interfaz:', error);
+            return false;
+        }
 
-        console.log('✅ Componente de Padrón inicializado');
+        console.log('🎪 Inicializando eventos...');
+        try {
+            this.inicializarEventos();
+            console.log('✅ Eventos inicializados');
+        } catch (error) {
+            console.error('❌ Error al inicializar eventos:', error);
+        }
+
+        console.log('📊 Cargando datos...');
+        try {
+            await this.cargarDatos();
+            console.log('✅ Datos cargados');
+        } catch (error) {
+            console.error('❌ Error al cargar datos:', error);
+            // No fallar completamente si los datos no cargan
+        }
+
+        console.log('✅ Componente de Padrón inicializado correctamente');
         return true;
     }
 
@@ -50,13 +87,13 @@ class PadronComponent {
                     <p class="padron-subtitle">Gestión y relevamiento del padrón electoral</p>
                 </div>
                 <div class="padron-actions">
-                    <button id="btn-importar" class="btn btn-primary" title="Importar datos desde archivo CSV">
+                    <button id="btn-importar" class="btn btn-primary" data-requires-permission="padron.edit" title="Importar datos desde archivo CSV">
                         <i class="fas fa-upload"></i> <span class="btn-text">Importar CSV</span>
                     </button>
-                    <button id="btn-exportar" class="btn btn-secondary" title="Exportar datos actuales">
+                    <button id="btn-exportar" class="btn btn-secondary" data-requires-permission="padron.view" title="Exportar datos actuales">
                         <i class="fas fa-download"></i> <span class="btn-text">Exportar</span>
                     </button>
-                    <button id="btn-estadisticas" class="btn btn-info" title="Ver estadísticas detalladas">
+                    <button id="btn-estadisticas" class="btn btn-info" data-requires-permission="resultados.view" title="Ver estadísticas detalladas">
                         <i class="fas fa-chart-pie"></i> <span class="btn-text">Estadísticas</span>
                     </button>
                     <button id="btn-filtros-mobile" class="btn btn-outline mobile-only" title="Mostrar/ocultar filtros">
@@ -402,7 +439,7 @@ class PadronComponent {
                         ${this.renderizarCondicionesInline(votante.dni, detalle)}
                     </td>
                     <td class="acciones" data-label="Acciones">
-                        <button class="btn-icon btn-sm btn-guardar-inline" onclick="padronComponent.guardarCondicionesInline('${votante.dni}')" title="Guardar condiciones especiales">
+                        <button class="btn-icon btn-sm btn-guardar-inline" data-requires-permission="padron.edit" onclick="padronComponent.guardarCondicionesInline('${votante.dni}')" title="Guardar condiciones especiales">
                             <i class="fas fa-save"></i> <span class="desktop-only">Guardar</span>
                         </button>
                         ${detalle && detalle.observaciones ? `<button class="btn-icon btn-sm btn-gestionar" onclick="padronComponent.verDetalles('${votante.dni}')" title="Ver observaciones detalladas">
@@ -991,7 +1028,7 @@ class PadronComponent {
             botonGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             botonGuardar.disabled = true;
 
-            const response = await window.apiService.request('/padron/detalle-votante', {
+            const response = await window.apiService.request('/api/padron/detalle-votante', {
                 method: 'POST',
                 body: JSON.stringify({ dni, condiciones })
             });
@@ -1021,10 +1058,15 @@ class PadronComponent {
                 
                 const promesasDetalle = lote.map(async (item) => {
                     try {
-                        const response = await window.apiService.request(`/padron/detalle-votante/${item.votante.dni}`);
-                        
-                        if (response.success && response.data) {
+                        const response = await window.apiService.request(`/api/padron/detalle-votante/${item.votante.dni}`);
+
+                        if (response?.success && response.data) {
                             return { ...item, detalle: response.data };
+                        }
+
+                        // Si no existe detalle, continuar sin lanzar error
+                        if (response?.notFound) {
+                            return { ...item, detalle: null };
                         }
                     } catch (error) {
                         // Silenciar errores individuales para no interrumpir el flujo
@@ -1057,4 +1099,12 @@ class PadronComponent {
 
 // Instancia global del componente
 window.padronComponent = new PadronComponent();
-console.log('🖥️ PadronComponent cargado');
+console.log('🖥️ PadronComponent cargado correctamente');
+
+// Función de diagnóstico
+window.padronComponent.diagnosticar = function() {
+    console.log('🔍 Diagnóstico PadronComponent:');
+    console.log('  - Componente creado:', !!this);
+    console.log('  - Container asignado:', !!this.container);
+    console.log('  - Estado:', this.estado);
+};

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Padrón</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #test-container { border: 2px solid #007bff; padding: 20px; margin: 20px 0; }
+        .log { margin: 5px 0; padding: 5px; background: #f8f9fa; border-left: 4px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Específico - Inicialización Padrón</h1>
+    <div id="logs"></div>
+    <hr>
+    <h2>Contenedor de Prueba:</h2>
+    <div id="test-container" style="min-height: 200px;">
+        <!-- Aquí se generará el contenido del padrón -->
+    </div>
+
+    <!-- Cargar scripts en el mismo orden que la app -->
+    <script src="src/services/ApiService.js"></script>
+    <script src="src/services/AuthService.js"></script>
+    <script src="src/components/PadronComponent.js"></script>
+    
+    <script>
+        const logsDiv = document.getElementById('logs');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(div);
+            console.log(message);
+        }
+        
+        // Sobrescribir console.log para mostrar en pantalla
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log(args.join(' '));
+        };
+        
+        const originalError = console.error;
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log(args.join(' '), 'error');
+        };
+        
+        async function testPadron() {
+            try {
+                log('🚀 INICIANDO TEST DE PADRÓN', 'success');
+                
+                // 1. Verificar que los servicios estén disponibles
+                log('1️⃣ Verificando servicios globales...');
+                if (!window.apiService) {
+                    throw new Error('window.apiService no está disponible');
+                }
+                if (!window.authService) {
+                    throw new Error('window.authService no está disponible');
+                }
+                if (!window.padronComponent) {
+                    throw new Error('window.padronComponent no está disponible');
+                }
+                log('✅ Todos los servicios están disponibles', 'success');
+                
+                // 2. Login
+                log('2️⃣ Intentando login...');
+                try {
+                    const loginResult = await window.authService.login('admin', 'password');
+                    log(`✅ Login exitoso: ${loginResult.user.username}`, 'success');
+                } catch (error) {
+                    throw new Error(`Error en login: ${error.message}`);
+                }
+                
+                // 3. Verificar API Health
+                log('3️⃣ Verificando API Health...');
+                const healthOk = await window.apiService.verificarEstado();
+                if (!healthOk) {
+                    throw new Error('API Health check falló');
+                }
+                log('✅ API Health OK', 'success');
+                
+                // 4. Obtener permisos
+                log('4️⃣ Obteniendo permisos de usuario...');
+                const userInfo = await window.apiService.request('/api/auth/me');
+                const permisos = userInfo.data.permisos || [];
+                log(`✅ Permisos obtenidos: ${permisos.length} permisos`, 'success');
+                log(`📋 Lista: ${permisos.join(', ')}`);
+                
+                const tienePermisoPadron = permisos.includes('padron.view') || permisos.includes('padron.edit');
+                if (!tienePermisoPadron) {
+                    throw new Error('Usuario sin permisos de padrón');
+                }
+                log('✅ Usuario tiene permisos de padrón', 'success');
+                
+                // 5. Inicializar componente de padrón
+                log('5️⃣ Inicializando PadronComponent...');
+                const inicializado = await window.padronComponent.init('test-container');
+                
+                if (inicializado) {
+                    log('✅ PadronComponent inicializado correctamente!', 'success');
+                    log('📝 Contenido generado en el contenedor de prueba');
+                } else {
+                    throw new Error('PadronComponent no se inicializó correctamente');
+                }
+                
+            } catch (error) {
+                log(`❌ ERROR EN TEST: ${error.message}`, 'error');
+            }
+        }
+        
+        // Esperar a que se carguen todos los scripts y ejecutar
+        window.addEventListener('load', () => {
+            // Dar un momento para que se inicialicen todos los servicios
+            setTimeout(testPadron, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -457,8 +457,10 @@ class PadronController {
             const detalle = await this.detalleVotanteService.obtenerDetallePorDni(dni);
             
             if (!detalle) {
-                return res.status(404).json({
-                    success: false,
+                return res.status(200).json({
+                    success: true,
+                    data: null,
+                    notFound: true,
                     message: 'Detalle de votante no encontrado'
                 });
             }

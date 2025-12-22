@@ -16,7 +16,7 @@ class AuthService {
      * Iniciar verificación periódica del token
      */
     startTokenVerification() {
-        // Verificar cada 30 segundos para testing rápido
+        // Verificar cada 5 minutos para no sobrecargar el servidor
         this.verifyInterval = setInterval(async () => {
             if (this.isAuthenticated()) {
                 console.log('🔍 Verificando token automáticamente...');
@@ -26,7 +26,7 @@ class AuthService {
                     await this.logout(); // Esto ya redirigirá automáticamente
                 }
             }
-        }, 30 * 1000); // 30 segundos
+        }, 5 * 60 * 1000); // 5 minutos
     }
 
     /**
@@ -311,4 +311,18 @@ window.addEventListener('load', () => {
         console.log('⏰ InactivityService inicializado');
     }
 });
-console.log('🔐 AuthService inicializado');
+console.log('🔐 AuthService inicializado correctamente');
+
+// Función de diagnóstico
+window.authService.diagnosticar = function() {
+    console.log('🔍 Diagnóstico AuthService:');
+    console.log('  - Token almacenado:', !!this.token);
+    console.log('  - Usuario cargado:', !!this.user);
+    console.log('  - Autenticado:', this.isAuthenticated());
+    if (this.user) {
+        console.log('  - Usuario actual:', {
+            username: this.user.username,
+            nombre: this.user.nombre_completo
+        });
+    }
+};

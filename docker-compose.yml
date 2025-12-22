@@ -38,8 +38,8 @@ services:
       - DB_USER=electoral_user
       - DB_PASSWORD=electoral_password
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - JWT_EXPIRATION=1m
-      - REFRESH_TOKEN_EXPIRATION=1m
+      - JWT_EXPIRATION=24h
+      - REFRESH_TOKEN_EXPIRATION=7d
       - FRONTEND_URL=http://localhost:3000
     depends_on:
       - postgres

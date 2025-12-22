@@ -17,7 +17,53 @@ class AuthService {
     const client = await this.db.getConnection();
     
     try {
-      // Crear tabla de usuarios si no existe
+      // Crear tabla de roles
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS roles (
+          id SERIAL PRIMARY KEY,
+          nombre VARCHAR(50) UNIQUE NOT NULL,
+          descripcion TEXT,
+          activo BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Crear tabla de permisos
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS permisos (
+          id SERIAL PRIMARY KEY,
+          codigo VARCHAR(50) UNIQUE NOT NULL,
+          nombre VARCHAR(100) NOT NULL,
+          descripcion TEXT,
+          modulo VARCHAR(50) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Crear tabla de relación roles-permisos
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS rol_permisos (
+          id SERIAL PRIMARY KEY,
+          rol_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
+          permiso_id INTEGER REFERENCES permisos(id) ON DELETE CASCADE,
+          UNIQUE(rol_id, permiso_id)
+        );
+      `);
+
+      // Actualizar tabla de usuarios para usar roles
+      await client.query(`
+        DO $$ 
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='usuarios' AND column_name='rol_id') THEN
+            ALTER TABLE usuarios ADD COLUMN rol_id INTEGER REFERENCES roles(id);
+            UPDATE usuarios SET rol_id = 1 WHERE rol = 'admin';
+            UPDATE usuarios SET rol_id = 2 WHERE rol = 'encargado';
+            ALTER TABLE usuarios DROP COLUMN IF EXISTS rol;
+          END IF;
+        END $$;
+      `);
+
+      // Crear tabla de usuarios actualizada si no existe
       await client.query(`
         CREATE TABLE IF NOT EXISTS usuarios (
           id SERIAL PRIMARY KEY,
@@ -25,7 +71,7 @@ class AuthService {
           password_hash VARCHAR(255) NOT NULL,
           nombre_completo VARCHAR(100) NOT NULL,
           email VARCHAR(100),
-          rol VARCHAR(20) DEFAULT 'encargado' CHECK (rol IN ('admin', 'encargado')),
+          rol_id INTEGER REFERENCES roles(id),
           activo BOOLEAN DEFAULT true,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -53,6 +99,15 @@ class AuthService {
         );
       `);
 
+      // Inicializar roles por defecto
+      await this.initializeDefaultRoles(client);
+      
+      // Inicializar permisos por defecto
+      await this.initializeDefaultPermissions(client);
+      
+      // Asignar permisos a roles
+      await this.assignDefaultRolePermissions(client);
+
       // Verificar si ya existe el usuario admin
       const adminExists = await client.query(
         'SELECT id FROM usuarios WHERE username = $1',
@@ -60,63 +115,208 @@ class AuthService {
       );
 
       if (adminExists.rows.length === 0) {
+        // Obtener rol de administrador
+        const adminRol = await client.query('SELECT id FROM roles WHERE nombre = $1', ['administrador']);
+        const adminRolId = adminRol.rows[0]?.id || 1;
+        
         // Crear usuario administrador por defecto
         const adminPassword = await bcrypt.hash('admin123', 12);
         
         await client.query(`
-          INSERT INTO usuarios (username, password_hash, nombre_completo, email, rol)
+          INSERT INTO usuarios (username, password_hash, nombre_completo, email, rol_id)
           VALUES ($1, $2, $3, $4, $5)
         `, [
           'admin',
           adminPassword,
           'Administrador del Sistema',
           'admin@electoral.gov.ar',
-          'admin'
+          adminRolId
         ]);
 
         console.log('✅ Usuario administrador creado: admin/admin123');
       }
 
-      // Crear algunos encargados de ejemplo
-      const encargadosEjemplo = [
+      // Crear usuarios de ejemplo con diferentes roles
+      const usuariosEjemplo = [
+        {
+          username: 'consultor1',
+          password: 'consultor123',
+          nombre: 'Ana Rodríguez',
+          email: 'ana.rodriguez@electoral.gov.ar',
+          rol: 'consultor'
+        },
         {
           username: 'encargado1',
-          password: 'enc123',
+          password: 'encargado123',
           nombre: 'Juan Pérez',
-          email: 'juan.perez@electoral.gov.ar'
+          email: 'juan.perez@electoral.gov.ar',
+          rol: 'encargado_relevamiento'
         },
         {
           username: 'encargado2',
-          password: 'enc123',
+          password: 'encargado123',
           nombre: 'María González',
-          email: 'maria.gonzalez@electoral.gov.ar'
+          email: 'maria.gonzalez@electoral.gov.ar',
+          rol: 'encargado_relevamiento'
         }
       ];
 
-      for (const encargado of encargadosEjemplo) {
+      for (const usuario of usuariosEjemplo) {
         const exists = await client.query(
           'SELECT id FROM usuarios WHERE username = $1',
-          [encargado.username]
+          [usuario.username]
         );
 
         if (exists.rows.length === 0) {
-          const hashedPassword = await bcrypt.hash(encargado.password, 12);
+          // Obtener rol
+          const rol = await client.query('SELECT id FROM roles WHERE nombre = $1', [usuario.rol]);
+          const rolId = rol.rows[0]?.id;
           
-          await client.query(`
-            INSERT INTO usuarios (username, password_hash, nombre_completo, email, rol)
-            VALUES ($1, $2, $3, $4, $5)
-          `, [
-            encargado.username,
-            hashedPassword,
-            encargado.nombre,
-            encargado.email,
-            'encargado'
-          ]);
+          if (rolId) {
+            const hashedPassword = await bcrypt.hash(usuario.password, 12);
+            
+            await client.query(`
+              INSERT INTO usuarios (username, password_hash, nombre_completo, email, rol_id)
+              VALUES ($1, $2, $3, $4, $5)
+            `, [
+              usuario.username,
+              hashedPassword,
+              usuario.nombre,
+              usuario.email,
+              rolId
+            ]);
+            
+            console.log(`✅ Usuario ${usuario.rol} creado: ${usuario.username}/${usuario.password}`);
+          }
         }
       }
 
     } finally {
       client.release();
+    }
+  }
+
+  /**
+   * Inicializar roles por defecto
+   */
+  async initializeDefaultRoles(client) {
+    const roles = [
+      { nombre: 'administrador', descripcion: 'Acceso completo al sistema electoral' },
+      { nombre: 'consultor', descripcion: 'Acceso de solo lectura a estadísticas y resultados' },
+      { nombre: 'encargado_relevamiento', descripcion: 'Acceso a gestión del padrón electoral' }
+    ];
+
+    for (const rol of roles) {
+      const exists = await client.query('SELECT id FROM roles WHERE nombre = $1', [rol.nombre]);
+      
+      if (exists.rows.length === 0) {
+        await client.query(
+          'INSERT INTO roles (nombre, descripcion) VALUES ($1, $2)',
+          [rol.nombre, rol.descripcion]
+        );
+        console.log(`✅ Rol creado: ${rol.nombre}`);
+      }
+    }
+  }
+
+  /**
+   * Inicializar permisos por defecto
+   */
+  async initializeDefaultPermissions(client) {
+    const permisos = [
+      // Permisos del Dashboard
+      { codigo: 'dashboard.view', nombre: 'Ver Dashboard', descripcion: 'Acceso al panel principal', modulo: 'dashboard' },
+      
+      // Permisos del Padrón
+      { codigo: 'padron.view', nombre: 'Ver Padrón', descripcion: 'Consultar padrón electoral', modulo: 'padron' },
+      { codigo: 'padron.edit', nombre: 'Editar Padrón', descripcion: 'Modificar datos del padrón', modulo: 'padron' },
+      { codigo: 'padron.relevamiento', nombre: 'Relevamiento', descripcion: 'Realizar relevamientos del padrón', modulo: 'padron' },
+      { codigo: 'padron.export', nombre: 'Exportar Padrón', descripcion: 'Exportar datos del padrón', modulo: 'padron' },
+      
+      // Permisos de Resultados/Estadísticas
+      { codigo: 'resultados.view', nombre: 'Ver Resultados', descripcion: 'Consultar estadísticas y resultados', modulo: 'resultados' },
+      { codigo: 'resultados.export', nombre: 'Exportar Resultados', descripcion: 'Exportar reportes estadísticos', modulo: 'resultados' },
+      
+      // Permisos de Fiscales (futuro)
+      { codigo: 'fiscales.view', nombre: 'Ver Fiscales', descripcion: 'Consultar fiscales de mesa', modulo: 'fiscales' },
+      { codigo: 'fiscales.edit', nombre: 'Gestionar Fiscales', descripcion: 'Administrar fiscales de mesa', modulo: 'fiscales' },
+      
+      // Permisos de Comicio (futuro)
+      { codigo: 'comicio.view', nombre: 'Ver Comicio', descripcion: 'Consultar lugares de votación', modulo: 'comicio' },
+      { codigo: 'comicio.edit', nombre: 'Gestionar Comicio', descripcion: 'Administrar lugares de votación', modulo: 'comicio' },
+      
+      // Permisos de Administración
+      { codigo: 'admin.users', nombre: 'Gestión de Usuarios', descripcion: 'Administrar usuarios del sistema', modulo: 'admin' },
+      { codigo: 'admin.roles', nombre: 'Gestión de Roles', descripcion: 'Administrar roles y permisos', modulo: 'admin' },
+      { codigo: 'admin.system', nombre: 'Configuración Sistema', descripcion: 'Configurar parámetros del sistema', modulo: 'admin' }
+    ];
+
+    for (const permiso of permisos) {
+      const exists = await client.query('SELECT id FROM permisos WHERE codigo = $1', [permiso.codigo]);
+      
+      if (exists.rows.length === 0) {
+        await client.query(
+          'INSERT INTO permisos (codigo, nombre, descripcion, modulo) VALUES ($1, $2, $3, $4)',
+          [permiso.codigo, permiso.nombre, permiso.descripcion, permiso.modulo]
+        );
+      }
+    }
+    console.log('✅ Permisos inicializados correctamente');
+  }
+
+  /**
+   * Asignar permisos por defecto a roles
+   */
+  async assignDefaultRolePermissions(client) {
+    // Obtener roles
+    const roles = await client.query('SELECT id, nombre FROM roles');
+    const roleMap = {};
+    roles.rows.forEach(role => roleMap[role.nombre] = role.id);
+
+    // Obtener permisos
+    const permisos = await client.query('SELECT id, codigo FROM permisos');
+    const permisosMap = {};
+    permisos.rows.forEach(permiso => permisosMap[permiso.codigo] = permiso.id);
+
+    // Definir asignaciones de permisos por rol
+    const asignaciones = {
+      'administrador': Object.values(permisosMap), // Todos los permisos
+      'consultor': [
+        permisosMap['dashboard.view'],
+        permisosMap['resultados.view'],
+        permisosMap['resultados.export']
+      ],
+      'encargado_relevamiento': [
+        permisosMap['dashboard.view'],
+        permisosMap['padron.view'],
+        permisosMap['padron.edit'],
+        permisosMap['padron.relevamiento'],
+        permisosMap['padron.export']
+      ]
+    };
+
+    // Asignar permisos a cada rol
+    for (const [rolNombre, permisosIds] of Object.entries(asignaciones)) {
+      const rolId = roleMap[rolNombre];
+      if (!rolId) continue;
+
+      for (const permisoId of permisosIds) {
+        if (!permisoId) continue;
+
+        // Verificar si ya existe la asignación
+        const exists = await client.query(
+          'SELECT id FROM rol_permisos WHERE rol_id = $1 AND permiso_id = $2',
+          [rolId, permisoId]
+        );
+
+        if (exists.rows.length === 0) {
+          await client.query(
+            'INSERT INTO rol_permisos (rol_id, permiso_id) VALUES ($1, $2)',
+            [rolId, permisoId]
+          );
+        }
+      }
+      console.log(`✅ Permisos asignados al rol: ${rolNombre}`);
     }
   }
 
@@ -127,11 +327,19 @@ class AuthService {
     const client = await this.db.getConnection();
     
     try {
-      // Buscar usuario
-      const userResult = await client.query(
-        'SELECT id, username, password_hash, nombre_completo, email, rol, activo FROM usuarios WHERE username = $1',
-        [username]
-      );
+      // Buscar usuario con rol y permisos
+      const userResult = await client.query(`
+        SELECT 
+          u.id, u.username, u.password_hash, u.nombre_completo, u.email, u.activo,
+          r.nombre as rol_nombre, r.descripcion as rol_descripcion,
+          ARRAY_AGG(p.nombre) FILTER (WHERE p.nombre IS NOT NULL) as permisos
+        FROM usuarios u
+        LEFT JOIN roles r ON u.rol_id = r.id
+        LEFT JOIN rol_permisos rp ON r.id = rp.rol_id
+        LEFT JOIN permisos p ON rp.permiso_id = p.id
+        WHERE u.username = $1
+        GROUP BY u.id, u.username, u.password_hash, u.nombre_completo, u.email, u.activo, r.nombre, r.descripcion
+      `, [username]);
 
       if (userResult.rows.length === 0) {
         throw new Error('Credenciales inválidas');
@@ -158,7 +366,9 @@ class AuthService {
           username: user.username,
           nombre_completo: user.nombre_completo,
           email: user.email,
-          rol: user.rol
+          rol: user.rol_nombre,
+          rol_descripcion: user.rol_descripcion,
+          permisos: user.permisos || []
         },
         ...tokens
       };
@@ -179,7 +389,8 @@ class AuthService {
       {
         id: user.id,
         username: user.username,
-        rol: user.rol,
+        rol: user.rol_nombre || user.rol,
+        permisos: user.permisos || [],
         jti
       },
       this.jwtSecret,
@@ -351,6 +562,72 @@ class AuthService {
     } catch (error) {
       console.error('Error en logout:', error);
       // No lanzar error para que el logout siempre sea exitoso
+    }
+  }
+
+  /**
+   * Obtener usuario con información completa de roles y permisos
+   */
+  async getUserWithPermissions(userId) {
+    const client = await this.db.getConnection();
+    
+    try {
+      const result = await client.query(`
+        SELECT 
+          u.id, u.username, u.nombre_completo, u.email, u.activo,
+          r.nombre as rol_nombre, r.descripcion as rol_descripcion,
+          ARRAY_AGG(p.codigo) FILTER (WHERE p.codigo IS NOT NULL) as permisos,
+          ARRAY_AGG(p.modulo) FILTER (WHERE p.modulo IS NOT NULL) as modulos
+        FROM usuarios u
+        LEFT JOIN roles r ON u.rol_id = r.id
+        LEFT JOIN rol_permisos rp ON r.id = rp.rol_id
+        LEFT JOIN permisos p ON rp.permiso_id = p.id
+        WHERE u.id = $1 AND u.activo = true
+        GROUP BY u.id, u.username, u.nombre_completo, u.email, u.activo, r.nombre, r.descripcion
+      `, [userId]);
+
+      if (result.rows.length === 0) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      const user = result.rows[0];
+      
+      return {
+        id: user.id,
+        username: user.username,
+        nombre_completo: user.nombre_completo,
+        email: user.email,
+        rol: user.rol_nombre,
+        rol_descripcion: user.rol_descripcion,
+        permisos: user.permisos || [],
+        modulos_disponibles: [...new Set(user.modulos || [])].filter(Boolean)
+      };
+      
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Verificar si un usuario tiene un permiso específico
+   */
+  async hasPermission(userId, permissionCode) {
+    const client = await this.db.getConnection();
+    
+    try {
+      const result = await client.query(`
+        SELECT COUNT(*) as count
+        FROM usuarios u
+        JOIN roles r ON u.rol_id = r.id
+        JOIN rol_permisos rp ON r.id = rp.rol_id
+        JOIN permisos p ON rp.permiso_id = p.id
+        WHERE u.id = $1 AND p.codigo = $2 AND u.activo = true AND r.activo = true
+      `, [userId, permissionCode]);
+
+      return parseInt(result.rows[0].count) > 0;
+      
+    } finally {
+      client.release();
     }
   }
 }
