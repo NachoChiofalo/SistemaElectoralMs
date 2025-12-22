@@ -69,7 +69,7 @@ coverage/
 
 # ==================== ARCHIVOS ESPECÍFICOS DEL PROYECTO ====================
 # Archivos CSV grandes que no deben estar en git
-*.csv
+
 !example.csv
 
 # Archivos de configuración local
