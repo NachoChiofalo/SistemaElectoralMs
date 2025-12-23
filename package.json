@@ -1,0 +1,20 @@
+{
+  "name": "sistema-electoral",
+  "version": "1.0.0",
+  "description": "Sistema Electoral - Microservicios",
+  "scripts": {
+    "start": "node services/gateway-service/src/app.js",
+    "dev": "docker-compose up -d",
+    "build": "echo 'Building microservices...'",
+    "test": "echo 'Running tests...'"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "keywords": ["microservices", "electoral", "system"],
+  "author": "Sistema Electoral",
+  "license": "MIT"
+}

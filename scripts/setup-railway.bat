@@ -24,42 +24,11 @@ railway login
 
 REM Crear proyecto en Railway
 echo 📋 Configurando proyecto...
+
+REM Inicializar Railway y desplegar todos los servicios detectados automáticamente
 railway init
-
-REM Crear servicios para cada microservicio
-echo 🏗️ Creando servicios...
-
-REM Auth Service
-echo    • Creando auth-service...
-cd services\auth-service
-railway service create auth-service
-railway up --service auth-service --detach
-cd ..\..
-
-REM Gateway Service  
-echo    • Creando gateway-service...
-cd services\gateway-service
-railway service create gateway-service
-railway up --service gateway-service --detach
-cd ..\..
-
-REM Padron Service
-echo    • Creando padron-service...
-cd services\padron-service
-railway service create padron-service
-railway up --service padron-service --detach
-cd ..\..
-
-REM Web Admin
-echo    • Creando web-admin...
-cd clients\web-admin
-railway service create web-admin
-railway up --service web-admin --detach
-cd ..\..
-
-REM PostgreSQL Database
-echo    • Configurando PostgreSQL...
-railway service create postgres --template postgres
+echo 🚀 Desplegando todos los servicios detectados...
+railway up
 
 echo ✅ Configuración completada!
 echo.
