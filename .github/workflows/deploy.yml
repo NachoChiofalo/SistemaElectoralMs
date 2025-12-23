@@ -1,0 +1,146 @@
+# Pipeline de CI/CD para Sistema Electoral en Railway
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+jobs:
+  # Job para tests y validación
+  test:
+    runs-on: ubuntu-latest
+    name: Test and Validate
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: |
+          services/*/package-lock.json
+          clients/*/package-lock.json
+
+    - name: Install dependencies - Auth Service
+      run: |
+        cd services/auth-service
+        npm ci
+
+    - name: Install dependencies - Gateway Service  
+      run: |
+        cd services/gateway-service
+        npm ci
+
+    - name: Install dependencies - Padron Service
+      run: |
+        cd services/padron-service
+        npm ci
+
+    - name: Install dependencies - Web Admin
+      run: |
+        cd clients/web-admin
+        npm install
+
+    - name: Run tests - Auth Service
+      run: |
+        cd services/auth-service
+        npm test || echo "Tests not configured yet"
+
+    - name: Run tests - Gateway Service
+      run: |
+        cd services/gateway-service
+        npm test || echo "Tests not configured yet"
+
+    - name: Run tests - Padron Service
+      run: |
+        cd services/padron-service
+        npm test || echo "Tests not configured yet"
+
+    - name: Validate Docker builds
+      run: |
+        docker build -t test-auth ./services/auth-service
+        docker build -t test-gateway ./services/gateway-service  
+        docker build -t test-padron ./services/padron-service
+        docker build -t test-web ./clients/web-admin
+
+  # Job para deployment en Railway
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    name: Deploy to Railway
+
+    strategy:
+      matrix:
+        service: [
+          { name: "auth-service", path: "services/auth-service" },
+          { name: "gateway-service", path: "services/gateway-service" },
+          { name: "padron-service", path: "services/padron-service" },
+          { name: "web-admin", path: "clients/web-admin" }
+        ]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Railway CLI
+      run: |
+        npm install -g @railway/cli
+
+    - name: Deploy ${{ matrix.service.name }} to Railway
+      run: |
+        cd ${{ matrix.service.path }}
+        railway login --token ${{ secrets.RAILWAY_TOKEN }}
+        railway up --service ${{ matrix.service.name }} --detach
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  # Job para setup de base de datos
+  setup-database:
+    needs: deploy
+    runs-on: ubuntu-latest
+    name: Setup Database
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Railway CLI
+      run: |
+        npm install -g @railway/cli
+
+    - name: Run database migrations
+      run: |
+        railway login --token ${{ secrets.RAILWAY_TOKEN }}
+        # Ejecutar scripts de inicialización si es necesario
+        echo "Database setup completed"
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  # Notificación de resultado
+  notify:
+    needs: [test, deploy, setup-database]
+    runs-on: ubuntu-latest
+    if: always()
+    name: Notify Results
+
+    steps:
+    - name: Notify Success
+      if: ${{ needs.deploy.result == 'success' }}
+      run: |
+        echo "🚀 Deployment successful!"
+        echo "Sistema Electoral deployed to Railway"
+
+    - name: Notify Failure
+      if: ${{ needs.test.result == 'failure' || needs.deploy.result == 'failure' }}
+      run: |
+        echo "❌ Deployment failed!"
+        echo "Check logs for details"

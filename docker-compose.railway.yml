@@ -1,0 +1,51 @@
+# 🚀 Railway Deployment Configuration
+
+# Configuración para deployment en Railway
+# Cada servicio se despliega por separado usando su respectivo Dockerfile
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Railway Managed Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: electoral_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Cache (Optional) - Railway Managed Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    name: railway-network
+    driver: bridge

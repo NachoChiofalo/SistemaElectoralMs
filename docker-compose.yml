@@ -6,22 +6,24 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - NODE_ENV=development
-      - GATEWAY_PORT=8080
-      - AUTH_SERVICE_URL=http://auth-service:3002
-      - PADRON_SERVICE_URL=http://padron-service:3001
-      - WEB_ADMIN_URL=http://web-admin:3000
-      - FRONTEND_URL=http://localhost:8080
+      - NODE_ENV=${NODE_ENV:-development}
+      - GATEWAY_PORT=${GATEWAY_PORT:-8080}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL:-http://auth-service:3002}
+      - PADRON_SERVICE_URL=${PADRON_SERVICE_URL:-http://padron-service:3001}
+      - WEB_ADMIN_URL=${WEB_ADMIN_URL:-http://web-admin:3000}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
+      - RAILWAY_ENVIRONMENT_NAME=${RAILWAY_ENVIRONMENT_NAME:-}
     depends_on:
       - auth-service
       - padron-service
       - web-admin
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   # Servicio de Autenticación
   auth-service:
@@ -30,25 +32,28 @@ services:
     ports:
       - "3002:3002"
     environment:
-      - NODE_ENV=development
-      - AUTH_PORT=3002
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=sistema_electoral
-      - DB_USER=electoral_user
-      - DB_PASSWORD=electoral_password
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - JWT_EXPIRATION=24h
-      - REFRESH_TOKEN_EXPIRATION=7d
-      - FRONTEND_URL=http://localhost:3000
+      - NODE_ENV=${NODE_ENV:-development}
+      - AUTH_PORT=${AUTH_PORT:-3002}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-sistema_electoral}
+      - DB_USER=${DB_USER:-electoral_user}
+      - DB_PASSWORD=${DB_PASSWORD:-electoral_password}
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-24h}
+      - REFRESH_TOKEN_EXPIRATION=${REFRESH_TOKEN_EXPIRATION:-7d}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - RAILWAY_ENVIRONMENT_NAME=${RAILWAY_ENVIRONMENT_NAME:-}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3002/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   # Servicio de Padrón Electoral
   padron-service:
@@ -57,23 +62,27 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=development
-      - PORT=3001
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=sistema_electoral
-      - DB_USER=electoral_user
-      - DB_PASSWORD=electoral_password
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=${PADRON_PORT:-3001}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-sistema_electoral}
+      - DB_USER=${DB_USER:-electoral_user}
+      - DB_PASSWORD=${DB_PASSWORD:-electoral_password}
+      - RAILWAY_ENVIRONMENT_NAME=${RAILWAY_ENVIRONMENT_NAME:-}
     volumes:
       - ./services/padron-service/uploads:/app/uploads
+      - padron_uploads:/app/uploads
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   # Cliente Web de Administración
   web-admin:
@@ -91,15 +100,21 @@ services:
     image: postgres:15-alpine
     container_name: electoral-db
     environment:
-      - POSTGRES_DB=sistema_electoral
-      - POSTGRES_USER=electoral_user
-      - POSTGRES_PASSWORD=electoral_password
+      - POSTGRES_DB=${DB_NAME:-sistema_electoral}
+      - POSTGRES_USER=${DB_USER:-electoral_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-electoral_password}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-electoral_user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   # Redis para caché (opcional, para futuro uso)
   redis:
@@ -114,7 +129,11 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
+  padron_uploads:
+    driver: local
 
 networks:
   default:
