@@ -18,6 +18,17 @@ if %ERRORLEVEL% NEQ 0 (
     npm install -g @railway/cli
 )
 
+REM Verificar/inicializar Git
+if not exist .git (
+    echo 📝 Inicializando repositorio Git...
+    git init
+)
+
+REM Hacer commit de los cambios
+echo 📝 Preparando código para deployment...
+git add .
+git commit -m "Preparar para deployment en Railway" 2>nul || echo "No hay cambios para commitear"
+
 REM Login en Railway
 echo 🔐 Iniciando sesión en Railway...
 railway login
@@ -34,9 +45,9 @@ echo ✅ Configuración completada!
 echo.
 echo 🔧 Próximos pasos:
 echo 1. Configurar variables de entorno en Railway Dashboard
-echo 2. Conectar repositorio GitHub
+echo 2. Conectar repositorio GitHub (opcional)
 echo 3. Configurar domain custom (opcional)
-echo 4. Configurar secrets en GitHub
+echo 4. Configurar secrets en GitHub para CI/CD
 echo.
 echo 🌐 Accede a Railway Dashboard: https://railway.app/dashboard
 
