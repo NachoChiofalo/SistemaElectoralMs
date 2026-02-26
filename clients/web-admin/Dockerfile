@@ -17,8 +17,9 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER webuser
 
-# Exponer puerto
-EXPOSE 3000
+# Puerto configurable via variable de entorno
+ENV PORT=3000
+EXPOSE ${PORT}
 
 # Comando para servir archivos estáticos
-CMD ["serve", ".", "-l", "3000"]
+CMD serve . -l ${PORT}

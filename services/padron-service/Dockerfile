@@ -18,8 +18,9 @@ COPY padron_2019_municipal.csv ./padron_2019_municipal.csv
 # Crear directorio para uploads
 RUN mkdir -p uploads
 
-# Exponer puerto
-EXPOSE 3001
+# Puerto configurable via variable de entorno
+ENV PORT=3001
+EXPOSE ${PORT}
 
 # Usuario no privilegiado
 RUN addgroup -g 1001 -S nodejs

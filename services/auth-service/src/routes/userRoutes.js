@@ -74,7 +74,7 @@ router.post('/change-password', async (req, res, next) => {
 router.get('/', async (req, res, next) => {
   try {
     // Verificar permisos de administrador
-    if (req.user.rol !== 'admin') {
+    if (req.user.rol !== 'administrador') {
       return res.status(403).json({
         success: false,
         message: 'Acceso denegado: se requieren permisos de administrador'
@@ -95,7 +95,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/users - Crear nuevo usuario (solo admin)
 router.post('/', async (req, res, next) => {
   try {
-    if (req.user.rol !== 'admin') {
+    if (req.user.rol !== 'administrador') {
       return res.status(403).json({
         success: false,
         message: 'Acceso denegado: se requieren permisos de administrador'
@@ -116,7 +116,7 @@ router.post('/', async (req, res, next) => {
       password,
       nombre_completo,
       email,
-      rol: rol || 'encargado'
+      rol: rol || 'encargado_relevamiento'
     });
     
     res.status(201).json({

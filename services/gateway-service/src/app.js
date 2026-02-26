@@ -14,7 +14,7 @@ const { requirePermission, requireAnyPermission } = require('./middleware/permis
 class GatewayApp {
   constructor() {
     this.app = express();
-    this.port = process.env.GATEWAY_PORT || 8080;
+    this.port = process.env.PORT || process.env.GATEWAY_PORT || 8080;
     
     this.initializeMiddleware();
     this.initializeRoutes();

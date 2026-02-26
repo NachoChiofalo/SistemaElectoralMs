@@ -5,7 +5,10 @@ const crypto = require('crypto');
 class AuthService {
   constructor(database) {
     this.db = database;
-    this.jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key';
+    this.jwtSecret = process.env.JWT_SECRET;
+    if (!this.jwtSecret) {
+      throw new Error('JWT_SECRET environment variable is required');
+    }
     this.jwtExpiration = process.env.JWT_EXPIRATION || '24h';
     this.refreshTokenExpiration = process.env.REFRESH_TOKEN_EXPIRATION || '7d';
   }
@@ -133,7 +136,7 @@ class AuthService {
           adminRolId
         ]);
 
-        console.log('✅ Usuario administrador creado: admin/admin123');
+        console.log('✅ Usuario administrador creado');
       }
 
       // Crear usuarios de ejemplo con diferentes roles
@@ -186,7 +189,7 @@ class AuthService {
               rolId
             ]);
             
-            console.log(`✅ Usuario ${usuario.rol} creado: ${usuario.username}/${usuario.password}`);
+            console.log(`✅ Usuario ${usuario.rol} creado: ${usuario.username}`);
           }
         }
       }
@@ -449,7 +452,10 @@ class AuthService {
 
         // Obtener datos actuales del usuario
         const userResult = await client.query(
-          'SELECT id, username, nombre_completo, email, rol, activo FROM usuarios WHERE id = $1',
+          `SELECT u.id, u.username, u.nombre_completo, u.email, r.nombre as rol, u.activo
+           FROM usuarios u
+           LEFT JOIN roles r ON u.rol_id = r.id
+           WHERE u.id = $1`,
           [decoded.id]
         );
 
@@ -483,9 +489,10 @@ class AuthService {
     try {
       // Verificar refresh token
       const tokenResult = await client.query(`
-        SELECT rt.user_id, u.username, u.nombre_completo, u.email, u.rol, u.activo
+        SELECT rt.user_id, u.username, u.nombre_completo, u.email, r.nombre as rol, u.activo
         FROM refresh_tokens rt
         JOIN usuarios u ON rt.user_id = u.id
+        LEFT JOIN roles r ON u.rol_id = r.id
         WHERE rt.token = $1 AND rt.expires_at > CURRENT_TIMESTAMP
       `, [refreshToken]);
 
