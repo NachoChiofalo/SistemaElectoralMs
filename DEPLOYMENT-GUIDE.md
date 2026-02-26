@@ -1,233 +1,123 @@
-# 🚀 Guía Completa de Deployment - Sistema Electoral en Railway
+# 🚀 Guía de Despliegue - Sistema Electoral (Railway)
 
-## 📋 Pasos para Deployment Automatizado
+> **Arquitectura Agnóstica**: Este proyecto usa Dockerfiles estándar y variables de entorno genéricas. Puede desplegarse en Railway, Render, Fly.io, AWS ECS o cualquier plataforma que soporte contenedores Docker sin modificar el código fuente.
 
-### 1. 🔧 Configuración Inicial
+## Requisitos Previos
 
-#### A. Preparar el Repositorio GitHub
-```bash
-# 1. Crear/subir el repositorio a GitHub
-git init
-git add .
-git commit -m "Initial commit: Sistema Electoral"
-git remote add origin https://github.com/tu-usuario/sistema-electoral.git
-git push -u origin main
+- Cuenta en [Railway](https://railway.app)
+- Repositorio en GitHub (rama `implementacion` o `main`)
+
+## Paso 1: Crear Proyecto en Railway
+
+1. Ir a [railway.app/dashboard](https://railway.app/dashboard) y hacer clic en **New Project**.
+2. Seleccionar **Deploy from GitHub repo**.
+3. Conectar tu cuenta de GitHub y seleccionar el repositorio `SistemaElectoralMs`.
+4. Elegir la rama `implementacion` (o `main`).
+
+## Paso 2: Provisionar PostgreSQL
+
+1. Dentro del proyecto en Railway, hacer clic en **+ New** → **Database** → **Add PostgreSQL**.
+2. Railway creará automáticamente las variables de conexión (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`).
+
+## Paso 3: Crear los Servicios
+
+Cada microservicio se despliega individualmente. Para cada uno:
+
+1. **+ New** → **GitHub Repo** → seleccionar el mismo repositorio.
+2. En **Settings** de cada servicio, configurar:
+   - **Root Directory**: la ruta al servicio (ej: `services/auth-service`)
+   - **Builder**: Dockerfile
+
+Crear los siguientes servicios:
+
+| Servicio | Root Directory | Puerto por defecto |
+|----------|---------------|-------------------|
+| auth-service | `services/auth-service` | 3002 |
+| gateway-service | `services/gateway-service` | 8080 |
+| padron-service | `services/padron-service` | 3001 |
+| web-admin | `clients/web-admin` | 3000 |
+
+## Paso 4: Configurar Variables de Entorno
+
+En el panel de Railway, para cada servicio, ir a **Variables** y configurar:
+
+### auth-service
 ```
-
-#### B. Instalar Railway CLI
-```bash
-# Windows
-npm install -g @railway/cli
-
-# Mac/Linux  
-curl -fsSL https://railway.app/install.sh | sh
-```
-
-### 2. 🏗️ Setup en Railway
-
-#### A. Ejecutar script de configuración
-```bash
-# Windows
-.\scripts\setup-railway.bat
-
-# Linux/Mac
-chmod +x scripts/setup-railway.sh
-./scripts/setup-railway.sh
-```
-
-#### B. Configuración manual alternativa
-```bash
-# Login en Railway
-railway login
-
-# Crear proyecto
-railway init
-
-# Crear servicios individuales
-railway service create auth-service
-railway service create gateway-service  
-railway service create padron-service
-railway service create web-admin
-
-# Crear base de datos PostgreSQL
-railway service create postgres --template postgres
-```
-
-### 3. 🔑 Configurar Secrets en GitHub
-
-En tu repositorio GitHub, ve a **Settings > Secrets and variables > Actions** y agrega:
-
-```
-RAILWAY_TOKEN=rwy_xxxxxxxxxx
-```
-
-Para obtener tu Railway token:
-```bash
-railway auth
-# Copia el token que aparece
-```
-
-### 4. ⚙️ Variables de Entorno en Railway
-
-Para cada servicio en Railway Dashboard, configura estas variables:
-
-#### 🔐 Auth Service
-```bash
-PORT=3002
 NODE_ENV=production
-JWT_SECRET=your_super_secure_jwt_secret_change_this
+JWT_SECRET=<genera-un-string-seguro-aleatorio-de-al-menos-32-caracteres>
 JWT_EXPIRATION=24h
 REFRESH_TOKEN_EXPIRATION=7d
-DB_HOST=${{ POSTGRES.PGHOST }}
-DB_PORT=${{ POSTGRES.PGPORT }}
-DB_NAME=${{ POSTGRES.PGDATABASE }}
-DB_USER=${{ POSTGRES.PGUSER }}
-DB_PASSWORD=${{ POSTGRES.PGPASSWORD }}
+DB_HOST=${{Postgres.PGHOST}}
+DB_PORT=${{Postgres.PGPORT}}
+DB_NAME=${{Postgres.PGDATABASE}}
+DB_USER=${{Postgres.PGUSER}}
+DB_PASSWORD=${{Postgres.PGPASSWORD}}
 ```
 
-#### 🌐 Gateway Service
-```bash
-PORT=8080
+### gateway-service
+```
 NODE_ENV=production
-AUTH_SERVICE_URL=http://${{ AUTH_SERVICE.RAILWAY_PRIVATE_DOMAIN }}
-PADRON_SERVICE_URL=http://${{ PADRON_SERVICE.RAILWAY_PRIVATE_DOMAIN }}
-FRONTEND_URL=https://${{ WEB_ADMIN.RAILWAY_PUBLIC_DOMAIN }}
+AUTH_SERVICE_URL=http://${{auth-service.RAILWAY_PRIVATE_DOMAIN}}:${{auth-service.PORT}}
+PADRON_SERVICE_URL=http://${{padron-service.RAILWAY_PRIVATE_DOMAIN}}:${{padron-service.PORT}}
+WEB_ADMIN_URL=http://${{web-admin.RAILWAY_PRIVATE_DOMAIN}}:${{web-admin.PORT}}
+FRONTEND_URL=https://${{gateway-service.RAILWAY_PUBLIC_DOMAIN}}
 ```
 
-#### 📊 Padrón Service
-```bash
-PORT=3001
+### padron-service
+```
 NODE_ENV=production
-DB_HOST=${{ POSTGRES.PGHOST }}
-DB_PORT=${{ POSTGRES.PGPORT }}
-DB_NAME=${{ POSTGRES.PGDATABASE }}
-DB_USER=${{ POSTGRES.PGUSER }}
-DB_PASSWORD=${{ POSTGRES.PGPASSWORD }}
+DB_HOST=${{Postgres.PGHOST}}
+DB_PORT=${{Postgres.PGPORT}}
+DB_NAME=${{Postgres.PGDATABASE}}
+DB_USER=${{Postgres.PGUSER}}
+DB_PASSWORD=${{Postgres.PGPASSWORD}}
 ```
 
-#### 🖥️ Web Admin
-```bash
-PORT=3000
+### web-admin
+```
 NODE_ENV=production
-API_URL=https://${{ GATEWAY_SERVICE.RAILWAY_PUBLIC_DOMAIN }}
 ```
 
-### 5. 🚀 Deployment Automático
+> **Nota**: Railway asigna automáticamente la variable `PORT` a cada servicio. Los Dockerfiles y el código ya la respetan.
 
-Una vez configurado todo, cada push a la rama `main` ejecutará automáticamente:
+## Paso 5: Generar Dominio Público
 
-1. ✅ **Tests y Validación**
-2. 🏗️ **Build de contenedores Docker**  
-3. 🚀 **Deploy a Railway**
-4. 🗃️ **Setup de base de datos**
-5. 📊 **Verificación de health checks**
+1. En el servicio **gateway-service**, ir a **Settings** → **Networking** → **Generate Domain**.
+2. Este será el punto de entrada público de tu aplicación.
 
-### 6. 📱 Monitoreo y Gestión
+## Paso 6: Inicializar la Base de Datos
 
-#### Ver estado del sistema:
+La primera vez que se ejecute `auth-service`, creará automáticamente las tablas de usuarios, roles y permisos. El `init-db.sql` en `scripts/` se ejecuta al provisionar PostgreSQL si se monta como volumen.
+
+Para ejecutarlo manualmente desde Railway:
 ```bash
-./scripts/monitor-railway.sh  # Linux/Mac
-# o usar Railway Dashboard
-```
-
-#### URLs de acceso:
-- **Web Admin**: `https://web-admin-xxxx.railway.app`
-- **API Gateway**: `https://gateway-service-xxxx.railway.app` 
-- **Dashboard Railway**: `https://railway.app/dashboard`
-
-## 🔍 Troubleshooting
-
-### ❌ Problemas Comunes
-
-#### 1. **Error de autenticación Railway**
-```bash
-railway logout
-railway login
-```
-
-#### 2. **Variables de entorno no funcionan**
-- Verificar sintaxis en Railway Dashboard
-- Usar `${{ SERVICE.VARIABLE }}` para referencias internas
-
-#### 3. **Build fallido**
-```bash
-# Ver logs detallados
-railway logs --service service-name
-
-# Reconstruir
-railway redeploy --service service-name
-```
-
-#### 4. **Base de datos no conecta**
-- Verificar variables `DB_*` en todos los servicios
-- Confirmar que PostgreSQL está running
-
-#### 5. **Servicios no se comunican**
-- Usar URLs internas: `http://${{ SERVICE.RAILWAY_PRIVATE_DOMAIN }}`
-- Verificar health checks
-
-### 🔧 Comandos Útiles
-
-```bash
-# Ver status general
-railway status
-
-# Ver logs de un servicio
-railway logs --service auth-service --tail
-
-# Redeploy servicio específico
-railway redeploy --service gateway-service
-
-# Rollback en caso de problemas
-railway rollback --service service-name
-
-# Abrir Railway Dashboard
-railway open
-
-# Conectar a PostgreSQL
 railway connect postgres
+\i scripts/init-db.sql
 ```
 
-## 📊 Arquitectura de Deployment
+## Paso 7: Verificar Despliegue
 
-```
-GitHub Repo
-     ↓ (git push)
-GitHub Actions 
-     ↓ (deploy)
-Railway Platform
-     ↓ (services)
-┌─────────────────────────────────────┐
-│  🌐 API Gateway (8080)              │ ← Entry Point
-│  ┌─────────────────────────────────┐ │
-│  │ 🔐 Auth Service (3002)          │ │
-│  │ 📊 Padrón Service (3001)        │ │  
-│  │ 🖥️  Web Admin (3000)            │ │
-│  │ 🗃️  PostgreSQL (5432)           │ │
-│  └─────────────────────────────────┘ │
-└─────────────────────────────────────┘
+Acceder a los health checks:
+- `https://<tu-dominio>.railway.app/health` (Gateway)
+
+## Desarrollo Local
+
+```bash
+# 1. Copiar variables de entorno
+cp .env.example .env
+# Editar .env con tus valores locales (especialmente JWT_SECRET)
+
+# 2. Levantar con Docker Compose
+docker-compose up -d
+
+# 3. Acceder a http://localhost:8080
 ```
 
-## 🎯 Checklist de Deployment
+## Migración a Otras Plataformas
 
-- [ ] ✅ Código subido a GitHub
-- [ ] 🔑 Railway token configurado en GitHub Secrets
-- [ ] 🏗️ Servicios creados en Railway
-- [ ] ⚙️ Variables de entorno configuradas
-- [ ] 🗃️ PostgreSQL database configurada
-- [ ] 🚀 Pipeline ejecutado exitosamente
-- [ ] 🌐 URLs públicas funcionando
-- [ ] 📊 Health checks passing
-- [ ] 🔍 Logs sin errores críticos
+Este proyecto no tiene dependencias específicas de Railway. Para migrar:
 
-## 📞 Soporte
-
-Si necesitas ayuda:
-1. 📋 Revisa logs en Railway Dashboard
-2. 🔍 Verifica GitHub Actions logs  
-3. 📚 Consulta [Railway Documentation](https://docs.railway.app)
-4. 🆘 Crea issue en el repositorio
-
----
-
-🎉 **¡Tu Sistema Electoral estará disponible 24/7 en Railway con deployment automático!**
+1. Usa los Dockerfiles estándar de cada servicio.
+2. Configura las variables de entorno listadas en `.env.example`.
+3. Asegúrate de que cada servicio reciba la variable `PORT` (o usará su valor por defecto).
+4. Provisiona una base de datos PostgreSQL y apunta las variables `DB_*` a ella.

@@ -105,7 +105,7 @@ const adminMiddleware = (req, res, next) => {
     });
   }
 
-  if (req.user.rol !== 'admin') {
+  if (req.user.rol !== 'administrador') {
     return res.status(403).json({
       success: false,
       message: 'Acceso denegado: se requieren permisos de administrador'
