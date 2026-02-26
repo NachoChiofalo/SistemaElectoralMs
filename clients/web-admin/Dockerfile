@@ -22,4 +22,4 @@ ENV PORT=3000
 EXPOSE ${PORT}
 
 # Comando para servir archivos estáticos
-CMD serve . -l ${PORT}
+CMD ["sh", "-c", "serve . -l ${PORT}"]

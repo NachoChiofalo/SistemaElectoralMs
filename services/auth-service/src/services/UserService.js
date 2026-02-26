@@ -77,7 +77,10 @@ class UserService {
         'SELECT id FROM roles WHERE nombre = $1',
         [rol]
       );
-      const rolId = rolResult.rows[0]?.id;
+      if (rolResult.rows.length === 0) {
+        throw new Error(`El rol '${rol}' no existe`);
+      }
+      const rolId = rolResult.rows[0].id;
 
       // Insertar usuario
       const result = await client.query(`
@@ -86,7 +89,10 @@ class UserService {
         RETURNING id, username, nombre_completo, email, activo, created_at
       `, [username, passwordHash, nombre_completo, email, rolId]);
 
-      return result.rows[0];
+      const newUser = result.rows[0];
+      newUser.rol = rol;
+
+      return newUser;
     } finally {
       client.release();
     }
