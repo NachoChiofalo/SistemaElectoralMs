@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependencias
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copiar código fuente
 COPY src/ ./src/
@@ -20,12 +20,9 @@ RUN adduser -S gatewayuser -u 1001
 RUN chown -R gatewayuser:nodejs /app
 USER gatewayuser
 
-# Exponer puerto
-EXPOSE 8080
-
-# Configurar health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+# Puerto configurable via variable de entorno
+ENV PORT=8080
+EXPOSE ${PORT}
 
 # Comando por defecto
 CMD ["node", "src/app.js"]

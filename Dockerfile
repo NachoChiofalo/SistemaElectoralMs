@@ -8,7 +8,7 @@ WORKDIR /app
 COPY services/gateway-service/package*.json ./
 
 # Instalar dependencias
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copiar código fuente del gateway service
 COPY services/gateway-service/src/ ./src/
@@ -21,12 +21,9 @@ RUN adduser -S appuser -u 1001
 RUN chown -R appuser:nodejs /app
 USER appuser
 
-# Exponer puerto del gateway (punto de entrada)
-EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+# Puerto configurable via variable de entorno
+ENV PORT=8080
+EXPOSE ${PORT}
 
 # Comando por defecto - ejecutar gateway service completo
 CMD ["node", "src/app.js"]

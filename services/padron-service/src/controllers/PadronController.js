@@ -561,8 +561,8 @@ class PadronController {
             });
         }
     }
-    }
-    
+}
+
 
 
 module.exports = PadronController;

@@ -12,7 +12,7 @@ const errorMiddleware = require('./middleware/errorMiddleware');
 class AuthApp {
   constructor() {
     this.app = express();
-    this.port = process.env.AUTH_PORT || 3002;
+    this.port = process.env.PORT || process.env.AUTH_PORT || 3002;
     this.database = new Database();
     
     this.initializeMiddleware();
@@ -58,9 +58,7 @@ class AuthApp {
   }
 
   initializeErrorHandling() {
-    this.app.use(errorMiddleware);
-
-    // 404 handler
+    // 404 handler (must be before error middleware)
     this.app.use('*', (req, res) => {
       res.status(404).json({
         success: false,
@@ -68,6 +66,8 @@ class AuthApp {
         path: req.originalUrl
       });
     });
+
+    this.app.use(errorMiddleware);
   }
 
   async start() {

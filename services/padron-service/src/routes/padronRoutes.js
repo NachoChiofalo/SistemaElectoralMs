@@ -7,7 +7,16 @@ const PadronController = require('../controllers/PadronController');
 const padronController = new PadronController();
 
 // Configurar multer para subida de archivos
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({
+    dest: 'uploads/',
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype !== 'text/csv' && !file.originalname.endsWith('.csv')) {
+            return cb(new Error('Solo se permiten archivos CSV'));
+        }
+        cb(null, true);
+    }
+});
 
 // Rutas
 router.post('/importar-csv', upload.single('csv'), (req, res) => {

@@ -607,11 +607,30 @@ class PadronComponent {
      */
     async cambiarOpcionPolitica(dni, opcionPolitica) {
         try {
+            // Actualizar vista inmediatamente (feedback visual)
+            const fila = document.querySelector(`tr[data-dni="${dni}"]`);
+            if (fila) {
+                // Desseleccionar todos los labels de opciones políticas
+                fila.querySelectorAll('.radio-label').forEach(label => {
+                    label.classList.remove('selected');
+                });
+
+                // Seleccionar el label clickeado
+                const inputSeleccionado = fila.querySelector(`input[name="opcion_${dni}"][value="${opcionPolitica}"]`);
+                if (inputSeleccionado) {
+                    inputSeleccionado.checked = true;
+                    inputSeleccionado.closest('.radio-label').classList.add('selected');
+                }
+            }
+
+            // Guardar en la base de datos
             await window.apiService.actualizarRelevamiento(dni, opcionPolitica);
             this.mostrarNotificacion('Relevamiento actualizado', 'success');
             await this.actualizarEstadisticasRapidas();
         } catch (error) {
             this.mostrarError(`Error al actualizar relevamiento: ${error.message}`);
+            // Revertir cambio visual en caso de error
+            this.actualizarTabla();
         }
     }
 

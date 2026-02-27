@@ -13,7 +13,10 @@ class UserService {
     
     try {
       const result = await client.query(
-        'SELECT id, username, nombre_completo, email, rol, activo, created_at FROM usuarios WHERE id = $1',
+        `SELECT u.id, u.username, u.nombre_completo, u.email, r.nombre as rol, u.activo, u.created_at
+         FROM usuarios u
+         LEFT JOIN roles r ON u.rol_id = r.id
+         WHERE u.id = $1`,
         [userId]
       );
 
@@ -35,9 +38,10 @@ class UserService {
     
     try {
       const result = await client.query(`
-        SELECT id, username, nombre_completo, email, rol, activo, created_at
-        FROM usuarios
-        ORDER BY created_at DESC
+        SELECT u.id, u.username, u.nombre_completo, u.email, r.nombre as rol, u.activo, u.created_at
+        FROM usuarios u
+        LEFT JOIN roles r ON u.rol_id = r.id
+        ORDER BY u.created_at DESC
       `);
 
       return result.rows;
@@ -50,7 +54,7 @@ class UserService {
    * Crear nuevo usuario
    */
   async createUser(userData) {
-    const { username, password, nombre_completo, email, rol = 'encargado' } = userData;
+    const { username, password, nombre_completo, email, rol = 'encargado_relevamiento' } = userData;
     
     const client = await this.db.getConnection();
     
@@ -68,14 +72,27 @@ class UserService {
       // Hash de la contraseña
       const passwordHash = await bcrypt.hash(password, 12);
 
+      // Obtener rol_id
+      const rolResult = await client.query(
+        'SELECT id FROM roles WHERE nombre = $1',
+        [rol]
+      );
+      if (rolResult.rows.length === 0) {
+        throw new Error(`El rol '${rol}' no existe`);
+      }
+      const rolId = rolResult.rows[0].id;
+
       // Insertar usuario
       const result = await client.query(`
-        INSERT INTO usuarios (username, password_hash, nombre_completo, email, rol)
+        INSERT INTO usuarios (username, password_hash, nombre_completo, email, rol_id)
         VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, username, nombre_completo, email, rol, activo, created_at
-      `, [username, passwordHash, nombre_completo, email, rol]);
+        RETURNING id, username, nombre_completo, email, activo, created_at
+      `, [username, passwordHash, nombre_completo, email, rolId]);
 
-      return result.rows[0];
+      const newUser = result.rows[0];
+      newUser.rol = rol;
+
+      return newUser;
     } finally {
       client.release();
     }
@@ -96,7 +113,7 @@ class UserService {
             email = COALESCE($2, email),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = $3
-        RETURNING id, username, nombre_completo, email, rol, activo
+        RETURNING id, username, nombre_completo, email, activo
       `, [nombre_completo, email, userId]);
 
       if (result.rows.length === 0) {
@@ -158,7 +175,7 @@ class UserService {
         UPDATE usuarios 
         SET activo = $1, updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
-        RETURNING id, username, nombre_completo, email, rol, activo
+        RETURNING id, username, nombre_completo, email, activo
       `, [activo, userId]);
 
       if (result.rows.length === 0) {

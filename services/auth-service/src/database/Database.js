@@ -3,11 +3,11 @@ const { Pool } = require('pg');
 class Database {
   constructor() {
     this.pool = new Pool({
-      host: process.env.DB_HOST || 'localhost',
+      host: process.env.DB_HOST || 'postgres',
       port: process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME || 'electoral_db',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
+      database: process.env.DB_NAME || 'sistema_electoral',
+      user: process.env.DB_USER || 'electoral_user',
+      password: process.env.DB_PASSWORD || 'electoral_password',
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
