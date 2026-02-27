@@ -1,10 +1,10 @@
 /* ==================== NAVBAR UNIFICADA ==================== */
 
 .navbar-unified {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    border-radius: 0 0 12px 12px;
-    margin-bottom: 20px;
+    background: var(--ds-gradient-navbar, linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%));
+    box-shadow: var(--ds-shadow-lg, 0 4px 20px rgba(0, 0, 0, 0.1));
+    border-radius: 0 0 var(--ds-radius-xl, 16px) var(--ds-radius-xl, 16px);
+    margin-bottom: 24px;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -33,7 +33,7 @@
 
 .navbar-brand i {
     font-size: 1.3rem;
-    color: #ffd700;
+    color: var(--ds-accent-400, #fbbf24);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
@@ -57,10 +57,10 @@
     padding: 12px 20px;
     color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
-    border-radius: 8px;
+    border-radius: var(--ds-radius-md, 8px);
     font-weight: 500;
     font-size: 0.9rem;
-    transition: all 0.3s ease;
+    transition: all var(--ds-transition-smooth, 0.35s cubic-bezier(0.4, 0, 0.2, 1));
     position: relative;
     white-space: nowrap;
 }
@@ -74,7 +74,7 @@
 
 .nav-item.active {
     color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.22);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -86,7 +86,7 @@
     transform: translateX(-50%);
     width: 8px;
     height: 3px;
-    background: #ffd700;
+    background: var(--ds-accent-400, #fbbf24);
     border-radius: 2px;
 }
 
@@ -114,7 +114,7 @@
 
 .user-info i {
     font-size: 1.2rem;
-    color: #ffd700;
+    color: var(--ds-accent-400, #fbbf24);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
@@ -123,21 +123,21 @@
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    background: rgba(231, 76, 60, 0.2);
+    background: rgba(239, 68, 68, 0.15);
     color: #ffffff;
-    border: 1px solid rgba(231, 76, 60, 0.4);
-    border-radius: 6px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--ds-radius-md, 8px);
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: all var(--ds-transition-smooth, 0.35s ease);
 }
 
 .logout-btn:hover {
-    background: rgba(231, 76, 60, 0.3);
-    border-color: rgba(231, 76, 60, 0.6);
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.5);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .logout-btn:active {
@@ -253,7 +253,7 @@
 }
 
 .navbar-unified {
-    animation: fadeInDown 0.6s ease-out;
+    animation: fadeInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Estados de hover mejorados */
@@ -261,7 +261,7 @@
 .logout-btn:hover i,
 .user-info i:hover {
     transform: scale(1.1);
-    transition: transform 0.2s ease;
+    transition: transform var(--ds-transition-base, 0.25s ease);
 }
 
 /* Efectos de glassmorphism sutil */
@@ -272,9 +272,9 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(10px);
-    border-radius: 0 0 12px 12px;
+    border-radius: 0 0 var(--ds-radius-xl, 16px) var(--ds-radius-xl, 16px);
     z-index: -1;
 }
 

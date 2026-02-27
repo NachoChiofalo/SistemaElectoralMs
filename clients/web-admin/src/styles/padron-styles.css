@@ -1,22 +1,23 @@
 /* ==================== ESTILOS PARA APLICACIÓN DE MICROSERVICIOS ==================== */
 
-/* Variables CSS */
+/* Variables CSS — mapped to Design System tokens */
 :root {
-    --primary: #2c3e50;
-    --secondary: #3498db;
-    --success: #27ae60;
-    --warning: #f39c12;
-    --danger: #e74c3c;
-    --pj: #1e3a8a;
-    --ucr: #dc2626;
-    --indeciso: #6b7280;
-    --bg: #f8fafc;
-    --card: #ffffff;
-    --border: #e2e8f0;
-    --text: #1f2937;
-    --text-light: #6b7280;
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --primary: var(--ds-secondary-800, #1e293b);
+    --secondary: var(--ds-primary-500, #6366f1);
+    --secondary-light: var(--ds-primary-100, #e0e7ff);
+    --success: var(--ds-success-500, #10b981);
+    --warning: var(--ds-warning-500, #f59e0b);
+    --danger: var(--ds-danger-500, #ef4444);
+    --pj: var(--ds-party-pj, #1e3a8a);
+    --ucr: var(--ds-party-ucr, #dc2626);
+    --indeciso: var(--ds-party-indeciso, #64748b);
+    --bg: var(--ds-bg-page, #f8fafc);
+    --card: var(--ds-bg-card, #ffffff);
+    --border: var(--ds-border-light, #e2e8f0);
+    --text: var(--ds-text-primary, #0f172a);
+    --text-light: var(--ds-text-secondary, #475569);
+    --shadow: var(--ds-shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1));
+    --shadow-lg: var(--ds-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1));
 }
 
 /* ==================== RESET Y BASE ==================== */
@@ -28,7 +29,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
@@ -236,7 +237,7 @@ body {
 
 /* ==================== INCLUIR ESTILOS DEL PADRÓN ==================== */
 
-/* Variables CSS específicas para padrón */
+/* Variables CSS específicas para padrón — inherits from design system */
 :root {
     --padron-primary: var(--primary);
     --padron-secondary: var(--secondary);
@@ -261,8 +262,9 @@ body {
     max-width: 100%;
     margin: 0 auto;
     background: var(--padron-bg);
-    border-radius: 8px;
+    border-radius: var(--ds-radius-lg, 12px);
     box-shadow: var(--padron-shadow);
+    animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 /* ==================== HEADER ==================== */
@@ -274,9 +276,11 @@ body {
     margin-bottom: 2rem;
     padding: 1.5rem;
     background: var(--padron-card);
-    border-radius: 8px;
+    border-radius: var(--ds-radius-lg, 12px);
     box-shadow: var(--padron-shadow);
-    border-left: 4px solid var(--padron-primary);
+    border-left: 4px solid var(--padron-secondary);
+    animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation-delay: 100ms;
 }
 
 .padron-title h2 {
@@ -308,19 +312,19 @@ body {
 .padron-actions .btn {
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--ds-radius-md, 8px);
     cursor: pointer;
     font-weight: 500;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    transition: all 0.2s ease;
+    transition: all var(--ds-transition-smooth, 0.3s ease);
     font-size: 0.875rem;
 }
 
 .padron-actions .btn:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: var(--padron-shadow-lg);
 }
 
@@ -365,9 +369,11 @@ body {
 .padron-filtros {
     background: var(--padron-card);
     padding: 1.5rem;
-    border-radius: 8px;
+    border-radius: var(--ds-radius-lg, 12px);
     margin-bottom: 1.5rem;
     box-shadow: var(--padron-shadow);
+    animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation-delay: 150ms;
 }
 
 .filtros-row {
@@ -393,17 +399,18 @@ body {
 .filtro-item input,
 .filtro-item select {
     padding: 0.5rem;
-    border: 1px solid var(--padron-border);
-    border-radius: 4px;
+    border: 1.5px solid var(--padron-border);
+    border-radius: var(--ds-radius-md, 8px);
     font-size: 0.875rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: var(--ds-font-family, inherit);
+    transition: border-color var(--ds-transition-base, 0.25s ease), box-shadow var(--ds-transition-base, 0.25s ease);
 }
 
 .filtro-item input:focus,
 .filtro-item select:focus {
     outline: none;
     border-color: var(--padron-secondary);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .filtro-item input[type="checkbox"] {
@@ -431,11 +438,11 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform var(--ds-transition-smooth, 0.3s ease), box-shadow var(--ds-transition-smooth, 0.3s ease);
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--padron-shadow-lg);
 }
 
@@ -518,9 +525,11 @@ body {
 
 .padron-tabla-container {
     background: var(--padron-card);
-    border-radius: 8px;
+    border-radius: var(--ds-radius-lg, 12px);
     box-shadow: var(--padron-shadow);
     overflow: hidden;
+    animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation-delay: 200ms;
 }
 
 .tabla-header {
@@ -796,23 +805,24 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: modalFadeIn 0.3s ease-out;
+    animation: modalFadeIn 0.2s ease-out;
 }
 
 .modal-content {
     background: white;
-    border-radius: 8px;
-    box-shadow: var(--padron-shadow-lg);
+    border-radius: var(--ds-radius-xl, 16px);
+    box-shadow: var(--ds-shadow-xl, var(--padron-shadow-lg));
     max-width: 500px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
-    animation: modalSlideIn 0.3s ease-out;
+    animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-content.modal-large {
