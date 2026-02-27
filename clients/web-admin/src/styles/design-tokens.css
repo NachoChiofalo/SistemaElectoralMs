@@ -30,8 +30,11 @@
 
     /* Political parties */
     --color-pj:             #2563EB;
+    --color-pj-light:       rgba(37, 99, 235, 0.3);
     --color-ucr:            #DC2626;
+    --color-ucr-light:      rgba(220, 38, 38, 0.3);
     --color-indeciso:       #64748B;
+    --color-indeciso-light: rgba(100, 116, 139, 0.3);
 
     /* Neutrals */
     --color-text:           #1E293B;

@@ -656,17 +656,17 @@
 
 .radio-label.selected .radio-custom.pj {
     opacity: 1;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 0 0 2px var(--color-pj-light);
 }
 
 .radio-label.selected .radio-custom.ucr {
     opacity: 1;
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3);
+    box-shadow: 0 0 0 2px var(--color-ucr-light);
 }
 
 .radio-label.selected .radio-custom.indeciso {
     opacity: 1;
-    box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.3);
+    box-shadow: 0 0 0 2px var(--color-indeciso-light);
 }
 
 .radio-label:hover .radio-custom {
