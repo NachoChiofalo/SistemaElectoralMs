@@ -98,7 +98,6 @@ jobs:
     - name: Deploy ${{ matrix.service.name }} to Railway
       run: |
         cd ${{ matrix.service.path }}
-        railway login --token ${{ secrets.RAILWAY_TOKEN }}
         railway up --service ${{ matrix.service.name }} --detach
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -119,7 +118,6 @@ jobs:
 
     - name: Run database migrations
       run: |
-        railway login --token ${{ secrets.RAILWAY_TOKEN }}
         # Ejecutar scripts de inicialización si es necesario
         echo "Database setup completed"
       env:

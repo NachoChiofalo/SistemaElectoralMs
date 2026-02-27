@@ -71,7 +71,7 @@ class LoginComponent {
                             </div>
                             <div class="credential-item">
                                 <strong>Encargado 1:</strong>
-                                <span>encargado1 / enc123</span>
+                                <span>encargado1 / encargado123</span>
                             </div>
                             <div class="credential-item">
                                 <strong>Consultor 2:</strong>

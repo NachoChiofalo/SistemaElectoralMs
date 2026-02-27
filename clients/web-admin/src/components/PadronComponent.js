@@ -156,7 +156,6 @@ class PadronComponent {
                             Sin Relevamiento
                         </label>
                     </div>
-                    </div>
                     <div class="filtro-item">
                         <button id="btn-aplicar-filtros" class="btn btn-primary">Filtrar</button>
                         <button id="btn-limpiar-filtros" class="btn btn-secondary">Limpiar</button>
@@ -557,9 +556,9 @@ class PadronComponent {
                             <div class="stat-label">Relevamientos</div>
                             <div class="stat-progress">
                                 <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${stats.porcentajeCompletado}%"></div>
+                                    <div class="progress-fill" style="width: ${stats.porcentajeRelevados}%"></div>
                                 </div>
-                                <span class="progress-text">${stats.porcentajeCompletado}%</span>
+                                <span class="progress-text">${stats.porcentajeRelevados}%</span>
                             </div>
                         </div>
                     </div>
@@ -794,7 +793,7 @@ class PadronComponent {
                             </div>
                             <div class="resumen-item">
                                 <label>Porcentaje de Avance:</label>
-                                <span>${stats.porcentajeCompletado}%</span>
+                                <span>${stats.porcentajeRelevados}%</span>
                             </div>
                         </div>
                     </div>
