@@ -28,20 +28,32 @@
 }
 
 .coming-soon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
     text-align: center;
     padding: var(--space-12) var(--space-8);
     color: var(--color-text-secondary);
 }
 
 .coming-soon i {
-    font-size: var(--font-size-3xl);
-    margin-bottom: var(--space-4);
-    color: var(--color-border);
+    font-size: 4rem;
+    margin-bottom: var(--space-5);
+    color: var(--color-primary);
+    filter: drop-shadow(0 4px 8px rgba(79, 70, 229, 0.25));
 }
 
 .coming-soon h2 {
     margin-bottom: var(--space-4);
+    font-size: var(--font-size-2xl);
     color: var(--color-text);
+}
+
+.coming-soon p {
+    font-size: var(--font-size-lg);
+    opacity: 0.8;
 }
 
 /* ==================== 2. APP HEADER ==================== */
