@@ -5,49 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Comicio - Sistema Electoral</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="src/styles/design-tokens.css">
     <link rel="stylesheet" href="src/styles/navbar-styles.css">
     <link rel="stylesheet" href="src/styles/padron-styles.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-            line-height: 1.4;
-        }
-        
         .container {
-            max-width: 1400px;
+            max-width: var(--max-width);
             margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .coming-soon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 60vh;
-            color: #7f8c8d;
-        }
-        
-        .coming-soon i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: #667eea;
-            filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.3));
-        }
-        
-        .coming-soon h2 {
-            margin: 0 0 15px 0;
-            font-size: 2rem;
-            color: #2c3e50;
-        }
-        
-        .coming-soon p {
-            font-size: 1.1rem;
-            margin: 0;
-            opacity: 0.8;
+            padding: 0 var(--space-5);
         }
     </style>
 </head>
