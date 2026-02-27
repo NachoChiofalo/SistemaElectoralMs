@@ -12,7 +12,7 @@
     align-items: center;
     justify-content: center;
     font-family: var(--font-family);
-    z-index: 9999;
+    z-index: var(--z-login);
 }
 
 .login-card {
