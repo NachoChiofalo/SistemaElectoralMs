@@ -10,17 +10,17 @@
 
 /* Información del votante */
 .votante-info {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
     border-left: 4px solid var(--color-primary);
 }
 
 .info-row {
     display: flex;
-    gap: 2rem;
-    margin-bottom: 1rem;
+    gap: var(--space-8);
+    margin-bottom: var(--space-4);
 }
 
 .info-item {
@@ -28,38 +28,38 @@
 }
 
 .info-item label {
-    font-weight: 600;
-    color: #666;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
     display: block;
-    margin-bottom: 0.25rem;
-    font-size: 0.9rem;
+    margin-bottom: var(--space-1);
+    font-size: var(--font-size-base);
 }
 
 .info-item .value {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #2c3e50;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
 }
 
 /* Grid de condiciones */
 .condiciones-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
 }
 
 .condicion-item {
-    background: white;
-    border: 1px solid #e1e8ed;
-    border-radius: 8px;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    transition: all var(--transition-slow);
 }
 
 .condicion-item:hover {
     border-color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(0,123,255,0.15);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Checkboxes personalizados */
@@ -67,7 +67,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--space-3);
     cursor: pointer;
     user-select: none;
 }
@@ -79,11 +79,11 @@
 .checkmark {
     width: 20px;
     height: 20px;
-    background: white;
-    border: 2px solid #ddd;
-    border-radius: 4px;
+    background: var(--color-card);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
     position: relative;
-    transition: all 0.3s ease;
+    transition: all var(--transition-slow);
     flex-shrink: 0;
 }
 
@@ -104,7 +104,7 @@
     top: 2px;
     width: 6px;
     height: 12px;
-    border: solid white;
+    border: solid var(--color-card);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
@@ -116,80 +116,80 @@
 .label-text {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 500;
+    gap: var(--space-2);
+    font-weight: var(--font-weight-medium);
     flex: 1;
 }
 
 /* Iconos de condiciones */
-.icon-nuevo { color: #28a745; }
-.icon-fallecido { color: #dc3545; }
-.icon-empleado { color: #007bff; }
-.icon-ayuda { color: #ffc107; }
+.icon-nuevo { color: var(--color-success); }
+.icon-fallecido { color: var(--color-danger); }
+.icon-empleado { color: var(--color-secondary); }
+.icon-ayuda { color: var(--color-warning); }
 
 .description {
     display: block;
-    color: #666;
+    color: var(--color-text-secondary);
     font-style: italic;
-    margin-top: 0.5rem;
+    margin-top: var(--space-2);
     line-height: 1.3;
 }
 
 /* Sección de observaciones */
 .observaciones-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-6);
 }
 
 .observaciones-section label {
     display: block;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
 }
 
 .observaciones-section textarea {
     width: 100%;
     min-height: 80px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
     font-family: inherit;
     resize: vertical;
-    transition: border-color 0.3s ease;
+    transition: border-color var(--transition-slow);
 }
 
 .observaciones-section textarea:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 /* Información de fecha */
 .fecha-info {
     text-align: center;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #e9ecef;
+    padding: var(--space-4);
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
 }
 
 .fecha-info i {
-    margin-right: 0.5rem;
-    color: #666;
+    margin-right: var(--space-2);
+    color: var(--color-text-secondary);
 }
 
 /* Iconos en tabla de padron */
 .condiciones-iconos {
     display: flex;
-    gap: 0.25rem;
+    gap: var(--space-1);
     align-items: center;
     flex-wrap: wrap;
 }
 
 .condiciones-iconos i {
-    font-size: 0.9rem;
+    font-size: var(--font-size-base);
     padding: 0.2rem 0.3rem;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     background: rgba(255,255,255,0.8);
     border: 1px solid currentColor;
 }
@@ -200,7 +200,7 @@
 }
 
 .sin-condiciones {
-    color: #999;
+    color: var(--color-text-tertiary);
     font-style: italic;
 }
 
@@ -208,21 +208,21 @@
 @media (max-width: 768px) {
     .info-row {
         flex-direction: column;
-        gap: 1rem;
+        gap: var(--space-4);
     }
     
     .condiciones-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: var(--space-4);
     }
     
     .condicion-item {
-        padding: 1rem;
+        padding: var(--space-4);
     }
     
     #modal-detalle-votante .modal-content {
         width: 95%;
-        margin: 1rem auto;
+        margin: var(--space-4) auto;
     }
     
     /* Iconos más pequeños en móvil */
@@ -231,26 +231,26 @@
     }
     
     .condiciones-iconos i {
-        font-size: 0.8rem;
+        font-size: var(--font-size-sm);
         padding: 0.15rem 0.25rem;
     }
 }
 
 @media (max-width: 480px) {
     .votante-info {
-        padding: 1rem;
+        padding: var(--space-4);
     }
     
     .info-item .value {
-        font-size: 1rem;
+        font-size: var(--font-size-md);
     }
     
     .condicion-item {
-        padding: 0.75rem;
+        padding: var(--space-3);
     }
     
     .label-text {
-        font-size: 0.9rem;
+        font-size: var(--font-size-base);
     }
     
     .checkmark {
@@ -284,30 +284,30 @@
 /* Mejoras para tabla principal con condiciones */
 .tabla-padron .condiciones-cell {
     text-align: center;
-    padding: 0.5rem;
+    padding: var(--space-2);
     vertical-align: middle;
 }
 
 .tabla-padron .acciones .btn-gestionar {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
+    background: linear-gradient(135deg, var(--color-success), var(--color-success-hover));
+    color: var(--color-card);
     border: none;
-    transition: all 0.3s ease;
+    transition: all var(--transition-slow);
 }
 
 .tabla-padron .acciones .btn-gestionar:hover {
-    background: linear-gradient(135deg, #218838, #17a2b8);
+    background: linear-gradient(135deg, var(--color-success-hover), var(--color-secondary));
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    box-shadow: var(--shadow-md);
 }
 
 /* Toast/Notificación personalizada para detalles */
 .notificacion.detalle-guardado {
-    border-left-color: #28a745;
+    border-left-color: var(--color-success);
 }
 
 .notificacion.detalle-eliminado {
-    border-left-color: #ffc107;
+    border-left-color: var(--color-warning);
 }
 
 /* Tooltips mejorados para iconos */
@@ -318,7 +318,7 @@
 
 .condiciones-iconos i[title]:hover {
     transform: scale(1.1);
-    transition: transform 0.2s ease;
+    transition: transform var(--transition-base);
 }
 
 /* ==========================================
@@ -328,14 +328,14 @@
 .condiciones-inline {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
     align-items: center;
     min-width: 180px;
 }
 
 .condiciones-checkboxes {
     display: flex;
-    gap: 12px;
+    gap: var(--space-3);
     justify-content: center;
     flex-wrap: wrap;
 }
@@ -345,9 +345,9 @@
     align-items: center;
     cursor: pointer;
     position: relative;
-    padding: 6px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
 }
 
 .checkbox-inline:hover {
@@ -362,8 +362,8 @@
 }
 
 .checkbox-inline i {
-    font-size: 18px;
-    transition: all 0.2s ease;
+    font-size: var(--font-size-lg);
+    transition: all var(--transition-base);
     opacity: 0.4;
 }
 
@@ -373,30 +373,30 @@
 }
 
 /* Colores específicos para cada condición */
-.checkbox-inline input[type="checkbox"]:checked + .icon-nuevo { color: #28a745; }
-.checkbox-inline input[type="checkbox"]:checked + .icon-fallecido { color: #dc3545; }
-.checkbox-inline input[type="checkbox"]:checked + .icon-empleado { color: #007bff; }
-.checkbox-inline input[type="checkbox"]:checked + .icon-ayuda { color: #ffc107; }
+.checkbox-inline input[type="checkbox"]:checked + .icon-nuevo { color: var(--color-success); }
+.checkbox-inline input[type="checkbox"]:checked + .icon-fallecido { color: var(--color-danger); }
+.checkbox-inline input[type="checkbox"]:checked + .icon-empleado { color: var(--color-secondary); }
+.checkbox-inline input[type="checkbox"]:checked + .icon-ayuda { color: var(--color-warning); }
 
 .observaciones-preview {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    color: #666;
+    gap: var(--space-1);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
     font-style: italic;
     cursor: help;
 }
 
 .observaciones-preview i {
-    font-size: 12px;
-    color: #007bff;
+    font-size: var(--font-size-xs);
+    color: var(--color-secondary);
 }
 
 /* Fila con condiciones modificadas */
 .fila-votante.condiciones-modificadas {
-    background-color: rgba(255, 193, 7, 0.1);
-    border-left: 4px solid #ffc107;
+    background-color: var(--color-warning-light);
+    border-left: 4px solid var(--color-warning);
 }
 
 .fila-votante.condiciones-modificadas .btn-guardar-inline {
@@ -412,15 +412,15 @@
 /* Botón guardar inline */
 .btn-guardar-inline {
     opacity: 0.5;
-    transition: opacity 0.3s ease;
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
+    transition: opacity var(--transition-slow);
+    background: linear-gradient(135deg, var(--color-success), var(--color-success-hover));
+    color: var(--color-card);
     border: none;
 }
 
 .btn-guardar-inline:hover {
     opacity: 1 !important;
-    background: linear-gradient(135deg, #218838, #17a2b8);
+    background: linear-gradient(135deg, var(--color-success-hover), var(--color-secondary));
 }
 
 /* Responsive para móviles - controles inline */
@@ -430,23 +430,23 @@
     }
     
     .condiciones-checkboxes {
-        gap: 8px;
+        gap: var(--space-2);
     }
     
     .checkbox-inline {
-        padding: 4px;
+        padding: var(--space-1);
     }
     
     .checkbox-inline i {
-        font-size: 16px;
+        font-size: var(--font-size-md);
     }
     
     .observaciones-preview {
-        font-size: 10px;
+        font-size: var(--font-size-xs);
     }
     
     .condiciones-cell {
         min-width: 150px;
-        padding: 0.75rem 0.5rem;
+        padding: var(--space-3) var(--space-2);
     }
 }

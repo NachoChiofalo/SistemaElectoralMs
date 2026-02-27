@@ -1,306 +1,256 @@
-/* ==================== NAVBAR UNIFICADA ==================== */
+/* ============================================================
+   NAVBAR — Sistema Electoral
+   Modern, clean navigation bar using design tokens.
+   ============================================================ */
 
+/* -------------------- Base -------------------- */
 .navbar-unified {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    border-radius: 0 0 12px 12px;
-    margin-bottom: 20px;
+    background: var(--color-card);
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--color-border);
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: var(--z-navbar);
+    height: var(--navbar-h);
 }
 
+/* -------------------- Layout -------------------- */
 .navbar-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 30px;
-    max-width: 1400px;
+    height: 100%;
+    padding: 0 var(--space-6);
+    max-width: var(--max-width);
     margin: 0 auto;
-    gap: 20px;
+    gap: var(--space-5);
+    font-family: var(--font-family);
 }
 
-/* Brand */
+/* -------------------- Brand -------------------- */
 .navbar-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 1.1rem;
+    gap: var(--space-2);
+    color: var(--color-text);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-md);
     flex-shrink: 0;
 }
 
 .navbar-brand i {
-    font-size: 1.3rem;
-    color: #ffd700;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    font-size: var(--font-size-xl);
+    color: var(--color-primary);
 }
 
 .brand-text {
     white-space: nowrap;
 }
 
-/* Navigation Items */
+/* -------------------- Navigation Items -------------------- */
 .navbar-nav {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     flex: 1;
     justify-content: center;
+    height: 100%;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    color: rgba(255, 255, 255, 0.9);
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    height: 100%;
+    color: var(--color-text-secondary);
     text-decoration: none;
-    border-radius: 8px;
-    font-weight: 500;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    transition: color var(--transition-base), background-color var(--transition-base);
     position: relative;
     white-space: nowrap;
+    border-radius: 0;
+    box-sizing: border-box;
+    border-bottom: 2px solid transparent;
 }
 
 .nav-item:hover {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
 }
 
 .nav-item.active {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.nav-item.active::before {
-    content: '';
-    position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 3px;
-    background: #ffd700;
-    border-radius: 2px;
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
 }
 
 .nav-item i {
-    font-size: 1.1rem;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    font-size: var(--font-size-md);
 }
 
-/* User Area */
+.nav-item:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* -------------------- User Area -------------------- */
 .navbar-user {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: var(--space-4);
     flex-shrink: 0;
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.9rem;
-    font-weight: 500;
+    gap: var(--space-2);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
 }
 
 .user-info i {
-    font-size: 1.2rem;
-    color: #ffd700;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    font-size: var(--font-size-lg);
+    color: var(--color-primary);
+}
+
+.username {
+    white-space: nowrap;
 }
 
 .logout-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: rgba(231, 76, 60, 0.2);
-    color: #ffffff;
-    border: 1px solid rgba(231, 76, 60, 0.4);
-    border-radius: 6px;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    transition: background-color var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .logout-btn:hover {
-    background: rgba(231, 76, 60, 0.3);
-    border-color: rgba(231, 76, 60, 0.6);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    background: var(--color-danger);
+    color: var(--color-card);
+    border-color: var(--color-danger-hover);
 }
 
 .logout-btn:active {
-    transform: translateY(0);
+    background: var(--color-danger-hover);
+    color: var(--color-card);
+}
+
+.logout-btn:focus-visible {
+    outline: 2px solid var(--color-danger);
+    outline-offset: 2px;
+    border-radius: var(--radius-md);
 }
 
 .logout-btn i {
-    font-size: 1rem;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    font-size: var(--font-size-base);
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
+.logout-text {
+    white-space: nowrap;
+}
+
+/* -------------------- Responsive: Tablet (≤768px) -------------------- */
+@media (max-width: 768px) {
+    .navbar-unified {
+        height: auto;
+    }
+
     .navbar-content {
-        padding: 12px 20px;
+        padding: var(--space-3) var(--space-4);
+        gap: var(--space-3);
     }
-    
-    .nav-item {
-        padding: 10px 16px;
-        font-size: 0.85rem;
-    }
-    
+
     .brand-text {
         display: none;
     }
-}
 
-@media (max-width: 768px) {
-    .navbar-content {
-        flex-direction: column;
-        gap: 15px;
-        padding: 15px 20px;
-    }
-    
-    .navbar-nav {
-        order: 2;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 5px;
-        width: 100%;
-    }
-    
-    .navbar-user {
-        order: 3;
-        justify-content: center;
-        width: 100%;
-    }
-    
-    .nav-item {
-        flex: 1;
-        justify-content: center;
-        min-width: 120px;
-        padding: 10px 12px;
-        font-size: 0.8rem;
-    }
-    
     .nav-text {
         display: none;
     }
-    
+
+    .nav-item {
+        padding: var(--space-2) var(--space-3);
+        border-bottom: none;
+        border-radius: var(--radius-md);
+    }
+
+    .nav-item.active {
+        background-color: var(--color-primary-light);
+        border-bottom-color: transparent;
+    }
+
     .nav-item i {
-        font-size: 1.2rem;
+        font-size: var(--font-size-lg);
     }
-    
-    .user-info {
-        font-size: 0.85rem;
-    }
-    
-    .logout-btn {
-        font-size: 0.8rem;
-        padding: 6px 12px;
-    }
-    
+
     .logout-text {
         display: none;
     }
 }
 
+/* -------------------- Responsive: Small (≤480px) -------------------- */
 @media (max-width: 480px) {
     .navbar-content {
-        padding: 12px 15px;
+        flex-wrap: wrap;
+        padding: var(--space-2) var(--space-3);
+        gap: var(--space-2);
     }
-    
+
     .navbar-brand {
-        font-size: 1rem;
+        font-size: var(--font-size-base);
     }
-    
-    .nav-item {
-        min-width: 80px;
-        padding: 8px 10px;
+
+    .navbar-nav {
+        order: 2;
+        width: 100%;
+        justify-content: space-evenly;
     }
-    
-    .nav-item i {
-        font-size: 1.1rem;
-    }
-    
+
     .navbar-user {
-        flex-direction: column;
-        gap: 10px;
+        order: 1;
+        margin-left: auto;
+    }
+
+    .nav-item {
+        padding: var(--space-2);
     }
 }
 
-/* Animaciones mejoradas */
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.navbar-unified {
-    animation: fadeInDown 0.6s ease-out;
-}
-
-/* Estados de hover mejorados */
-.nav-item:hover i,
-.logout-btn:hover i,
-.user-info i:hover {
-    transform: scale(1.1);
-    transition: transform 0.2s ease;
-}
-
-/* Efectos de glassmorphism sutil */
-.navbar-unified::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 0 0 12px 12px;
-    z-index: -1;
-}
-
-/* Mejoras de accesibilidad */
+/* -------------------- Accessibility: Reduced Motion -------------------- */
 @media (prefers-reduced-motion: reduce) {
     .nav-item,
-    .logout-btn,
-    .navbar-unified {
+    .logout-btn {
         transition: none;
-        animation: none;
-        transform: none;
     }
 }
 
-/* Modo de alto contraste */
+/* -------------------- Accessibility: High Contrast -------------------- */
 @media (prefers-contrast: high) {
     .navbar-unified {
         background: #000000;
-        border: 2px solid #ffffff;
+        border-bottom: 2px solid #ffffff;
     }
-    
+
     .nav-item,
     .logout-btn {
         border: 1px solid #ffffff;
+        color: #ffffff;
     }
-    
+
     .nav-item.active {
         background: #ffffff;
         color: #000000;

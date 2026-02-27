@@ -9,161 +9,62 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Estilos -->
+    <link rel="stylesheet" href="src/styles/design-tokens.css">
+    <link rel="stylesheet" href="src/styles/login-styles.css">
     <link rel="stylesheet" href="src/styles/navbar-styles.css">
     <link rel="stylesheet" href="src/styles/padron-styles.css">
     <link rel="stylesheet" href="src/styles/resultados-styles.css">
     
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-            line-height: 1.4;
-        }
-        
         .container {
-            max-width: 1400px;
+            max-width: var(--max-width);
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 var(--space-5);
         }
         
         .back-btn {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-5);
+            background: var(--gradient-brand);
+            color: var(--color-card);
             text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
+            border-radius: var(--radius-lg);
+            font-weight: var(--font-weight-medium);
+            margin-bottom: var(--space-5);
+            transition: all var(--transition-slow);
             border: none;
             cursor: pointer;
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+            box-shadow: var(--shadow-sm);
         }
         
         .back-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: var(--shadow-lg);
         }
         
         .back-btn i {
-            font-size: 1rem;
-        
-            transition: background-color 0.3s ease;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-height: 44px;
-            touch-action: manipulation;
-        }
-    
-        
-        .nav-link:hover {
-            background-color: #ecf0f1;
-        }
-        
-        .nav-link.active {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            min-height: 44px;
-            touch-action: manipulation;
-        }
-        
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2980b9;
-        }
-        
-        .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #7f8c8d;
+            font-size: var(--font-size-md);
         }
         
         /* Mobile First Responsive Design */
         @media (max-width: 768px) {
-            body {
-                padding: 5px;
-            }
-            
             .container {
-                padding: 0;
-            }
-            
-            .navigation {
-                padding: 10px 15px;
-                margin-bottom: 10px;
-                border-radius: 8px;
-            }
-            
-            .nav-links {
-                gap: 8px;
-                justify-content: space-between;
-            }
-            
-            .nav-link {
-                padding: 8px 12px;
-                font-size: 12px;
-                min-height: 40px;
-            }
-            
-            .nav-link i {
-                font-size: 16px;
-            }
-            
-            .btn {
-                padding: 10px 16px;
-                font-size: 13px;
-                min-height: 40px;
+                padding: 0 var(--space-3);
             }
         }
         
         @media (max-width: 480px) {
-            .nav-links {
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .nav-link {
+            .back-btn {
                 width: 100%;
                 justify-content: center;
-                text-align: center;
-            }
-            
-            .btn {
-                width: 100%;
             }
         }
     </style>
 </head>
 <body>
+    <div id="navbar-container"></div>
     <div class="container">
         <!-- Botón para regresar al Dashboard -->
         <button class="back-btn" onclick="window.location.href='dashboard.html'">
@@ -181,6 +82,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     
     <!-- Servicios y Componentes -->
+    <script src="src/components/NavbarComponent.js"></script>
     <script src="src/services/ApiService.js"></script>
     <script src="src/services/AuthService.js"></script>
     <script src="src/components/ResultadosComponent.js"></script>
@@ -189,6 +91,10 @@
         // Inicializar componente cuando la página esté lista
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 Iniciando aplicación de Resultados...');
+            
+            if (window.navbarComponent && typeof window.navbarComponent.init === 'function') {
+                window.navbarComponent.init('navbar-container', '');
+            }
             
             try {
                 // Verificar autenticación
