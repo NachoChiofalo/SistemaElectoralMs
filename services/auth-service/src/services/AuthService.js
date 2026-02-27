@@ -156,41 +156,45 @@ class AuthService {
           rol: 'encargado_relevamiento'
         },
         {
-          username: 'encargado2',
-          password: 'encargado123',
-          nombre: 'María González',
-          email: 'maria.gonzalez@electoral.gov.ar',
-          rol: 'encargado_relevamiento'
+          username: 'admin1',
+          password: 'admin123',
+          nombre: 'Nacho Chiofalo',
+          email: 'nacho.chiofalo@electoral.gov.ar',
+          rol: 'administrador'
         }
       ];
 
       for (const usuario of usuariosEjemplo) {
+        const rol = await client.query('SELECT id FROM roles WHERE nombre = $1', [usuario.rol]);
+        const rolId = rol.rows[0]?.id;
+        if (!rolId) continue;
+
         const exists = await client.query(
-          'SELECT id FROM usuarios WHERE username = $1',
+          'SELECT id, rol_id FROM usuarios WHERE username = $1',
           [usuario.username]
         );
 
         if (exists.rows.length === 0) {
-          // Obtener rol
-          const rol = await client.query('SELECT id FROM roles WHERE nombre = $1', [usuario.rol]);
-          const rolId = rol.rows[0]?.id;
-          
-          if (rolId) {
-            const hashedPassword = await bcrypt.hash(usuario.password, 12);
-            
-            await client.query(`
-              INSERT INTO usuarios (username, password_hash, nombre_completo, email, rol_id)
-              VALUES ($1, $2, $3, $4, $5)
-            `, [
-              usuario.username,
-              hashedPassword,
-              usuario.nombre,
-              usuario.email,
-              rolId
-            ]);
-            
-            console.log(`✅ Usuario ${usuario.rol} creado: ${usuario.username}`);
-          }
+          const hashedPassword = await bcrypt.hash(usuario.password, 12);
+
+          await client.query(`
+            INSERT INTO usuarios (username, password_hash, nombre_completo, email, rol_id)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [
+            usuario.username,
+            hashedPassword,
+            usuario.nombre,
+            usuario.email,
+            rolId
+          ]);
+
+          console.log(`✅ Usuario ${usuario.rol} creado: ${usuario.username}`);
+        } else if (exists.rows[0].rol_id === null) {
+          await client.query(
+            'UPDATE usuarios SET rol_id = $1 WHERE username = $2',
+            [rolId, usuario.username]
+          );
+          console.log(`✅ Rol asignado a usuario existente: ${usuario.username} → ${usuario.rol}`);
         }
       }
 
@@ -335,7 +339,7 @@ class AuthService {
         SELECT 
           u.id, u.username, u.password_hash, u.nombre_completo, u.email, u.activo,
           r.nombre as rol_nombre, r.descripcion as rol_descripcion,
-          ARRAY_AGG(p.nombre) FILTER (WHERE p.nombre IS NOT NULL) as permisos
+          ARRAY_AGG(p.codigo) FILTER (WHERE p.codigo IS NOT NULL) as permisos
         FROM usuarios u
         LEFT JOIN roles r ON u.rol_id = r.id
         LEFT JOIN rol_permisos rp ON r.id = rp.rol_id

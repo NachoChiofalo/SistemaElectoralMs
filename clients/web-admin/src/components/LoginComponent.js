@@ -67,15 +67,15 @@ class LoginComponent {
                             <h4><i class="fas fa-info-circle"></i> Credenciales de Prueba</h4>
                             <div class="credential-item">
                                 <strong>Administrador:</strong>
-                                <span>admin / admin123</span>
+                                <span>admin1 / admin123</span>
                             </div>
                             <div class="credential-item">
                                 <strong>Encargado 1:</strong>
                                 <span>encargado1 / enc123</span>
                             </div>
                             <div class="credential-item">
-                                <strong>Encargado 2:</strong>
-                                <span>encargado2 / enc123</span>
+                                <strong>Consultor 2:</strong>
+                                <span>consultor1 / consultor123</span>
                             </div>
                         </div>
                     </div>
