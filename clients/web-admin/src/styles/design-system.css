@@ -319,7 +319,7 @@ p {
     border: 1px solid var(--ds-border-light);
     border-radius: var(--ds-radius-lg);
     box-shadow: var(--ds-shadow-sm);
-    transition: all var(--ds-transition-smooth);
+    transition: box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), border-color var(--ds-transition-smooth);
     overflow: hidden;
 }
 

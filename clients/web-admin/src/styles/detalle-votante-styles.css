@@ -62,7 +62,7 @@
 .condicion-item:hover {
     border-color: var(--ds-primary-300, #a5b4fc);
     box-shadow: var(--ds-shadow-md, 0 2px 8px rgba(0,123,255,0.15));
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 
 /* Checkboxes personalizados */
