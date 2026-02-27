@@ -329,6 +329,51 @@
     background: var(--color-text);
 }
 
+.btn-outline-secondary {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--color-bg-subtle);
+    border-color: var(--color-border-hover);
+    color: var(--color-text);
+}
+
+.btn-primary-gradient {
+    background: var(--gradient-brand);
+    color: var(--color-card);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary-gradient:hover {
+    background: var(--gradient-brand-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* ==================== 8b. PAGE NAV BAR ==================== */
+
+.page-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-5);
+    gap: var(--space-4);
+}
+
+@media (max-width: 480px) {
+    .page-nav-bar {
+        flex-direction: column;
+    }
+
+    .page-nav-bar .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 /* ==================== 9. FILTERS ==================== */
 
 .padron-filtros {
