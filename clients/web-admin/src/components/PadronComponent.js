@@ -87,6 +87,9 @@ class PadronComponent {
                     <p class="padron-subtitle">Gestión y relevamiento del padrón electoral</p>
                 </div>
                 <div class="padron-actions">
+                    <button id="btn-nuevo-votante" class="btn btn-success" data-requires-permission="padron.edit" title="Agregar nuevo votante al padrón">
+                        <i class="fas fa-user-plus"></i> <span class="btn-text">Nuevo Votante</span>
+                    </button>
                     <button id="btn-importar" class="btn btn-primary" data-requires-permission="padron.edit" title="Importar datos desde archivo CSV">
                         <i class="fas fa-upload"></i> <span class="btn-text">Importar CSV</span>
                     </button>
@@ -260,6 +263,67 @@ class PadronComponent {
                     </div>
                 </div>
             </div>
+
+            <!-- Modal para nuevo votante -->
+            <div id="modal-nuevo-votante" class="modal-overlay" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-user-plus"></i> Nuevo Votante</h3>
+                        <button class="modal-close" onclick="padronComponent.cerrarModalNuevoVotante()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form-nuevo-votante" onsubmit="return false;">
+                            <div class="form-group">
+                                <label for="nuevo-dni">DNI <span class="required">*</span></label>
+                                <input type="text" id="nuevo-dni" class="form-input" placeholder="Ej: 12345678" required maxlength="10">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nuevo-apellido">Apellido <span class="required">*</span></label>
+                                    <input type="text" id="nuevo-apellido" class="form-input" placeholder="Apellido" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevo-nombre">Nombre <span class="required">*</span></label>
+                                    <input type="text" id="nuevo-nombre" class="form-input" placeholder="Nombre" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nuevo-anio-nac">Año Nacimiento</label>
+                                    <input type="number" id="nuevo-anio-nac" class="form-input" placeholder="Ej: 1990" min="1900" max="2010">
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevo-sexo">Sexo</label>
+                                    <select id="nuevo-sexo" class="form-input">
+                                        <option value="">Seleccionar</option>
+                                        <option value="M">Masculino</option>
+                                        <option value="F">Femenino</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="nuevo-domicilio">Domicilio</label>
+                                <input type="text" id="nuevo-domicilio" class="form-input" placeholder="Dirección">
+                            </div>
+                            <div class="form-group">
+                                <label for="nuevo-circuito">Circuito</label>
+                                <select id="nuevo-circuito" class="form-input">
+                                    <option value="">Seleccionar circuito</option>
+                                </select>
+                            </div>
+                            <div id="error-nuevo-votante" class="form-error" style="display: none;"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" onclick="padronComponent.cerrarModalNuevoVotante()">Cancelar</button>
+                                <button type="button" id="btn-guardar-votante" class="btn btn-primary" onclick="padronComponent.guardarNuevoVotante()">
+                                    <i class="fas fa-save"></i> Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         `;
 
         // Guardar referencias a elementos importantes
@@ -277,6 +341,7 @@ class PadronComponent {
      */
     inicializarEventos() {
         // Botones principales
+        document.getElementById('btn-nuevo-votante').addEventListener('click', () => this.abrirModalNuevoVotante());
         document.getElementById('btn-importar').addEventListener('click', () => this.abrirModalImportar());
         document.getElementById('btn-exportar').addEventListener('click', () => this.exportarDatos());
         document.getElementById('btn-estadisticas').addEventListener('click', () => this.mostrarEstadisticas());
@@ -809,6 +874,84 @@ class PadronComponent {
 
     cerrarModalEstadisticas() {
         document.getElementById('modal-estadisticas').style.display = 'none';
+    }
+
+    abrirModalNuevoVotante() {
+        // Poblar circuitos en el select del modal
+        const selectCircuito = document.getElementById('nuevo-circuito');
+        const filtroCircuito = document.getElementById('filtro-circuito');
+        if (filtroCircuito && selectCircuito) {
+            selectCircuito.innerHTML = '<option value="">Seleccionar circuito</option>';
+            Array.from(filtroCircuito.options).forEach(opt => {
+                if (opt.value) {
+                    selectCircuito.innerHTML += `<option value="${opt.value}">${opt.textContent}</option>`;
+                }
+            });
+        }
+
+        // Limpiar formulario
+        document.getElementById('form-nuevo-votante').reset();
+        document.getElementById('error-nuevo-votante').style.display = 'none';
+        document.getElementById('btn-guardar-votante').disabled = false;
+
+        document.getElementById('modal-nuevo-votante').style.display = 'flex';
+    }
+
+    cerrarModalNuevoVotante() {
+        document.getElementById('modal-nuevo-votante').style.display = 'none';
+    }
+
+    async guardarNuevoVotante() {
+        const errorDiv = document.getElementById('error-nuevo-votante');
+        const btnGuardar = document.getElementById('btn-guardar-votante');
+        errorDiv.style.display = 'none';
+
+        const dni = document.getElementById('nuevo-dni').value.trim();
+        const apellido = document.getElementById('nuevo-apellido').value.trim();
+        const nombre = document.getElementById('nuevo-nombre').value.trim();
+        const anioNac = document.getElementById('nuevo-anio-nac').value.trim();
+        const sexo = document.getElementById('nuevo-sexo').value;
+        const domicilio = document.getElementById('nuevo-domicilio').value.trim();
+        const circuito = document.getElementById('nuevo-circuito').value;
+
+        if (!dni || !apellido || !nombre) {
+            errorDiv.textContent = 'DNI, Apellido y Nombre son obligatorios';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        if (!/^\d+$/.test(dni)) {
+            errorDiv.textContent = 'El DNI debe contener solo números';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        try {
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+            await window.apiService.crearVotante({
+                dni,
+                apellido,
+                nombre,
+                anioNac: anioNac || undefined,
+                sexo: sexo || undefined,
+                domicilio: domicilio || undefined,
+                circuito: circuito || undefined
+            });
+
+            this.cerrarModalNuevoVotante();
+            this.mostrarNotificacion('Votante creado exitosamente', 'success');
+            await this.actualizarEstadisticasRapidas();
+            await this.actualizarTabla();
+
+        } catch (error) {
+            errorDiv.textContent = error.message || 'Error al crear el votante';
+            errorDiv.style.display = 'block';
+        } finally {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar';
+        }
     }
 
     async exportarDatos() {

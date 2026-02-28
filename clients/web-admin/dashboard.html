@@ -8,17 +8,20 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Design System -->
+    <link rel="stylesheet" href="src/styles/design-system.css">
+    
     <!-- Estilos -->
     <link rel="stylesheet" href="src/styles/navbar-styles.css">
     <link rel="stylesheet" href="src/styles/padron-styles.css">
     
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background-color: var(--ds-bg-page, #f8fafc);
             margin: 0;
             padding: 0;
-            line-height: 1.4;
+            line-height: 1.6;
         }
 
         .dashboard-container {
@@ -30,10 +33,11 @@
         /* Header del Dashboard */
         .dashboard-header {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
+            border-radius: var(--ds-radius-xl, 16px);
+            padding: 32px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(0, 0, 0, 0.1));
+            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
         }
 
         .dashboard-title {
@@ -46,16 +50,18 @@
         .dashboard-title h1 {
             margin: 0;
             font-size: 2.2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            font-weight: 800;
+            letter-spacing: -0.03em;
         }
 
         .dashboard-title i {
             font-size: 2rem;
-            color: #667eea;
-            filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+            color: var(--ds-primary-500, #6366f1);
+            filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
         }
 
         .dashboard-subtitle {
@@ -86,20 +92,20 @@
 
         .module-card {
             background: white;
-            border-radius: 12px;
+            border-radius: var(--ds-radius-xl, 16px);
             padding: 25px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
+            box-shadow: var(--ds-shadow-sm, 0 4px 20px rgba(0, 0, 0, 0.1));
+            transition: all var(--ds-transition-smooth, 0.35s cubic-bezier(0.4, 0, 0.2, 1));
+            border: 1px solid var(--ds-border-light, transparent);
             cursor: pointer;
             text-decoration: none;
             color: inherit;
         }
 
         .module-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-            border-color: rgba(102, 126, 234, 0.2);
+            transform: translateY(-4px);
+            box-shadow: var(--ds-shadow-xl, 0 8px 30px rgba(0, 0, 0, 0.15));
+            border-color: var(--ds-primary-200, rgba(99, 102, 241, 0.2));
             text-decoration: none;
             color: inherit;
         }
@@ -118,7 +124,7 @@
         .module-icon {
             width: 60px;
             height: 60px;
-            border-radius: 12px;
+            border-radius: var(--ds-radius-lg, 12px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -128,19 +134,23 @@
         }
 
         .module-card.padron .module-icon {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
         }
 
         .module-card.fiscales .module-icon {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
         }
 
         .module-card.comicio .module-icon {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
         }
 
         .module-card.resultados .module-icon {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        }
+
+        .module-card.usuarios .module-icon {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
         }
 
         .module-content h3 {
@@ -201,15 +211,17 @@
         /* Estadísticas rápidas */
         .quick-stats {
             background: white;
-            border-radius: 12px;
+            border-radius: var(--ds-radius-xl, 16px);
             padding: 25px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(0, 0, 0, 0.1));
+            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+            animation-delay: 100ms;
         }
 
         .quick-stats h3 {
             margin: 0 0 20px 0;
-            color: #2c3e50;
+            color: var(--ds-text-primary, #0f172a);
             font-size: 1.3rem;
             display: flex;
             align-items: center;
@@ -217,7 +229,7 @@
         }
 
         .quick-stats h3 i {
-            color: #667eea;
+            color: var(--ds-primary-500, #6366f1);
         }
 
         .stats-grid {
@@ -229,14 +241,14 @@
         .stat-item {
             text-align: center;
             padding: 15px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: var(--ds-radius-md, 8px);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
         }
 
         .stat-number {
             font-size: 2rem;
-            font-weight: 700;
-            color: #667eea;
+            font-weight: 800;
+            color: var(--ds-primary-600, #4f46e5);
             margin-bottom: 5px;
         }
 
@@ -306,13 +318,14 @@
         }
 
         .module-card {
-            animation: fadeInUp 0.6s ease-out forwards;
+            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
         .module-card:nth-child(1) { animation-delay: 0.1s; }
         .module-card:nth-child(2) { animation-delay: 0.2s; }
         .module-card:nth-child(3) { animation-delay: 0.3s; }
         .module-card:nth-child(4) { animation-delay: 0.4s; }
+        .module-card:nth-child(5) { animation-delay: 0.5s; }
     </style>
 </head>
 <body>
@@ -663,6 +676,24 @@
                     href: 'comicio.html',
                     status: 'coming-soon',
                     features: getFeaturesByPermissions('comicio')
+                });
+            }
+
+            // Módulo Usuarios (solo admin)
+            if (hasPermission('usuarios.view') || hasPermission('usuarios.edit') || currentUserRole === 'administrador') {
+                availableModules.push({
+                    id: 'usuarios',
+                    title: 'Gestión de Usuarios',
+                    description: 'Administración de cuentas de usuario, asignación de roles y permisos del sistema.',
+                    icon: 'fa-users-gear',
+                    href: 'usuarios.html',
+                    status: 'available',
+                    features: [
+                        'Crear y editar cuentas',
+                        'Asignación de roles',
+                        'Activar/desactivar usuarios',
+                        'Resetear contraseñas'
+                    ]
                 });
             }
 

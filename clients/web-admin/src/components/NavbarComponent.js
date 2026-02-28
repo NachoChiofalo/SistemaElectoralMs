@@ -6,12 +6,15 @@
         { href: 'dashboard.html', icon: 'fa-tachometer-alt', label: 'Dashboard', key: 'dashboard' },
         { href: 'index.html', icon: 'fa-users-cog', label: 'Padrón Electoral', key: 'padron' },
         { href: 'fiscales.html', icon: 'fa-user-shield', label: 'Fiscales', key: 'fiscales' },
-        { href: 'comicio.html', icon: 'fa-building', label: 'Comicio', key: 'comicio' }
+        { href: 'comicio.html', icon: 'fa-building', label: 'Comicio', key: 'comicio' },
+        { href: 'usuarios.html', icon: 'fa-users-gear', label: 'Usuarios', key: 'usuarios', adminOnly: true }
     ];
 
     function renderNavbar(activeKey) {
         const user = (window.authService && window.authService.getCurrentUser && window.authService.getCurrentUser()) || { username: 'Usuario' };
         const username = user.nombre_completo || user.username || 'Usuario';
+        const userRole = user.rol || '';
+        const visibleItems = NAV_ITEMS.filter(item => !item.adminOnly || userRole === 'administrador');
         return `
         <nav class="navbar-unified">
             <div class="navbar-content">
@@ -19,9 +22,9 @@
                     <i class="fas fa-vote-yea"></i>
                     <span class="brand-text">Sistema Electoral</span>
                 </div>
-                
+
                 <div class="navbar-nav">
-                    ${NAV_ITEMS.map(item => `
+                    ${visibleItems.map(item => `
                         <a href="${item.href}" class="nav-item${activeKey === item.key ? ' active' : ''}">
                             <i class="fas ${item.icon}"></i>
                             <span class="nav-text">${item.label}</span>

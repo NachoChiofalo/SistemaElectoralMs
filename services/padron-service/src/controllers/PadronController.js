@@ -72,14 +72,18 @@ class PadronController {
     async obtenerVotantes(req, res) {
         try {
             await this.inicializar();
-            
+
             const pagina = parseInt(req.query.pagina) || 1;
             const limite = parseInt(req.query.limite) || 50;
-            
+
             const filtros = {
-                dni: req.query.dni,
-                nombre: req.query.nombre,
-                mesa: req.query.mesa,
+                busqueda: req.query.busqueda,
+                circuito: req.query.circuito,
+                sexo: req.query.sexo,
+                opcionPolitica: req.query.opcionPolitica,
+                sinRelevamiento: req.query.sinRelevamiento === 'true',
+                ordenCampo: req.query.ordenCampo,
+                ordenDireccion: req.query.ordenDireccion,
                 limite: limite
             };
 
@@ -558,6 +562,47 @@ class PadronController {
             res.status(500).json({
                 success: false,
                 message: error.message
+            });
+        }
+    }
+
+    async crearVotante(req, res) {
+        try {
+            await this.inicializar();
+
+            const { dni, nombre, apellido, anioNac, domicilio, circuito, sexo } = req.body;
+
+            if (!dni || !nombre || !apellido) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'DNI, nombre y apellido son requeridos'
+                });
+            }
+
+            const edad = anioNac ? new Date().getFullYear() - parseInt(anioNac) : null;
+
+            const votante = await this.padronService.crearVotante({
+                dni,
+                nombre,
+                apellido,
+                anio_nac: anioNac,
+                domicilio: domicilio || '',
+                circuito: circuito || '',
+                sexo: sexo || '',
+                edad
+            });
+
+            res.status(201).json({
+                success: true,
+                message: 'Votante creado exitosamente',
+                data: votante
+            });
+        } catch (error) {
+            console.error('Error creando votante:', error);
+            const statusCode = error.message.includes('duplicate') || error.message.includes('already exists') ? 409 : 500;
+            res.status(statusCode).json({
+                success: false,
+                message: error.message.includes('duplicate') ? 'Ya existe un votante con ese DNI' : error.message
             });
         }
     }

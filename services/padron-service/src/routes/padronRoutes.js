@@ -27,6 +27,10 @@ router.get('/votantes', (req, res) => {
     padronController.obtenerVotantes(req, res);
 });
 
+router.post('/votantes', (req, res) => {
+    padronController.crearVotante(req, res);
+});
+
 router.get('/votantes/:dni', (req, res) => {
     padronController.obtenerVotantePorDni(req, res);
 });
