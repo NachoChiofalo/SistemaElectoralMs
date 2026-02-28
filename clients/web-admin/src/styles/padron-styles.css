@@ -878,6 +878,107 @@ body {
     padding: 1.5rem;
 }
 
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ds-border-light, #e2e8f0);
+    margin-top: 8px;
+}
+
+/* ==================== FORMULARIOS EN MODALES ==================== */
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ds-text-secondary, #475569);
+}
+
+.required {
+    color: var(--ds-danger-500, #ef4444);
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--ds-border-default, #cbd5e1);
+    border-radius: var(--ds-radius-md, 8px);
+    font-size: 0.9rem;
+    color: var(--ds-text-primary, #0f172a);
+    background: white;
+    transition: border-color 150ms ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--ds-primary-500, #6366f1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+select.form-input {
+    cursor: pointer;
+}
+
+.form-error {
+    background-color: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: var(--ds-danger-600, #dc2626);
+    padding: 10px 14px;
+    border-radius: var(--ds-radius-md, 8px);
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+.modal-footer .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--ds-radius-md, 8px);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+.modal-footer .btn-primary {
+    background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
+    color: white;
+}
+
+.modal-footer .btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.modal-footer .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.modal-footer .btn-secondary {
+    background: var(--ds-bg-page, #f8fafc);
+    color: var(--ds-text-secondary, #475569);
+    border: 1px solid var(--ds-border-default, #cbd5e1);
+}
+
 /* ==================== IMPORTACIÓN CSV ==================== */
 
 .import-zone {
@@ -1434,7 +1535,8 @@ body {
     }
     
     .form-row {
-        gap: 12px;
+        flex-direction: column;
+        gap: 0;
     }
 }
 

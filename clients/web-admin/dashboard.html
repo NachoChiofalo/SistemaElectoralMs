@@ -149,6 +149,10 @@
             background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
         }
 
+        .module-card.usuarios .module-icon {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        }
+
         .module-content h3 {
             margin: 0 0 10px 0;
             font-size: 1.4rem;
@@ -321,6 +325,7 @@
         .module-card:nth-child(2) { animation-delay: 0.2s; }
         .module-card:nth-child(3) { animation-delay: 0.3s; }
         .module-card:nth-child(4) { animation-delay: 0.4s; }
+        .module-card:nth-child(5) { animation-delay: 0.5s; }
     </style>
 </head>
 <body>
@@ -671,6 +676,24 @@
                     href: 'comicio.html',
                     status: 'coming-soon',
                     features: getFeaturesByPermissions('comicio')
+                });
+            }
+
+            // Módulo Usuarios (solo admin)
+            if (hasPermission('usuarios.view') || hasPermission('usuarios.edit') || currentUserRole === 'administrador') {
+                availableModules.push({
+                    id: 'usuarios',
+                    title: 'Gestión de Usuarios',
+                    description: 'Administración de cuentas de usuario, asignación de roles y permisos del sistema.',
+                    icon: 'fa-users-gear',
+                    href: 'usuarios.html',
+                    status: 'available',
+                    features: [
+                        'Crear y editar cuentas',
+                        'Asignación de roles',
+                        'Activar/desactivar usuarios',
+                        'Resetear contraseñas'
+                    ]
                 });
             }
 

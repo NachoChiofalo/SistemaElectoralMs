@@ -101,13 +101,21 @@ class PadronService {
 
     async obtenerVotantesPaginados(pagina = 1, filtros = {}) {
         const limite = parseInt(filtros.limite) || 50;
-        
+
         const filtrosDB = {};
-        if (filtros.dni) filtrosDB.dni = filtros.dni;
-        if (filtros.nombre) filtrosDB.nombre = filtros.nombre;
-        if (filtros.mesa) filtrosDB.mesa = filtros.mesa;
-        
+        if (filtros.busqueda) filtrosDB.busqueda = filtros.busqueda;
+        if (filtros.circuito) filtrosDB.circuito = filtros.circuito;
+        if (filtros.sexo) filtrosDB.sexo = filtros.sexo;
+        if (filtros.opcionPolitica) filtrosDB.opcionPolitica = filtros.opcionPolitica;
+        if (filtros.sinRelevamiento) filtrosDB.sinRelevamiento = true;
+        if (filtros.ordenCampo) filtrosDB.ordenCampo = filtros.ordenCampo;
+        if (filtros.ordenDireccion) filtrosDB.ordenDireccion = filtros.ordenDireccion;
+
         return await this.db.obtenerVotantesPaginados(pagina, limite, filtrosDB);
+    }
+
+    async crearVotante(data) {
+        return await this.db.insertarVotante(data);
     }
 
     async obtenerVotantePorDni(dni) {

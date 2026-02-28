@@ -101,6 +101,16 @@ class ApiService {
     }
 
     /**
+     * Crear nuevo votante
+     */
+    async crearVotante(data) {
+        return await this.request('/api/padron/votantes', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
      * Obtener votante por DNI
      */
     async obtenerVotantePorDNI(dni) {
@@ -198,6 +208,62 @@ class ApiService {
      */
     async obtenerEstadisticasPorCircuito() {
         return await this.request('/api/padron/resultados/por-circuito');
+    }
+
+    // ==================== MÉTODOS DE USUARIOS ====================
+
+    /**
+     * Obtener lista de usuarios (admin)
+     */
+    async obtenerUsuarios() {
+        return await this.request('/api/users');
+    }
+
+    /**
+     * Crear nuevo usuario (admin)
+     */
+    async crearUsuario(data) {
+        return await this.request('/api/users', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+     * Actualizar usuario (admin)
+     */
+    async actualizarUsuario(id, data) {
+        return await this.request(`/api/users/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+     * Activar/desactivar usuario (admin)
+     */
+    async toggleUsuario(id, activo) {
+        return await this.request(`/api/users/${id}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ activo })
+        });
+    }
+
+    /**
+     * Resetear contraseña de usuario (admin)
+     */
+    async resetearPassword(id, newPassword) {
+        return await this.request(`/api/users/${id}/reset-password`, {
+            method: 'POST',
+            body: JSON.stringify({ newPassword })
+        });
+    }
+
+    /**
+     * Obtener roles disponibles (admin)
+     */
+    async obtenerRoles() {
+        return await this.request('/api/users/roles');
     }
 
     // ==================== UTILIDADES ====================

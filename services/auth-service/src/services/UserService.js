@@ -165,6 +165,104 @@ class UserService {
   }
 
   /**
+   * Actualizar usuario completo (admin)
+   */
+  async updateUser(userId, userData) {
+    const { nombre_completo, email, rol, activo } = userData;
+
+    const client = await this.db.getConnection();
+
+    try {
+      // Si se cambió el rol, obtener el nuevo rol_id
+      let rolId = undefined;
+      if (rol) {
+        const rolResult = await client.query(
+          'SELECT id FROM roles WHERE nombre = $1',
+          [rol]
+        );
+        if (rolResult.rows.length === 0) {
+          throw new Error(`El rol '${rol}' no existe`);
+        }
+        rolId = rolResult.rows[0].id;
+      }
+
+      const result = await client.query(`
+        UPDATE usuarios
+        SET nombre_completo = COALESCE($1, nombre_completo),
+            email = COALESCE($2, email),
+            rol_id = COALESCE($3, rol_id),
+            activo = COALESCE($4, activo),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
+        RETURNING id, username, nombre_completo, email, activo, rol_id
+      `, [nombre_completo, email, rolId, activo, userId]);
+
+      if (result.rows.length === 0) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      // Obtener el nombre del rol para la respuesta
+      const user = result.rows[0];
+      const roleResult = await client.query(
+        'SELECT nombre FROM roles WHERE id = $1',
+        [user.rol_id]
+      );
+      user.rol = roleResult.rows.length > 0 ? roleResult.rows[0].nombre : null;
+      delete user.rol_id;
+
+      return user;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Obtener todos los roles disponibles
+   */
+  async getAllRoles() {
+    const client = await this.db.getConnection();
+
+    try {
+      const result = await client.query(`
+        SELECT id, nombre, descripcion
+        FROM roles
+        ORDER BY nombre
+      `);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Resetear contraseña de un usuario (admin, sin requerir la actual)
+   */
+  async resetPassword(userId, newPassword) {
+    const client = await this.db.getConnection();
+
+    try {
+      const userResult = await client.query(
+        'SELECT id FROM usuarios WHERE id = $1',
+        [userId]
+      );
+
+      if (userResult.rows.length === 0) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+      await client.query(`
+        UPDATE usuarios
+        SET password_hash = $1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+      `, [newPasswordHash, userId]);
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
    * Activar/desactivar usuario
    */
   async toggleUserStatus(userId, activo) {
