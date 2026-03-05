@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const path = require('path');
 require('dotenv').config();
 
 const { authMiddleware } = require('./middleware/authMiddleware');
@@ -62,8 +63,7 @@ class GatewayApp {
         uptime: process.uptime(),
         services: {
           auth: process.env.AUTH_SERVICE_URL,
-          padron: process.env.PADRON_SERVICE_URL,
-          webAdmin: process.env.WEB_ADMIN_URL
+          padron: process.env.PADRON_SERVICE_URL
         }
       });
     });
@@ -136,22 +136,31 @@ class GatewayApp {
       });
     });
 
-    // Servir archivos estáticos de la web admin (DEBE IR AL FINAL para no interceptar rutas API)
-    // No requiere auth: el frontend maneja autenticación del lado del cliente.
-    // Las rutas API (/api/padron, /api/users) ya están protegidas con authMiddleware.
-    this.app.use('/',
-      createProxyMiddleware({
-        target: process.env.WEB_ADMIN_URL || 'http://localhost:3000',
-        changeOrigin: true,
-        onError: (err, req, res) => {
-          console.error('Error en proxy web admin:', err);
-          res.status(503).json({
-            success: false,
-            message: 'Aplicación web no disponible'
-          });
-        }
-      })
-    );
+    // Servir archivos estáticos del web-admin (embebidos en el contenedor)
+    // En produccion (Render): los archivos estan en /app/public/
+    // En desarrollo local: se puede usar WEB_ADMIN_URL como proxy alternativo
+    const publicDir = path.join(__dirname, '..', 'public');
+    if (process.env.WEB_ADMIN_URL) {
+      this.app.use('/',
+        createProxyMiddleware({
+          target: process.env.WEB_ADMIN_URL,
+          changeOrigin: true,
+          onError: (err, req, res) => {
+            console.error('Error en proxy web admin:', err);
+            res.status(503).json({
+              success: false,
+              message: 'Aplicación web no disponible'
+            });
+          }
+        })
+      );
+    } else {
+      this.app.use(express.static(publicDir));
+      // Fallback: servir index.html para rutas no-API
+      this.app.get('*', (req, res) => {
+        res.sendFile(path.join(publicDir, 'index.html'));
+      });
+    }
   }
 
   initializeErrorHandling() {
@@ -173,7 +182,7 @@ class GatewayApp {
       console.log(`📊 Health check: http://localhost:${this.port}/health`);
       console.log(`🔐 Auth Service: ${process.env.AUTH_SERVICE_URL || 'http://localhost:3002'}`);
       console.log(`📋 Padron Service: ${process.env.PADRON_SERVICE_URL || 'http://localhost:3001'}`);
-      console.log(`💻 Web Admin: ${process.env.WEB_ADMIN_URL || 'http://localhost:3000'}`);
+      console.log(`💻 Web Admin: ${process.env.WEB_ADMIN_URL ? 'proxy -> ' + process.env.WEB_ADMIN_URL : 'static files'}`);
     });
   }
 }

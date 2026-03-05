@@ -9,7 +9,7 @@ databases:
     postgresMajorVersion: "15"
 
 services:
-  # Auth Service (privado - solo accesible internamente)
+  # Auth Service
   - type: web
     name: auth-service
     runtime: docker
@@ -32,18 +32,8 @@ services:
         value: "24h"
       - key: REFRESH_TOKEN_EXPIRATION
         value: "7d"
-      - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: gateway-service
-          property: hostport
-      - key: RENDER_EXTERNAL_URL
-        fromService:
-          type: web
-          name: gateway-service
-          property: hostport
 
-  # Padron Service (privado - solo accesible internamente)
+  # Padron Service
   - type: web
     name: padron-service
     runtime: docker
@@ -60,40 +50,14 @@ services:
         fromDatabase:
           name: sistema-electoral-db
           property: connectionString
-      - key: CORS_ORIGIN
-        fromService:
-          type: web
-          name: gateway-service
-          property: hostport
-      - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: gateway-service
-          property: hostport
-      - key: RENDER_EXTERNAL_URL
-        fromService:
-          type: web
-          name: gateway-service
-          property: hostport
 
-  # Web Admin (sitio estatico)
-  - type: web
-    name: web-admin
-    runtime: docker
-    plan: free
-    dockerfilePath: ./clients/web-admin/Dockerfile
-    dockerContext: ./clients/web-admin
-    envVars:
-      - key: PORT
-        value: "3000"
-
-  # API Gateway (publico - punto de entrada)
+  # API Gateway (punto de entrada publico, incluye web-admin embebido)
   - type: web
     name: gateway-service
     runtime: docker
     plan: free
-    dockerfilePath: ./services/gateway-service/Dockerfile
-    dockerContext: ./services/gateway-service
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -101,22 +65,8 @@ services:
       - key: PORT
         value: "8080"
       - key: AUTH_SERVICE_URL
-        fromService:
-          type: web
-          name: auth-service
-          property: hostport
+        sync: false
       - key: PADRON_SERVICE_URL
-        fromService:
-          type: web
-          name: padron-service
-          property: hostport
-      - key: WEB_ADMIN_URL
-        fromService:
-          type: web
-          name: web-admin
-          property: hostport
+        sync: false
       - key: JWT_SECRET
-        fromService:
-          type: web
-          name: auth-service
-          envVarKey: JWT_SECRET
+        sync: false

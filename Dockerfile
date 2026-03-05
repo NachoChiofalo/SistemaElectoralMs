@@ -1,29 +1,25 @@
-# Usar imagen base de Node.js
 FROM node:18-alpine
 
-# Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar package.json del gateway service (servicio principal)
+# Copiar e instalar dependencias del gateway
 COPY services/gateway-service/package*.json ./
-
-# Instalar dependencias
 RUN npm ci --omit=dev && npm cache clean --force
 
-# Copiar código fuente del gateway service
+# Copiar codigo fuente del gateway
 COPY services/gateway-service/src/ ./src/
 
-# Crear usuario no-root para seguridad
+# Copiar archivos estaticos del web-admin
+COPY clients/web-admin/*.html ./public/
+COPY clients/web-admin/src/ ./public/src/
+
+# Crear usuario no-root
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S appuser -u 1001
-
-# Cambiar ownership de archivos
 RUN chown -R appuser:nodejs /app
 USER appuser
 
-# Puerto configurable via variable de entorno
 ENV PORT=8080
 EXPOSE ${PORT}
 
-# Comando por defecto - ejecutar gateway service completo
 CMD ["node", "src/app.js"]

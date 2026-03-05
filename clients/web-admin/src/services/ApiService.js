@@ -3,8 +3,8 @@
  */
 class ApiService {
     constructor() {
-        // Cambiar a API Gateway en lugar de servicio directo
-        this.baseURL = 'http://localhost:8080';
+        // Usar origin actual (funciona en localhost y en produccion)
+        this.baseURL = window.location.origin;
         this.timeout = 10000;
         this.authToken = null;
     }
