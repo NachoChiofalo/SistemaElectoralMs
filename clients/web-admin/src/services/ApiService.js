@@ -266,6 +266,28 @@ class ApiService {
         return await this.request('/api/users/roles');
     }
 
+    // ==================== METODOS DE AUDITORIA ====================
+
+    async obtenerAuditoria(filtros = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(filtros).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                queryParams.append(key, value);
+            }
+        });
+        return await this.request(`/api/padron/auditoria?${queryParams.toString()}`);
+    }
+
+    async obtenerEstadisticasAuditoria(filtros = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(filtros).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                queryParams.append(key, value);
+            }
+        });
+        return await this.request(`/api/padron/auditoria/estadisticas?${queryParams.toString()}`);
+    }
+
     // ==================== UTILIDADES ====================
 
     /**

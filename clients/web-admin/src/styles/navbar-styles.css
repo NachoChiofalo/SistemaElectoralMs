@@ -1,7 +1,7 @@
 /* ==================== NAVBAR UNIFICADA ==================== */
 
 .navbar-unified {
-    background: var(--ds-gradient-navbar, linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%));
+    background: var(--ds-gradient-navbar, linear-gradient(135deg, #1a2e44 0%, #243b53 50%, #334e68 100%));
     box-shadow: var(--ds-shadow-lg, 0 4px 20px rgba(0, 0, 0, 0.1));
     border-radius: 0 0 var(--ds-radius-xl, 16px) var(--ds-radius-xl, 16px);
     margin-bottom: 24px;
@@ -33,7 +33,7 @@
 
 .navbar-brand i {
     font-size: 1.3rem;
-    color: var(--ds-accent-400, #fbbf24);
+    color: var(--ds-accent-400, #c4a35a);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
@@ -86,7 +86,7 @@
     transform: translateX(-50%);
     width: 8px;
     height: 3px;
-    background: var(--ds-accent-400, #fbbf24);
+    background: var(--ds-accent-400, #c4a35a);
     border-radius: 2px;
 }
 
@@ -114,7 +114,7 @@
 
 .user-info i {
     font-size: 1.2rem;
-    color: var(--ds-accent-400, #fbbf24);
+    color: var(--ds-accent-400, #c4a35a);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 

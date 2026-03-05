@@ -8,39 +8,39 @@
 
 /* ==================== 2. PALETA DE COLORES & DESIGN TOKENS ==================== */
 :root {
-    /* —— Primarios —— */
-    --ds-primary-50:  #eef2ff;
-    --ds-primary-100: #e0e7ff;
-    --ds-primary-200: #c7d2fe;
-    --ds-primary-300: #a5b4fc;
-    --ds-primary-400: #818cf8;
-    --ds-primary-500: #6366f1;
-    --ds-primary-600: #4f46e5;
-    --ds-primary-700: #4338ca;
-    --ds-primary-800: #3730a3;
-    --ds-primary-900: #312e81;
+    /* —— Primarios (Navy — institucional, confianza, autoridad) —— */
+    --ds-primary-50:  #f0f4f8;
+    --ds-primary-100: #d9e2ec;
+    --ds-primary-200: #bcccdc;
+    --ds-primary-300: #9fb3c8;
+    --ds-primary-400: #7b96ad;
+    --ds-primary-500: #486581;
+    --ds-primary-600: #334e68;
+    --ds-primary-700: #243b53;
+    --ds-primary-800: #1a2e44;
+    --ds-primary-900: #102a43;
 
-    /* —— Secundarios (Slate) —— */
-    --ds-secondary-50:  #f8fafc;
-    --ds-secondary-100: #f1f5f9;
-    --ds-secondary-200: #e2e8f0;
-    --ds-secondary-300: #cbd5e1;
-    --ds-secondary-400: #94a3b8;
-    --ds-secondary-500: #64748b;
-    --ds-secondary-600: #475569;
-    --ds-secondary-700: #334155;
-    --ds-secondary-800: #1e293b;
-    --ds-secondary-900: #0f172a;
+    /* —— Secundarios (Cool Gray) —— */
+    --ds-secondary-50:  #f7f9fb;
+    --ds-secondary-100: #edf1f5;
+    --ds-secondary-200: #dce3eb;
+    --ds-secondary-300: #c5ced8;
+    --ds-secondary-400: #8e9aab;
+    --ds-secondary-500: #5f6d7e;
+    --ds-secondary-600: #455468;
+    --ds-secondary-700: #324054;
+    --ds-secondary-800: #1f2d3d;
+    --ds-secondary-900: #0f1923;
 
-    /* —— Acento (Amber/Gold — evoca confianza y autoridad) —— */
-    --ds-accent-50:  #fffbeb;
-    --ds-accent-100: #fef3c7;
-    --ds-accent-200: #fde68a;
-    --ds-accent-300: #fcd34d;
-    --ds-accent-400: #fbbf24;
-    --ds-accent-500: #f59e0b;
-    --ds-accent-600: #d97706;
-    --ds-accent-700: #b45309;
+    /* —— Acento (Dorado sobrio — elegancia institucional) —— */
+    --ds-accent-50:  #fdf8f0;
+    --ds-accent-100: #f5ecda;
+    --ds-accent-200: #e8d5b0;
+    --ds-accent-300: #d4b97a;
+    --ds-accent-400: #c4a35a;
+    --ds-accent-500: #a8883d;
+    --ds-accent-600: #8c7033;
+    --ds-accent-700: #705829;
 
     /* —— Estados semánticos —— */
     --ds-success-50:  #ecfdf5;
@@ -51,11 +51,11 @@
     --ds-success-600: #059669;
     --ds-success-700: #047857;
 
-    --ds-warning-50:  #fffbeb;
-    --ds-warning-100: #fef3c7;
-    --ds-warning-400: #fbbf24;
-    --ds-warning-500: #f59e0b;
-    --ds-warning-600: #d97706;
+    --ds-warning-50:  #fef9ee;
+    --ds-warning-100: #fdf0d5;
+    --ds-warning-400: #e5a832;
+    --ds-warning-500: #d49726;
+    --ds-warning-600: #b37d1a;
 
     --ds-danger-50:  #fef2f2;
     --ds-danger-100: #fee2e2;
@@ -79,21 +79,21 @@
     --ds-party-indeciso-light: #f1f5f9;
 
     /* —— Superficies y fondos —— */
-    --ds-bg-page:    #f8fafc;
+    --ds-bg-page:    #f5f7fa;
     --ds-bg-card:    #ffffff;
     --ds-bg-elevated: #ffffff;
-    --ds-bg-subtle:  #f1f5f9;
-    --ds-bg-muted:   #e2e8f0;
+    --ds-bg-subtle:  #edf1f5;
+    --ds-bg-muted:   #dce3eb;
 
     /* —— Bordes —— */
-    --ds-border-light:  #e2e8f0;
-    --ds-border-default: #cbd5e1;
-    --ds-border-strong: #94a3b8;
+    --ds-border-light:  #dce3eb;
+    --ds-border-default: #c5ced8;
+    --ds-border-strong: #8e9aab;
 
     /* —— Texto —— */
-    --ds-text-primary:   #0f172a;
-    --ds-text-secondary: #475569;
-    --ds-text-muted:     #94a3b8;
+    --ds-text-primary:   #102a43;
+    --ds-text-secondary: #455468;
+    --ds-text-muted:     #8e9aab;
     --ds-text-inverse:   #ffffff;
 
     /* —— Sombras —— */
@@ -102,7 +102,7 @@
     --ds-shadow-md:  0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     --ds-shadow-lg:  0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     --ds-shadow-xl:  0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    --ds-shadow-focus: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    --ds-shadow-focus: 0 0 0 3px rgba(72, 101, 129, 0.25);
 
     /* —— Radios —— */
     --ds-radius-sm:  6px;
@@ -140,10 +140,10 @@
     --ds-transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
     /* —— Gradientes reutilizables —— */
-    --ds-gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-    --ds-gradient-navbar:  linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    --ds-gradient-accent:  linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-    --ds-gradient-subtle:  linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    --ds-gradient-primary: linear-gradient(135deg, #334e68 0%, #243b53 50%, #102a43 100%);
+    --ds-gradient-navbar:  linear-gradient(135deg, #1a2e44 0%, #243b53 50%, #334e68 100%);
+    --ds-gradient-accent:  linear-gradient(135deg, #a8883d 0%, #c4a35a 100%);
+    --ds-gradient-subtle:  linear-gradient(135deg, #f5f7fa 0%, #edf1f5 100%);
 }
 
 /* ==================== 3. RESET Y BASE GLOBAL ==================== */
@@ -648,8 +648,8 @@ p {
 
 @media (prefers-contrast: high) {
     :root {
-        --ds-border-light: #64748b;
-        --ds-border-default: #334155;
+        --ds-border-light: #8e9aab;
+        --ds-border-default: #324054;
         --ds-shadow-sm: none;
         --ds-shadow-md: none;
     }

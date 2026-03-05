@@ -6,7 +6,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--ds-gradient-navbar, linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%));
+    background: var(--ds-gradient-navbar, linear-gradient(135deg, #1a2e44 0%, #243b53 50%, #334e68 100%));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -37,7 +37,7 @@
 }
 
 .login-header {
-    background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%));
+    background: var(--ds-gradient-primary, linear-gradient(135deg, #334e68 0%, #243b53 50%, #102a43 100%));
     color: white;
     padding: 32px 30px;
     text-align: center;
@@ -52,7 +52,7 @@
 
 .login-header h1 i {
     margin-right: 8px;
-    color: var(--ds-accent-400, #fbbf24);
+    color: var(--ds-accent-400, #c4a35a);
 }
 
 .login-header h2 {
@@ -80,13 +80,13 @@
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #333;
+    color: #324054;
     font-size: 0.9rem;
 }
 
 .form-group label i {
     margin-right: 6px;
-    color: var(--ds-primary-500, #6366f1);
+    color: var(--ds-primary-500, #486581);
     width: 16px;
     text-align: center;
 }
@@ -94,7 +94,7 @@
 .form-group input {
     width: 100%;
     padding: 12px 16px;
-    border: 1.5px solid var(--ds-border-default, #cbd5e1);
+    border: 1.5px solid var(--ds-border-default, #c5ced8);
     border-radius: var(--ds-radius-md, 8px);
     font-size: 1rem;
     font-family: var(--ds-font-family, inherit);
@@ -104,17 +104,17 @@
 
 .form-group input:focus {
     outline: none;
-    border-color: var(--ds-primary-500, #6366f1);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    border-color: var(--ds-primary-500, #486581);
+    box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.15);
 }
 
 .form-group input::placeholder {
-    color: var(--ds-text-muted, #94a3b8);
+    color: var(--ds-text-muted, #8e9aab);
 }
 
 .login-btn {
     width: 100%;
-    background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%));
+    background: var(--ds-gradient-primary, linear-gradient(135deg, #334e68 0%, #243b53 50%, #102a43 100%));
     color: white;
     border: none;
     padding: 14px 20px;
@@ -128,7 +128,7 @@
 
 .login-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 8px 25px rgba(72, 101, 129, 0.35);
 }
 
 .login-btn:active {
@@ -158,13 +158,13 @@
 }
 
 .login-footer {
-    background: var(--ds-bg-subtle, #f1f5f9);
+    background: var(--ds-bg-subtle, #edf1f5);
     padding: 20px 30px;
-    border-top: 1px solid var(--ds-border-light, #e2e8f0);
+    border-top: 1px solid var(--ds-border-light, #dce3eb);
 }
 
 .credentials-info h4 {
-    color: var(--ds-text-secondary, #475569);
+    color: var(--ds-text-secondary, #455468);
     margin: 0 0 16px 0;
     font-size: 0.9rem;
     font-weight: 500;
@@ -181,7 +181,7 @@
     align-items: center;
     padding: 6px 0;
     font-size: 0.8rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid #dce3eb;
 }
 
 .credential-item:last-child {
@@ -189,24 +189,24 @@
 }
 
 .credential-item strong {
-    color: #495057;
+    color: #455468;
     font-weight: 500;
     flex: 1;
 }
 
 .credential-item span {
-    background: #e9ecef;
+    background: #dce3eb;
     padding: 3px 8px;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
-    color: #6c757d;
+    color: #5f6d7e;
     font-size: 0.75rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
 .credential-item span:hover {
-    background: #dee2e6;
+    background: #c5ced8;
 }
 
 /* Responsive */

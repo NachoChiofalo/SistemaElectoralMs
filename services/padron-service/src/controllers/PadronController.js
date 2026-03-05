@@ -1,5 +1,6 @@
 const PadronService = require('../services/PadronService');
 const DetalleVotanteService = require('../services/DetalleVotanteService');
+const AuditoriaService = require('../services/AuditoriaService');
 const Database = require('../database/Database');
 const path = require('path');
 const fs = require('fs');
@@ -9,6 +10,7 @@ class PadronController {
         this.padronService = new PadronService();
         this.database = new Database();
         this.detalleVotanteService = new DetalleVotanteService(this.database);
+        this.auditoriaService = new AuditoriaService();
         this.inicializando = false;
         this.inicializado = false;
     }
@@ -47,6 +49,13 @@ class PadronController {
             } catch (cleanupError) {
                 console.warn('No se pudo eliminar el archivo temporal:', cleanupError);
             }
+
+            // Auditoria
+            await this.auditoriaService.registrarOperacion(
+                req, 'IMPORTAR_CSV', 'csv', null, null,
+                { archivo: req.file.originalname, registros: resultado.totalProcesados || resultado.total || 0 },
+                `Importacion CSV: ${req.file.originalname}`
+            );
 
             res.json({
                 success: true,
@@ -181,7 +190,7 @@ class PadronController {
     async actualizarRelevamiento(req, res) {
         try {
             await this.inicializar();
-            
+
             const { dni } = req.params;
             const { opcionPolitica, observacion } = req.body;
 
@@ -189,17 +198,29 @@ class PadronController {
                 return res.status(400).json({ error: 'El campo opcionPolitica es requerido' });
             }
 
+            // Obtener datos anteriores para auditoria
+            const datosAnteriores = await this.padronService.obtenerVotantePorDni(dni);
+
             const relevamiento = {
                 voto: opcionPolitica,  // Mapear al campo interno
                 observaciones: observacion || ''
             };
 
             const resultado = await this.padronService.actualizarRelevamiento(dni, relevamiento);
+
+            // Auditoria
+            await this.auditoriaService.registrarOperacion(
+                req, 'ACTUALIZAR_RELEVAMIENTO', 'relevamiento', dni,
+                datosAnteriores ? { opcion_politica: datosAnteriores.opcion_politica, observacion: datosAnteriores.observacion } : null,
+                { opcion_politica: opcionPolitica, observacion: observacion || '' },
+                `Relevamiento actualizado para DNI ${dni}: ${opcionPolitica}`
+            );
+
             res.json({
                 success: true,
                 relevamiento: resultado
             });
-            
+
         } catch (error) {
             console.error('❌ Error actualizando relevamiento:', error);
             res.status(500).json({ error: error.message });
@@ -424,9 +445,9 @@ class PadronController {
     async crearOActualizarDetalleVotante(req, res) {
         try {
             await this.inicializar();
-            
+
             const { dni, condiciones } = req.body;
-            
+
             if (!dni) {
                 return res.status(400).json({
                     success: false,
@@ -434,8 +455,20 @@ class PadronController {
                 });
             }
 
+            // Obtener datos anteriores para auditoria
+            const detalleAnterior = await this.detalleVotanteService.obtenerDetallePorDni(dni);
+
             const detalle = await this.detalleVotanteService.crearOActualizarDetalle(dni, condiciones);
-            
+
+            // Auditoria
+            const operacion = detalleAnterior ? 'ACTUALIZAR_DETALLE' : 'CREAR_DETALLE';
+            await this.auditoriaService.registrarOperacion(
+                req, operacion, 'detalle_votante', dni,
+                detalleAnterior || null,
+                condiciones,
+                `${detalleAnterior ? 'Actualizado' : 'Creado'} detalle para DNI ${dni}`
+            );
+
             res.json({
                 success: true,
                 data: detalle
@@ -542,16 +575,27 @@ class PadronController {
     async eliminarDetalleVotante(req, res) {
         try {
             await this.inicializar();
-            
+
             const { dni } = req.params;
+
+            // Obtener datos anteriores para auditoria
+            const detalleAnterior = await this.detalleVotanteService.obtenerDetallePorDni(dni);
+
             const eliminado = await this.detalleVotanteService.eliminarDetalle(dni);
-            
+
             if (!eliminado) {
                 return res.status(404).json({
                     success: false,
-                    message: 'No se encontró el detalle a eliminar'
+                    message: 'No se encontro el detalle a eliminar'
                 });
             }
+
+            // Auditoria
+            await this.auditoriaService.registrarOperacion(
+                req, 'ELIMINAR_DETALLE', 'detalle_votante', dni,
+                detalleAnterior || null, null,
+                `Detalle eliminado para DNI ${dni}`
+            );
 
             res.json({
                 success: true,
@@ -592,6 +636,13 @@ class PadronController {
                 edad
             });
 
+            // Auditoria
+            await this.auditoriaService.registrarOperacion(
+                req, 'CREAR_VOTANTE', 'votante', dni, null,
+                { dni, nombre, apellido, anioNac, domicilio, circuito, sexo },
+                `Votante creado: ${apellido}, ${nombre} (DNI: ${dni})`
+            );
+
             res.status(201).json({
                 success: true,
                 message: 'Votante creado exitosamente',
@@ -603,6 +654,63 @@ class PadronController {
             res.status(statusCode).json({
                 success: false,
                 message: error.message.includes('duplicate') ? 'Ya existe un votante con ese DNI' : error.message
+            });
+        }
+    }
+
+    // ==================== ENDPOINTS DE AUDITORIA ====================
+
+    async obtenerAuditoria(req, res) {
+        try {
+            const filtros = {
+                usuario_id: req.query.usuario_id ? parseInt(req.query.usuario_id) : undefined,
+                operacion: req.query.operacion || undefined,
+                entidad: req.query.entidad || undefined,
+                fecha_desde: req.query.fecha_desde || undefined,
+                fecha_hasta: req.query.fecha_hasta || undefined,
+                page: parseInt(req.query.page) || 1,
+                limit: parseInt(req.query.limit) || 25
+            };
+
+            const resultado = await this.auditoriaService.consultarAuditoria(filtros);
+
+            res.json({
+                success: true,
+                data: resultado.registros,
+                paginacion: {
+                    paginaActual: resultado.page,
+                    totalPaginas: resultado.totalPages,
+                    totalRegistros: resultado.total,
+                    registrosPorPagina: resultado.limit
+                }
+            });
+        } catch (error) {
+            console.error('Error obteniendo auditoria:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
+    async obtenerEstadisticasAuditoria(req, res) {
+        try {
+            const filtros = {
+                fecha_desde: req.query.fecha_desde || undefined,
+                fecha_hasta: req.query.fecha_hasta || undefined
+            };
+
+            const estadisticas = await this.auditoriaService.obtenerEstadisticas(filtros);
+
+            res.json({
+                success: true,
+                data: estadisticas
+            });
+        } catch (error) {
+            console.error('Error obteniendo estadisticas de auditoria:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
             });
         }
     }

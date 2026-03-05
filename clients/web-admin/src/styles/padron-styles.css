@@ -2,20 +2,20 @@
 
 /* Variables CSS — mapped to Design System tokens */
 :root {
-    --primary: var(--ds-secondary-800, #1e293b);
-    --secondary: var(--ds-primary-500, #6366f1);
-    --secondary-light: var(--ds-primary-100, #e0e7ff);
+    --primary: var(--ds-secondary-800, #1f2d3d);
+    --secondary: var(--ds-primary-500, #486581);
+    --secondary-light: var(--ds-primary-100, #d9e2ec);
     --success: var(--ds-success-500, #10b981);
-    --warning: var(--ds-warning-500, #f59e0b);
+    --warning: var(--ds-warning-500, #d49726);
     --danger: var(--ds-danger-500, #ef4444);
     --pj: var(--ds-party-pj, #1e3a8a);
     --ucr: var(--ds-party-ucr, #dc2626);
     --indeciso: var(--ds-party-indeciso, #64748b);
-    --bg: var(--ds-bg-page, #f8fafc);
+    --bg: var(--ds-bg-page, #f5f7fa);
     --card: var(--ds-bg-card, #ffffff);
-    --border: var(--ds-border-light, #e2e8f0);
-    --text: var(--ds-text-primary, #0f172a);
-    --text-light: var(--ds-text-secondary, #475569);
+    --border: var(--ds-border-light, #dce3eb);
+    --text: var(--ds-text-primary, #102a43);
+    --text-light: var(--ds-text-secondary, #455468);
     --shadow: var(--ds-shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1));
     --shadow-lg: var(--ds-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1));
 }
@@ -110,7 +110,7 @@ body {
 }
 
 .logout-btn:hover {
-    background: #c53030;
+    background: #b91c1c;
     transform: translateY(-1px);
 }
 
@@ -334,7 +334,7 @@ body {
 }
 
 .btn-primary:hover {
-    background: #2980b9;
+    background: #334e68;
 }
 
 .btn-success {
@@ -361,7 +361,7 @@ body {
 }
 
 .btn-secondary:hover {
-    background: #4b5563;
+    background: #324054;
 }
 
 /* ==================== FILTROS ==================== */
@@ -410,12 +410,26 @@ body {
 .filtro-item select:focus {
     outline: none;
     border-color: var(--padron-secondary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.15);
 }
 
 .filtro-item input[type="checkbox"] {
     width: auto;
     margin-right: 0.5rem;
+}
+
+.filtro-acciones {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+    margin-left: auto;
+}
+
+.filtro-acciones .btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: var(--ds-radius-md, 8px);
+    white-space: nowrap;
 }
 
 /* ==================== ESTADÍSTICAS RÁPIDAS ==================== */
@@ -594,7 +608,7 @@ body {
 }
 
 .tabla-padron th.sortable:hover {
-    background: #f1f5f9;
+    background: #edf1f5;
 }
 
 .tabla-padron th.sortable.active {
@@ -726,7 +740,7 @@ body {
 .observacion-input:focus {
     outline: none;
     border-color: var(--padron-secondary);
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+    box-shadow: 0 0 0 2px rgba(72, 101, 129, 0.1);
 }
 
 /* ==================== ACCIONES ==================== */
@@ -907,7 +921,7 @@ body {
     margin-bottom: 6px;
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--ds-text-secondary, #475569);
+    color: var(--ds-text-secondary, #455468);
 }
 
 .required {
@@ -917,10 +931,10 @@ body {
 .form-input {
     width: 100%;
     padding: 10px 14px;
-    border: 1px solid var(--ds-border-default, #cbd5e1);
+    border: 1px solid var(--ds-border-default, #c5ced8);
     border-radius: var(--ds-radius-md, 8px);
     font-size: 0.9rem;
-    color: var(--ds-text-primary, #0f172a);
+    color: var(--ds-text-primary, #102a43);
     background: white;
     transition: border-color 150ms ease;
     box-sizing: border-box;
@@ -928,8 +942,8 @@ body {
 
 .form-input:focus {
     outline: none;
-    border-color: var(--ds-primary-500, #6366f1);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: var(--ds-primary-500, #486581);
+    box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.1);
 }
 
 select.form-input {
@@ -960,12 +974,12 @@ select.form-input {
 }
 
 .modal-footer .btn-primary {
-    background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
+    background: var(--ds-gradient-primary, linear-gradient(135deg, #334e68 0%, #102a43 100%));
     color: white;
 }
 
 .modal-footer .btn-primary:hover {
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 12px rgba(72, 101, 129, 0.4);
 }
 
 .modal-footer .btn-primary:disabled {
@@ -974,9 +988,223 @@ select.form-input {
 }
 
 .modal-footer .btn-secondary {
-    background: var(--ds-bg-page, #f8fafc);
-    color: var(--ds-text-secondary, #475569);
-    border: 1px solid var(--ds-border-default, #cbd5e1);
+    background: var(--ds-bg-page, #f5f7fa);
+    color: var(--ds-text-secondary, #455468);
+    border: 1px solid var(--ds-border-default, #c5ced8);
+}
+
+.modal-footer .btn-secondary:hover {
+    background: var(--ds-secondary-100, #edf1f5);
+    border-color: var(--ds-border-strong, #8e9aab);
+}
+
+/* ==================== MODAL NUEVO VOTANTE — UX MEJORADA ==================== */
+
+.modal-nuevo-votante {
+    max-width: 560px;
+}
+
+.modal-header-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.modal-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--ds-radius-lg, 12px);
+    background: var(--ds-gradient-primary, linear-gradient(135deg, #334e68 0%, #102a43 100%));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.modal-subtitle {
+    margin: 2px 0 0;
+    font-size: var(--ds-font-xs, 0.75rem);
+    color: var(--ds-text-muted, #8e9aab);
+    font-weight: 400;
+}
+
+/* — Secciones del formulario — */
+
+.form-section {
+    background: var(--ds-bg-subtle, #edf1f5);
+    border-radius: var(--ds-radius-lg, 12px);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.form-section:last-of-type {
+    margin-bottom: 8px;
+}
+
+.form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--ds-border-light, #dce3eb);
+    font-size: var(--ds-font-sm, 0.875rem);
+    font-weight: 600;
+    color: var(--ds-text-primary, #102a43);
+}
+
+.form-section-header > i {
+    color: var(--ds-primary-500, #486581);
+    font-size: 0.9rem;
+    width: 18px;
+    text-align: center;
+}
+
+.form-section-badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--ds-radius-full, 9999px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.required-badge {
+    background: var(--ds-danger-50, #fef2f2);
+    color: var(--ds-danger-600, #dc2626);
+    border: 1px solid var(--ds-danger-100, #fee2e2);
+}
+
+.optional-badge {
+    background: var(--ds-info-50, #eff6ff);
+    color: var(--ds-info-600, #2563eb);
+    border: 1px solid var(--ds-info-100, #dbeafe);
+}
+
+/* — Input con ícono — */
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    color: var(--ds-text-muted, #8e9aab);
+    font-size: 0.85rem;
+    pointer-events: none;
+    transition: color var(--ds-transition-fast, 150ms ease);
+    z-index: 1;
+}
+
+.form-input.has-icon {
+    padding-left: 38px;
+}
+
+.input-wrapper:focus-within .input-icon {
+    color: var(--ds-primary-500, #486581);
+}
+
+/* — Inline validation icon — */
+
+.input-validation-icon {
+    position: absolute;
+    right: 12px;
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: opacity var(--ds-transition-fast, 150ms ease);
+}
+
+.input-validation-icon.is-valid::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: var(--ds-success-500, #10b981);
+}
+
+.input-validation-icon.is-invalid::before {
+    content: '\f00d';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: var(--ds-danger-500, #ef4444);
+}
+
+.input-validation-icon.is-valid,
+.input-validation-icon.is-invalid {
+    opacity: 1;
+}
+
+/* — States on input — */
+
+.form-input.input-valid {
+    border-color: var(--ds-success-500, #10b981);
+}
+
+.form-input.input-valid:focus {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.form-input.input-invalid {
+    border-color: var(--ds-danger-500, #ef4444);
+}
+
+.form-input.input-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+/* — Helper text — */
+
+.form-helper {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.75rem;
+    color: var(--ds-text-muted, #8e9aab);
+    padding-left: 2px;
+    transition: color var(--ds-transition-fast, 150ms ease);
+}
+
+.form-helper.helper-error {
+    color: var(--ds-danger-500, #ef4444);
+}
+
+.form-helper.helper-success {
+    color: var(--ds-success-600, #059669);
+}
+
+/* — Error message box improved — */
+
+.form-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-error i {
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+/* — Section inside form-section: inputs get white bg — */
+
+.form-section .form-input {
+    background: white;
+}
+
+.form-section .form-group {
+    margin-bottom: 12px;
+}
+
+.form-section .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-section .form-row:last-child .form-group {
+    margin-bottom: 0;
 }
 
 /* ==================== IMPORTACIÓN CSV ==================== */
@@ -1233,6 +1461,12 @@ select.form-input {
 
     .filtro-item {
         min-width: 100%;
+    }
+
+    .filtro-acciones {
+        margin-left: 0;
+        flex-direction: row;
+        justify-content: flex-end;
     }
     
     .filtro-checkbox {
@@ -1533,10 +1767,37 @@ select.form-input {
     input, select, textarea {
         font-size: 16px; /* Prevent zoom on iOS */
     }
-    
+
     .form-row {
         flex-direction: column;
         gap: 0;
+    }
+
+    /* Nuevo Votante modal mobile */
+    .modal-nuevo-votante {
+        max-width: 95%;
+    }
+
+    .modal-header-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 0.95rem;
+    }
+
+    .form-section {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .form-section-header {
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+
+    .form-section-badge {
+        font-size: 0.6rem;
+        padding: 2px 6px;
     }
 }
 

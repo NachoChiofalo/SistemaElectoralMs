@@ -7,7 +7,8 @@
         { href: 'index.html', icon: 'fa-users-cog', label: 'Padrón Electoral', key: 'padron' },
         { href: 'fiscales.html', icon: 'fa-user-shield', label: 'Fiscales', key: 'fiscales' },
         { href: 'comicio.html', icon: 'fa-building', label: 'Comicio', key: 'comicio' },
-        { href: 'usuarios.html', icon: 'fa-users-gear', label: 'Usuarios', key: 'usuarios', adminOnly: true }
+        { href: 'usuarios.html', icon: 'fa-users-gear', label: 'Usuarios', key: 'usuarios', adminOnly: true },
+        { href: 'auditoria.html', icon: 'fa-clipboard-list', label: 'Auditoria', key: 'auditoria', adminOnly: true }
     ];
 
     function renderNavbar(activeKey) {
