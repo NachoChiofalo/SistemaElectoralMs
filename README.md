@@ -40,7 +40,7 @@ SistemaElectoralMs/
 ├── shared/                # Código compartido
 ├── scripts/               # Scripts de inicialización y deploy
 ├── docker-compose.yml     # Orquestación local
-└── docker-compose.railway.yml  # Orquestación para Railway
+└── render.yaml            # Blueprint para Render
 ```
 
 ---
@@ -252,21 +252,18 @@ PADRON_SERVICE_URL=http://padron-service:3001
 
 ---
 
-## 🚀 Deployment en Railway
+## 🚀 Deployment en Render
 
-El proyecto incluye configuración lista para deployment en [Railway](https://railway.app).
+El proyecto incluye configuración lista para deployment en Render mediante el archivo `render.yaml` (Blueprint).
 
-```bash
-# Instalar Railway CLI
-npm install -g @railway/cli
+1. Push el repositorio a GitHub
+2. En Render Dashboard: **New** > **Blueprint** > seleccionar el repositorio
+3. Render detecta el `render.yaml` y crea todos los servicios + base de datos automáticamente
 
-# Login y deploy
-railway login
-railway init
-railway up
-```
-
-Consulta la [Guía completa de deployment](./DEPLOYMENT-GUIDE.md) para instrucciones detalladas incluyendo configuración de variables de entorno, secrets de GitHub Actions y pipeline CI/CD.
+El Blueprint configura:
+- Base de datos PostgreSQL 15 managed
+- 4 servicios Docker (auth, padron, gateway, web-admin)
+- Variables de entorno auto-referenciadas entre servicios
 
 ---
 
@@ -323,7 +320,6 @@ docker-compose restart postgres
 - [Autenticación y API Gateway](./README-AUTH.md)
 - [Sistema de Roles y Permisos](./README-ROLES.md)
 - [Área de Resultados](./RESULTADOS-README.md)
-- [Guía de Deployment en Railway](./DEPLOYMENT-GUIDE.md)
 
 ---
 

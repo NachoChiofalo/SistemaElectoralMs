@@ -12,7 +12,6 @@ services:
       - PADRON_SERVICE_URL=${PADRON_SERVICE_URL:-http://padron-service:3001}
       - WEB_ADMIN_URL=${WEB_ADMIN_URL:-http://web-admin:3000}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
-      - RAILWAY_ENVIRONMENT_NAME=${RAILWAY_ENVIRONMENT_NAME:-}
     depends_on:
       - auth-service
       - padron-service
@@ -43,7 +42,6 @@ services:
       - JWT_EXPIRATION=${JWT_EXPIRATION:-24h}
       - REFRESH_TOKEN_EXPIRATION=${REFRESH_TOKEN_EXPIRATION:-7d}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
-      - RAILWAY_ENVIRONMENT_NAME=${RAILWAY_ENVIRONMENT_NAME:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,7 +67,6 @@ services:
       - DB_NAME=${DB_NAME:-sistema_electoral}
       - DB_USER=${DB_USER:-electoral_user}
       - DB_PASSWORD=${DB_PASSWORD:-electoral_password}
-      - RAILWAY_ENVIRONMENT_NAME=${RAILWAY_ENVIRONMENT_NAME:-}
     volumes:
       - ./services/padron-service/uploads:/app/uploads
       - padron_uploads:/app/uploads
