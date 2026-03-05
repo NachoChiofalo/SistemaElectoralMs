@@ -29,7 +29,8 @@ class AuthApp {
       origin: [
         'http://localhost:3000',
         'http://localhost:8080',
-        process.env.FRONTEND_URL
+        process.env.FRONTEND_URL,
+        process.env.RENDER_EXTERNAL_URL
       ].filter(Boolean),
       credentials: true
     }));

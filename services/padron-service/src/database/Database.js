@@ -2,18 +2,93 @@ const { Pool } = require('pg');
 
 class Database {
     constructor() {
-        this.pool = new Pool({
-            host: process.env.DB_HOST,
-            port: process.env.DB_PORT,
-            database: process.env.DB_NAME,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-        });
+        const poolConfig = process.env.DATABASE_URL
+            ? {
+                  connectionString: process.env.DATABASE_URL,
+                  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+              }
+            : {
+                  host: process.env.DB_HOST,
+                  port: process.env.DB_PORT,
+                  database: process.env.DB_NAME,
+                  user: process.env.DB_USER,
+                  password: process.env.DB_PASSWORD,
+              };
+
+        this.pool = new Pool(poolConfig);
 
         // Configurar manejo de errores
         this.pool.on('error', (err) => {
             console.error('Error inesperado en el pool de conexiones:', err);
         });
+    }
+
+    async initializeSchema() {
+        try {
+            await this.query(`CREATE SCHEMA IF NOT EXISTS padron`);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS padron.votantes (
+                    dni VARCHAR(20) PRIMARY KEY,
+                    anio_nac INTEGER NOT NULL,
+                    apellido VARCHAR(100) NOT NULL,
+                    nombre VARCHAR(100) NOT NULL,
+                    domicilio TEXT,
+                    tipo_ejemplar VARCHAR(20),
+                    circuito VARCHAR(50),
+                    sexo CHAR(1) CHECK (sexo IN ('M', 'F')),
+                    edad INTEGER,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS padron.relevamientos (
+                    id SERIAL PRIMARY KEY,
+                    dni VARCHAR(20) REFERENCES padron.votantes(dni) ON DELETE CASCADE,
+                    opcion_politica VARCHAR(20) CHECK (opcion_politica IN ('PJ', 'UCR', 'Indeciso')),
+                    observacion TEXT,
+                    fecha_relevamiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    es_nuevo_votante BOOLEAN DEFAULT FALSE,
+                    esta_fallecido BOOLEAN DEFAULT FALSE,
+                    es_empleado_municipal BOOLEAN DEFAULT FALSE,
+                    recibe_ayuda_social BOOLEAN DEFAULT FALSE,
+                    observaciones_detalle TEXT,
+                    fecha_detalle TIMESTAMP,
+                    UNIQUE(dni)
+                )
+            `);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS padron.auditoria (
+                    id SERIAL PRIMARY KEY,
+                    usuario_id VARCHAR(50),
+                    usuario_nombre VARCHAR(200),
+                    usuario_username VARCHAR(100),
+                    operacion VARCHAR(50),
+                    entidad VARCHAR(50),
+                    entidad_id VARCHAR(50),
+                    datos_anteriores JSONB,
+                    datos_nuevos JSONB,
+                    detalles TEXT,
+                    ip_address VARCHAR(50),
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+
+            await this.query(`CREATE INDEX IF NOT EXISTS idx_votantes_apellido ON padron.votantes(apellido)`);
+            await this.query(`CREATE INDEX IF NOT EXISTS idx_votantes_circuito ON padron.votantes(circuito)`);
+            await this.query(`CREATE INDEX IF NOT EXISTS idx_votantes_sexo ON padron.votantes(sexo)`);
+            await this.query(`CREATE INDEX IF NOT EXISTS idx_relevamientos_opcion ON padron.relevamientos(opcion_politica)`);
+            await this.query(`CREATE INDEX IF NOT EXISTS idx_relevamientos_fecha ON padron.relevamientos(fecha_relevamiento)`);
+
+            console.log('✓ Schema padron inicializado correctamente');
+        } catch (error) {
+            console.error('✗ Error inicializando schema padron:', error.message);
+            throw error;
+        }
     }
 
     async testConnection() {
