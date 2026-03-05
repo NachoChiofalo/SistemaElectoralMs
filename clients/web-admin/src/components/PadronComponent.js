@@ -87,6 +87,9 @@ class PadronComponent {
                     <p class="padron-subtitle">Gestión y relevamiento del padrón electoral</p>
                 </div>
                 <div class="padron-actions">
+                    <button id="btn-nuevo-votante" class="btn btn-success" data-requires-permission="padron.edit" title="Agregar nuevo votante al padrón">
+                        <i class="fas fa-user-plus"></i> <span class="btn-text">Nuevo Votante</span>
+                    </button>
                     <button id="btn-importar" class="btn btn-primary" data-requires-permission="padron.edit" title="Importar datos desde archivo CSV">
                         <i class="fas fa-upload"></i> <span class="btn-text">Importar CSV</span>
                     </button>
@@ -156,10 +159,10 @@ class PadronComponent {
                             Sin Relevamiento
                         </label>
                     </div>
+                    <div class="filtro-acciones">
+                        <button id="btn-aplicar-filtros" class="btn btn-primary btn-sm">Filtrar</button>
+                        <button id="btn-limpiar-filtros" class="btn btn-secondary btn-sm">Limpiar</button>
                     </div>
-                    <div class="filtro-item">
-                        <button id="btn-aplicar-filtros" class="btn btn-primary">Filtrar</button>
-                        <button id="btn-limpiar-filtros" class="btn btn-secondary">Limpiar</button>
                     </div>
                 </div>
             </div>
@@ -260,6 +263,129 @@ class PadronComponent {
                     </div>
                 </div>
             </div>
+
+            <!-- Modal para nuevo votante -->
+            <div id="modal-nuevo-votante" class="modal-overlay" style="display: none;" onclick="padronComponent.cerrarModalNuevoVotanteOverlay(event)">
+                <div class="modal-content modal-nuevo-votante">
+                    <div class="modal-header">
+                        <div class="modal-header-title">
+                            <div class="modal-header-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div>
+                                <h3>Nuevo Votante</h3>
+                                <p class="modal-subtitle">Completá los datos para registrar un nuevo elector</p>
+                            </div>
+                        </div>
+                        <button class="modal-close" onclick="padronComponent.cerrarModalNuevoVotante()" title="Cerrar (Esc)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form-nuevo-votante" onsubmit="return false;">
+                            <!-- Sección: Identificación -->
+                            <div class="form-section">
+                                <div class="form-section-header">
+                                    <i class="fas fa-id-card"></i>
+                                    <span>Identificación</span>
+                                    <span class="form-section-badge required-badge">Obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevo-dni">DNI <span class="required">*</span></label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-fingerprint input-icon"></i>
+                                        <input type="text" id="nuevo-dni" class="form-input has-icon" placeholder="Ej: 12345678" required maxlength="10" inputmode="numeric" autocomplete="off">
+                                        <span class="input-validation-icon" id="dni-validation-icon"></span>
+                                    </div>
+                                    <span class="form-helper" id="dni-helper">Solo números, sin puntos ni espacios</span>
+                                </div>
+                            </div>
+
+                            <!-- Sección: Datos Personales -->
+                            <div class="form-section">
+                                <div class="form-section-header">
+                                    <i class="fas fa-user"></i>
+                                    <span>Datos Personales</span>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="nuevo-apellido">Apellido <span class="required">*</span></label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-user input-icon"></i>
+                                            <input type="text" id="nuevo-apellido" class="form-input has-icon" placeholder="Ej: García" required autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nuevo-nombre">Nombre <span class="required">*</span></label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-user input-icon"></i>
+                                            <input type="text" id="nuevo-nombre" class="form-input has-icon" placeholder="Ej: Juan Carlos" required autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="nuevo-anio-nac">Año Nacimiento</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-calendar-alt input-icon"></i>
+                                            <input type="number" id="nuevo-anio-nac" class="form-input has-icon" placeholder="Ej: 1990" min="1900" max="2010">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nuevo-sexo">Sexo</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-venus-mars input-icon"></i>
+                                            <select id="nuevo-sexo" class="form-input has-icon">
+                                                <option value="">Seleccionar</option>
+                                                <option value="M">Masculino</option>
+                                                <option value="F">Femenino</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sección: Ubicación -->
+                            <div class="form-section">
+                                <div class="form-section-header">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Ubicación</span>
+                                    <span class="form-section-badge optional-badge">Opcional</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevo-domicilio">Domicilio</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-home input-icon"></i>
+                                        <input type="text" id="nuevo-domicilio" class="form-input has-icon" placeholder="Ej: Av. San Martín 1234">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevo-circuito">Circuito Electoral</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-map-signs input-icon"></i>
+                                        <select id="nuevo-circuito" class="form-input has-icon">
+                                            <option value="">Seleccionar circuito</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="error-nuevo-votante" class="form-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span id="error-nuevo-votante-text"></span>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" onclick="padronComponent.cerrarModalNuevoVotante()">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button type="button" id="btn-guardar-votante" class="btn btn-primary" onclick="padronComponent.guardarNuevoVotante()">
+                                    <i class="fas fa-save"></i> Guardar Votante
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         `;
 
         // Guardar referencias a elementos importantes
@@ -277,6 +403,7 @@ class PadronComponent {
      */
     inicializarEventos() {
         // Botones principales
+        document.getElementById('btn-nuevo-votante').addEventListener('click', () => this.abrirModalNuevoVotante());
         document.getElementById('btn-importar').addEventListener('click', () => this.abrirModalImportar());
         document.getElementById('btn-exportar').addEventListener('click', () => this.exportarDatos());
         document.getElementById('btn-estadisticas').addEventListener('click', () => this.mostrarEstadisticas());
@@ -320,6 +447,9 @@ class PadronComponent {
 
         // Cambiar registros por página
         document.getElementById('registros-por-pagina').addEventListener('change', () => this.cambiarRegistrosPorPagina());
+
+        // Validación en tiempo real del formulario nuevo votante
+        this.inicializarValidacionNuevoVotante();
 
         // Ordenamiento de tabla
         this.elementos.tabla.addEventListener('click', (e) => {
@@ -809,6 +939,213 @@ class PadronComponent {
 
     cerrarModalEstadisticas() {
         document.getElementById('modal-estadisticas').style.display = 'none';
+    }
+
+    abrirModalNuevoVotante() {
+        // Poblar circuitos en el select del modal
+        const selectCircuito = document.getElementById('nuevo-circuito');
+        const filtroCircuito = document.getElementById('filtro-circuito');
+        if (filtroCircuito && selectCircuito) {
+            selectCircuito.innerHTML = '<option value="">Seleccionar circuito</option>';
+            Array.from(filtroCircuito.options).forEach(opt => {
+                if (opt.value) {
+                    selectCircuito.innerHTML += `<option value="${opt.value}">${opt.textContent}</option>`;
+                }
+            });
+        }
+
+        // Limpiar formulario y estados de validación
+        document.getElementById('form-nuevo-votante').reset();
+        document.getElementById('error-nuevo-votante').style.display = 'none';
+        document.getElementById('btn-guardar-votante').disabled = false;
+        this.limpiarEstadosValidacion();
+
+        document.getElementById('modal-nuevo-votante').style.display = 'flex';
+
+        // Focus en el primer campo después de la animación
+        setTimeout(() => {
+            document.getElementById('nuevo-dni').focus();
+        }, 300);
+    }
+
+    cerrarModalNuevoVotante() {
+        document.getElementById('modal-nuevo-votante').style.display = 'none';
+    }
+
+    cerrarModalNuevoVotanteOverlay(event) {
+        if (event.target === event.currentTarget) {
+            this.cerrarModalNuevoVotante();
+        }
+    }
+
+    /**
+     * Inicializar validación en tiempo real para el formulario de nuevo votante
+     */
+    inicializarValidacionNuevoVotante() {
+        const dniInput = document.getElementById('nuevo-dni');
+        const apellidoInput = document.getElementById('nuevo-apellido');
+        const nombreInput = document.getElementById('nuevo-nombre');
+        const dniHelper = document.getElementById('dni-helper');
+        const dniValidationIcon = document.getElementById('dni-validation-icon');
+
+        // Validación en tiempo real del DNI
+        dniInput.addEventListener('input', () => {
+            const val = dniInput.value.trim();
+            dniValidationIcon.className = 'input-validation-icon';
+            dniInput.classList.remove('input-valid', 'input-invalid');
+            dniHelper.className = 'form-helper';
+
+            if (val.length === 0) {
+                dniHelper.textContent = 'Solo números, sin puntos ni espacios';
+                return;
+            }
+
+            if (!/^\d*$/.test(val)) {
+                dniInput.classList.add('input-invalid');
+                dniValidationIcon.classList.add('is-invalid');
+                dniHelper.textContent = 'Solo se permiten números';
+                dniHelper.classList.add('helper-error');
+            } else if (val.length < 7) {
+                dniHelper.textContent = `${val.length} dígitos — mínimo 7`;
+            } else {
+                dniInput.classList.add('input-valid');
+                dniValidationIcon.classList.add('is-valid');
+                dniHelper.textContent = `${val.length} dígitos — DNI válido`;
+                dniHelper.classList.add('helper-success');
+            }
+        });
+
+        // Filtrar caracteres no numéricos en DNI
+        dniInput.addEventListener('keypress', (e) => {
+            if (!/\d/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+                e.preventDefault();
+            }
+        });
+
+        // Validación de campos requeridos on blur
+        const validarRequerido = (input) => {
+            input.addEventListener('blur', () => {
+                if (input.value.trim() === '') {
+                    input.classList.add('input-invalid');
+                } else {
+                    input.classList.remove('input-invalid');
+                    input.classList.add('input-valid');
+                }
+            });
+            input.addEventListener('input', () => {
+                if (input.value.trim() !== '') {
+                    input.classList.remove('input-invalid');
+                }
+            });
+        };
+
+        validarRequerido(apellidoInput);
+        validarRequerido(nombreInput);
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modal-nuevo-votante');
+                if (modal.style.display === 'flex') {
+                    this.cerrarModalNuevoVotante();
+                }
+            }
+        });
+    }
+
+    /**
+     * Limpiar estados visuales de validación del formulario
+     */
+    limpiarEstadosValidacion() {
+        const inputs = document.querySelectorAll('#form-nuevo-votante .form-input');
+        inputs.forEach(input => {
+            input.classList.remove('input-valid', 'input-invalid');
+        });
+
+        const dniValidationIcon = document.getElementById('dni-validation-icon');
+        if (dniValidationIcon) {
+            dniValidationIcon.className = 'input-validation-icon';
+        }
+
+        const dniHelper = document.getElementById('dni-helper');
+        if (dniHelper) {
+            dniHelper.textContent = 'Solo números, sin puntos ni espacios';
+            dniHelper.className = 'form-helper';
+        }
+    }
+
+    async guardarNuevoVotante() {
+        const errorDiv = document.getElementById('error-nuevo-votante');
+        const errorText = document.getElementById('error-nuevo-votante-text');
+        const btnGuardar = document.getElementById('btn-guardar-votante');
+        errorDiv.style.display = 'none';
+
+        const dni = document.getElementById('nuevo-dni').value.trim();
+        const apellido = document.getElementById('nuevo-apellido').value.trim();
+        const nombre = document.getElementById('nuevo-nombre').value.trim();
+        const anioNac = document.getElementById('nuevo-anio-nac').value.trim();
+        const sexo = document.getElementById('nuevo-sexo').value;
+        const domicilio = document.getElementById('nuevo-domicilio').value.trim();
+        const circuito = document.getElementById('nuevo-circuito').value;
+
+        // Validar campos requeridos con feedback visual
+        let hayError = false;
+        if (!dni) {
+            document.getElementById('nuevo-dni').classList.add('input-invalid');
+            hayError = true;
+        }
+        if (!apellido) {
+            document.getElementById('nuevo-apellido').classList.add('input-invalid');
+            hayError = true;
+        }
+        if (!nombre) {
+            document.getElementById('nuevo-nombre').classList.add('input-invalid');
+            hayError = true;
+        }
+
+        if (hayError) {
+            errorText.textContent = 'Completá los campos obligatorios: DNI, Apellido y Nombre';
+            errorDiv.style.display = 'flex';
+            // Scroll al primer campo con error
+            const primerError = document.querySelector('#form-nuevo-votante .input-invalid');
+            if (primerError) primerError.focus();
+            return;
+        }
+
+        if (!/^\d+$/.test(dni)) {
+            document.getElementById('nuevo-dni').classList.add('input-invalid');
+            errorText.textContent = 'El DNI debe contener solo números';
+            errorDiv.style.display = 'flex';
+            document.getElementById('nuevo-dni').focus();
+            return;
+        }
+
+        try {
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+            await window.apiService.crearVotante({
+                dni,
+                apellido,
+                nombre,
+                anioNac: anioNac || undefined,
+                sexo: sexo || undefined,
+                domicilio: domicilio || undefined,
+                circuito: circuito || undefined
+            });
+
+            this.cerrarModalNuevoVotante();
+            this.mostrarNotificacion('Votante creado exitosamente', 'success');
+            await this.actualizarEstadisticasRapidas();
+            await this.actualizarTabla();
+
+        } catch (error) {
+            errorText.textContent = error.message || 'Error al crear el votante';
+            errorDiv.style.display = 'flex';
+        } finally {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Votante';
+        }
     }
 
     async exportarDatos() {

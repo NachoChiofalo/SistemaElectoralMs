@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const PadronController = require('../controllers/PadronController');
+const userContextMiddleware = require('../middleware/userContextMiddleware');
+
+// Apply user context middleware to all routes
+router.use(userContextMiddleware);
 
 // Instancia del controlador
 const padronController = new PadronController();
@@ -25,6 +29,10 @@ router.post('/importar-csv', upload.single('csv'), (req, res) => {
 
 router.get('/votantes', (req, res) => {
     padronController.obtenerVotantes(req, res);
+});
+
+router.post('/votantes', (req, res) => {
+    padronController.crearVotante(req, res);
 });
 
 router.get('/votantes/:dni', (req, res) => {
@@ -101,6 +109,16 @@ router.get('/estadisticas-condiciones-especiales', (req, res) => {
 // Eliminar detalle de votante
 router.delete('/detalle-votante/:dni', (req, res) => {
     padronController.eliminarDetalleVotante(req, res);
+});
+
+// ==================== RUTAS DE AUDITORIA ====================
+
+router.get('/auditoria', (req, res) => {
+    padronController.obtenerAuditoria(req, res);
+});
+
+router.get('/auditoria/estadisticas', (req, res) => {
+    padronController.obtenerEstadisticasAuditoria(req, res);
 });
 
 module.exports = router;

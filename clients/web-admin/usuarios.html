@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - Sistema Electoral</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Design System -->
+    <link rel="stylesheet" href="src/styles/design-system.css">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="src/styles/navbar-styles.css">
+    <link rel="stylesheet" href="src/styles/usuarios-styles.css">
+
+    <style>
+        body {
+            font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background-color: var(--ds-bg-page, #f8fafc);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de navegacion unificada -->
+    <div id="navbar-container"></div>
+
+    <main class="page-container">
+        <div id="usuarios-container">
+            <!-- UsuariosComponent se renderiza aqui -->
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="src/components/NavbarComponent.js"></script>
+    <script src="src/services/ApiService.js"></script>
+    <script src="src/services/AuthService.js"></script>
+    <script src="src/components/UsuariosComponent.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Inicializar navbar
+                if (window.navbarComponent) {
+                    window.navbarComponent.init('navbar-container', 'usuarios');
+                }
+
+                // Verificar autenticacion
+                if (window.authService && window.authService.init) {
+                    const isAuthenticated = await window.authService.init();
+                    if (!isAuthenticated) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                }
+
+                // Verificar que es administrador
+                const response = await window.apiService.request('/api/auth/me', { method: 'GET' });
+                if (!response.success || response.data.rol !== 'administrador') {
+                    alert('Acceso denegado: se requieren permisos de administrador');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+
+                // Inicializar componente de usuarios
+                await window.usuariosComponent.init('usuarios-container');
+
+            } catch (error) {
+                console.error('Error iniciando pagina de usuarios:', error);
+                alert('Error al cargar la pagina: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
