@@ -137,14 +137,9 @@ class GatewayApp {
     });
 
     // Servir archivos estáticos de la web admin (DEBE IR AL FINAL para no interceptar rutas API)
-    this.app.use('/', 
-      // Solo aplicar auth middleware a rutas que no sean estáticas
-      (req, res, next) => {
-        if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg)$/)) {
-          return next();
-        }
-        return authMiddleware(req, res, next);
-      },
+    // No requiere auth: el frontend maneja autenticación del lado del cliente.
+    // Las rutas API (/api/padron, /api/users) ya están protegidas con authMiddleware.
+    this.app.use('/',
       createProxyMiddleware({
         target: process.env.WEB_ADMIN_URL || 'http://localhost:3000',
         changeOrigin: true,
