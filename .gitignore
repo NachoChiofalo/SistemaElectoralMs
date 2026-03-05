@@ -75,3 +75,5 @@ coverage/
 # Archivos de configuración local
 config.local.json
 settings.local.json
+
+tmpclaude-*

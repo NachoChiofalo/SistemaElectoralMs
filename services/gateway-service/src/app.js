@@ -94,6 +94,13 @@ class GatewayApp {
         logLevel: 'debug',
         onProxyReq: (proxyReq, req, res) => {
           console.log('🔄 Proxy request:', req.method, req.url);
+          // Forward user identity to downstream services
+          if (req.user) {
+            proxyReq.setHeader('X-User-Id', String(req.user.id || ''));
+            proxyReq.setHeader('X-User-Username', req.user.username || '');
+            proxyReq.setHeader('X-User-Nombre', encodeURIComponent(req.user.nombre_completo || ''));
+            proxyReq.setHeader('X-User-Rol', req.user.rol || '');
+          }
         },
         onProxyRes: (proxyRes, req, res) => {
           console.log('📤 Proxy response:', proxyRes.statusCode, req.url);

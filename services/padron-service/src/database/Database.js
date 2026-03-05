@@ -44,18 +44,47 @@ class Database {
         let whereClause = 'WHERE 1=1';
         const params = [];
 
-        if (filtros.dni) {
-            params.push(`%${filtros.dni}%`);
-            whereClause += ` AND v.dni LIKE $${params.length}`;
+        // Busqueda general (DNI, nombre, apellido)
+        if (filtros.busqueda) {
+            params.push(`%${filtros.busqueda.toLowerCase()}%`);
+            whereClause += ` AND (v.dni LIKE $${params.length} OR LOWER(v.nombre) LIKE $${params.length} OR LOWER(v.apellido) LIKE $${params.length})`;
         }
-        if (filtros.nombre) {
-            params.push(`%${filtros.nombre.toLowerCase()}%`);
-            whereClause += ` AND (LOWER(v.nombre) LIKE $${params.length} OR LOWER(v.apellido) LIKE $${params.length})`;
-        }
-        if (filtros.mesa) {
-            params.push(filtros.mesa);
+
+        // Filtro por circuito
+        if (filtros.circuito) {
+            params.push(filtros.circuito);
             whereClause += ` AND v.circuito = $${params.length}`;
         }
+
+        // Filtro por sexo
+        if (filtros.sexo) {
+            params.push(filtros.sexo);
+            whereClause += ` AND v.sexo = $${params.length}`;
+        }
+
+        // Filtro por opcion politica
+        if (filtros.opcionPolitica) {
+            params.push(filtros.opcionPolitica);
+            whereClause += ` AND r.opcion_politica = $${params.length}`;
+        }
+
+        // Filtro sin relevamiento
+        if (filtros.sinRelevamiento) {
+            whereClause += ` AND r.dni IS NULL`;
+        }
+
+        // Ordenamiento dinamico (whitelist de campos validos)
+        const camposValidos = {
+            dni: 'v.dni',
+            apellido: 'v.apellido',
+            nombre: 'v.nombre',
+            edad: 'v.edad',
+            circuito: 'v.circuito',
+            sexo: 'v.sexo'
+        };
+        const ordenCampo = camposValidos[filtros.ordenCampo] || 'v.apellido';
+        const ordenDir = filtros.ordenDireccion === 'desc' ? 'DESC' : 'ASC';
+        const orderBy = `${ordenCampo} ${ordenDir}, v.nombre ASC`;
 
         params.push(limite, offset);
 
@@ -64,20 +93,21 @@ class Database {
             FROM padron.votantes v
             LEFT JOIN padron.relevamientos r ON v.dni = r.dni
             ${whereClause}
-            ORDER BY v.apellido, v.nombre
+            ORDER BY ${orderBy}
             LIMIT $${params.length - 1} OFFSET $${params.length}
         `;
 
         const result = await this.query(queryText, params);
-        
-        // Obtener total de registros
+
+        // Obtener total de registros (mismos filtros, sin LIMIT/OFFSET)
         const countQuery = `
             SELECT COUNT(*) as total
             FROM padron.votantes v
+            LEFT JOIN padron.relevamientos r ON v.dni = r.dni
             ${whereClause}
         `;
         const countResult = await this.query(countQuery, params.slice(0, -2));
-        
+
         return {
             votantes: result.rows,
             total: parseInt(countResult.rows[0].total),
