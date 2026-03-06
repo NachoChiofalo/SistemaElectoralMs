@@ -53,20 +53,7 @@ class AuthService {
         );
       `);
 
-      // Actualizar tabla de usuarios para usar roles
-      await client.query(`
-        DO $$ 
-        BEGIN
-          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='usuarios' AND column_name='rol_id') THEN
-            ALTER TABLE usuarios ADD COLUMN rol_id INTEGER REFERENCES roles(id);
-            UPDATE usuarios SET rol_id = 1 WHERE rol = 'admin';
-            UPDATE usuarios SET rol_id = 2 WHERE rol = 'encargado';
-            ALTER TABLE usuarios DROP COLUMN IF EXISTS rol;
-          END IF;
-        END $$;
-      `);
-
-      // Crear tabla de usuarios actualizada si no existe
+      // Crear tabla de usuarios si no existe
       await client.query(`
         CREATE TABLE IF NOT EXISTS usuarios (
           id SERIAL PRIMARY KEY,
@@ -79,6 +66,20 @@ class AuthService {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+      `);
+
+      // Migración: si la tabla existía con columna 'rol' en vez de 'rol_id', actualizarla
+      await client.query(`
+        DO $$
+        BEGIN
+          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='usuarios' AND column_name='rol')
+             AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='usuarios' AND column_name='rol_id') THEN
+            ALTER TABLE usuarios ADD COLUMN rol_id INTEGER REFERENCES roles(id);
+            UPDATE usuarios SET rol_id = 1 WHERE rol = 'admin';
+            UPDATE usuarios SET rol_id = 2 WHERE rol = 'encargado';
+            ALTER TABLE usuarios DROP COLUMN IF EXISTS rol;
+          END IF;
+        END $$;
       `);
 
       // Crear tabla de refresh tokens
