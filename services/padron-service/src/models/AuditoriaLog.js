@@ -12,12 +12,12 @@ class AuditoriaLog {
             await this.db.query(`
                 CREATE TABLE IF NOT EXISTS padron.auditoria (
                     id SERIAL PRIMARY KEY,
-                    usuario_id INTEGER NOT NULL,
-                    usuario_nombre VARCHAR(100) NOT NULL,
-                    usuario_username VARCHAR(50) NOT NULL,
+                    usuario_id VARCHAR(50),
+                    usuario_nombre VARCHAR(200),
+                    usuario_username VARCHAR(100),
                     operacion VARCHAR(50) NOT NULL,
                     entidad VARCHAR(50) NOT NULL,
-                    entidad_id VARCHAR(20),
+                    entidad_id VARCHAR(50),
                     datos_anteriores JSONB,
                     datos_nuevos JSONB,
                     detalles TEXT,
@@ -30,6 +30,18 @@ class AuditoriaLog {
             await this.db.query('CREATE INDEX IF NOT EXISTS idx_auditoria_entidad ON padron.auditoria(entidad)');
             await this.db.query('CREATE INDEX IF NOT EXISTS idx_auditoria_created_at ON padron.auditoria(created_at DESC)');
             await this.db.query('CREATE INDEX IF NOT EXISTS idx_auditoria_entidad_id ON padron.auditoria(entidad_id)');
+
+            // Asegurar que las columnas tengan tamaño suficiente (puede que la tabla se haya creado con tipos mas chicos)
+            await this.db.query(`
+                ALTER TABLE padron.auditoria
+                    ALTER COLUMN usuario_id TYPE VARCHAR(50) USING usuario_id::VARCHAR(50),
+                    ALTER COLUMN usuario_nombre TYPE VARCHAR(200),
+                    ALTER COLUMN usuario_username TYPE VARCHAR(100),
+                    ALTER COLUMN entidad_id TYPE VARCHAR(50)
+            `);
+            await this.db.query(`ALTER TABLE padron.auditoria ALTER COLUMN usuario_id DROP NOT NULL`).catch(() => {});
+            await this.db.query(`ALTER TABLE padron.auditoria ALTER COLUMN usuario_nombre DROP NOT NULL`).catch(() => {});
+            await this.db.query(`ALTER TABLE padron.auditoria ALTER COLUMN usuario_username DROP NOT NULL`).catch(() => {});
             this.initialized = true;
             console.log('✓ Tabla padron.auditoria verificada/creada');
         } catch (error) {
