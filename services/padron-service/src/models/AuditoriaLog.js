@@ -21,7 +21,7 @@ class AuditoriaLog {
                     datos_anteriores JSONB,
                     datos_nuevos JSONB,
                     detalles TEXT,
-                    ip_address VARCHAR(45),
+                    ip_address VARCHAR(200),
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
                 )
             `);
@@ -31,21 +31,28 @@ class AuditoriaLog {
             await this.db.query('CREATE INDEX IF NOT EXISTS idx_auditoria_created_at ON padron.auditoria(created_at DESC)');
             await this.db.query('CREATE INDEX IF NOT EXISTS idx_auditoria_entidad_id ON padron.auditoria(entidad_id)');
 
-            // Asegurar que las columnas tengan tamaño suficiente (puede que la tabla se haya creado con tipos mas chicos)
-            await this.db.query(`
-                ALTER TABLE padron.auditoria
-                    ALTER COLUMN usuario_id TYPE VARCHAR(50) USING usuario_id::VARCHAR(50),
-                    ALTER COLUMN usuario_nombre TYPE VARCHAR(200),
-                    ALTER COLUMN usuario_username TYPE VARCHAR(100),
-                    ALTER COLUMN entidad_id TYPE VARCHAR(50)
-            `);
-            await this.db.query(`ALTER TABLE padron.auditoria ALTER COLUMN usuario_id DROP NOT NULL`).catch(() => {});
-            await this.db.query(`ALTER TABLE padron.auditoria ALTER COLUMN usuario_nombre DROP NOT NULL`).catch(() => {});
-            await this.db.query(`ALTER TABLE padron.auditoria ALTER COLUMN usuario_username DROP NOT NULL`).catch(() => {});
+            // Asegurar que las columnas tengan tamaño suficiente
+            // Se ejecutan por separado para que un fallo en una no impida las demas
+            const alteraciones = [
+                `ALTER TABLE padron.auditoria ALTER COLUMN usuario_id TYPE VARCHAR(50) USING usuario_id::VARCHAR(50)`,
+                `ALTER TABLE padron.auditoria ALTER COLUMN usuario_nombre TYPE VARCHAR(200)`,
+                `ALTER TABLE padron.auditoria ALTER COLUMN usuario_username TYPE VARCHAR(100)`,
+                `ALTER TABLE padron.auditoria ALTER COLUMN entidad_id TYPE VARCHAR(50)`,
+                `ALTER TABLE padron.auditoria ALTER COLUMN ip_address TYPE VARCHAR(200)`,
+                `ALTER TABLE padron.auditoria ALTER COLUMN usuario_id DROP NOT NULL`,
+                `ALTER TABLE padron.auditoria ALTER COLUMN usuario_nombre DROP NOT NULL`,
+                `ALTER TABLE padron.auditoria ALTER COLUMN usuario_username DROP NOT NULL`,
+            ];
+            for (const sql of alteraciones) {
+                await this.db.query(sql).catch(() => {});
+            }
+
             this.initialized = true;
             console.log('✓ Tabla padron.auditoria verificada/creada');
         } catch (error) {
             console.error('Error inicializando tabla auditoria:', error.message);
+            // Marcar como inicializada igualmente para no bloquear inserciones
+            this.initialized = true;
         }
     }
 

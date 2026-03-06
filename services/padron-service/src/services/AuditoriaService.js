@@ -8,7 +8,9 @@ class AuditoriaService {
     async registrarOperacion(req, operacion, entidad, entidad_id, datos_anteriores, datos_nuevos, detalles) {
         try {
             const usuario = req.user || {};
-            const ip = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
+            const rawIp = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
+            // Tomar solo la primera IP si x-forwarded-for tiene multiples
+            const ip = rawIp.split(',')[0].trim();
 
             await this.auditoriaLog.registrar({
                 usuario_id: usuario.id || 0,
