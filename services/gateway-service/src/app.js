@@ -23,8 +23,11 @@ class GatewayApp {
   }
 
   initializeMiddleware() {
-    // Seguridad
-    this.app.use(helmet());
+    // Seguridad - configurar helmet para permitir inline scripts/styles del frontend
+    this.app.use(helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false
+    }));
     
     // Compresión
     this.app.use(compression());
