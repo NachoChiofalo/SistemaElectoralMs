@@ -24,11 +24,16 @@
                     <span class="brand-text">Sistema Electoral</span>
                 </div>
 
-                <button class="navbar-toggle" id="navbar-toggle" aria-label="Abrir menú de navegación" aria-expanded="false">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </button>
+                <div class="navbar-mobile-actions">
+                    <button class="logout-btn logout-btn-mobile" id="logout-btn-mobile" title="Cerrar Sesión">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                    <button class="navbar-toggle" id="navbar-toggle" aria-label="Abrir menú de navegación" aria-expanded="false">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
+                </div>
 
                 <div class="navbar-collapse" id="navbar-collapse">
                     <div class="navbar-nav">
@@ -45,7 +50,7 @@
                             <i class="fas fa-user-circle"></i>
                             <span class="username" id="username">${username}</span>
                         </div>
-                        <button class="logout-btn" id="logout-btn" title="Cerrar Sesión">
+                        <button class="logout-btn logout-btn-desktop" id="logout-btn" title="Cerrar Sesión">
                             <i class="fas fa-sign-out-alt"></i>
                             <span class="logout-text">Salir</span>
                         </button>
@@ -79,10 +84,14 @@
         const username = user.nombre_completo || user.username || 'Usuario';
         const usernameElement = document.getElementById('username');
         if (usernameElement) usernameElement.textContent = username;
-        // Logout button
+        // Logout buttons (desktop inside menu + mobile in navbar)
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', handleLogout);
+        }
+        const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+        if (logoutBtnMobile) {
+            logoutBtnMobile.addEventListener('click', handleLogout);
         }
         // Mobile hamburger toggle
         const toggleBtn = document.getElementById('navbar-toggle');

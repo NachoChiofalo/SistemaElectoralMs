@@ -43,35 +43,41 @@ class AuthService {
      * Mostrar mensaje de sesión expirada
      */
     showSessionExpiredMessage() {
-        // Crear modal o notificación
-        const modal = document.createElement('div');
-        modal.className = 'modal fade show';
-        modal.style.display = 'block';
-        modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        modal.innerHTML = `
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-warning">
-                        <h5 class="modal-title">⏰ Sesión Expirada</h5>
+        const overlay = document.createElement('div');
+        overlay.id = 'session-expired-modal';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;';
+        overlay.innerHTML = `
+            <div style="background:white;border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.25);max-width:440px;width:90%;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:linear-gradient(135deg,#dc2626,#ef4444);">
+                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.2);color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+                        <i class="fas fa-clock"></i>
                     </div>
-                    <div class="modal-body">
-                        <p>Su sesión ha expirado por motivos de seguridad (15 minutos).</p>
-                        <p>Por favor, inicie sesión nuevamente.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="location.reload()">
-                            Iniciar Sesión
-                        </button>
-                    </div>
+                    <h3 style="color:white;margin:0;font-size:1.1rem;">Sesion Expirada</h3>
+                </div>
+                <div style="text-align:center;padding:2rem 1.5rem;">
+                    <p style="font-size:1rem;color:#1e293b;margin:0 0 8px;">Su sesion ha expirado por inactividad.</p>
+                    <p style="font-size:0.9rem;color:#475569;margin:0;">Sera redirigido al inicio de sesion...</p>
+                </div>
+                <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid #e2e8f0;">
+                    <button type="button" id="session-expired-login-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#334e68,#102a43);color:white;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesion
+                    </button>
                 </div>
             </div>
         `;
-        document.body.appendChild(modal);
-        
-        // Auto-recargar después de 3 segundos
+        document.body.appendChild(overlay);
+
+        const loginBtn = document.getElementById('session-expired-login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', function() {
+                window.location.href = '/';
+            });
+        }
+
+        // Auto-redirigir después de 5 segundos
         setTimeout(() => {
-            location.reload();
-        }, 3000);
+            window.location.href = '/';
+        }, 5000);
     }
 
     /**
@@ -205,98 +211,141 @@ class AuthService {
 class InactivityService {
     constructor(authService, timeoutMinutes = 10) {
         this.authService = authService;
-        this.timeout = timeoutMinutes * 60 * 1000; // Convertir a ms
+        this.timeout = timeoutMinutes * 60 * 1000;
         this.warningTimeout = 2 * 60 * 1000; // Advertir 2 minutos antes
         this.timer = null;
         this.warningTimer = null;
+        this.countdownInterval = null;
+        this.warningModalEl = null;
         this.events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-        
+
+        // Guardar referencia bound para poder remover los listeners
+        this._boundResetTimer = this.resetTimer.bind(this);
+
         this.init();
     }
 
     init() {
-        // Agregar listeners de actividad
         this.events.forEach(event => {
-            document.addEventListener(event, () => this.resetTimer(), true);
+            document.addEventListener(event, this._boundResetTimer, true);
         });
-        
+
         this.resetTimer();
     }
 
     resetTimer() {
-        // Limpiar timers existentes
         if (this.timer) clearTimeout(this.timer);
         if (this.warningTimer) clearTimeout(this.warningTimer);
-        
-        // Solo si está autenticado
+
+        // Si el warning esta visible, cerrarlo
+        this.dismissWarning();
+
         if (!this.authService.isAuthenticated()) return;
-        
-        // Timer de advertencia
+
+        // Timer de advertencia (se muestra 2 min antes del cierre)
         this.warningTimer = setTimeout(() => {
             this.showInactivityWarning();
         }, this.timeout - this.warningTimeout);
-        
-        // Timer de cierre de sesión
+
+        // Timer de cierre de sesion
         this.timer = setTimeout(() => {
             this.handleInactivity();
         }, this.timeout);
     }
 
+    dismissWarning() {
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+        if (this.warningModalEl && this.warningModalEl.parentNode) {
+            this.warningModalEl.remove();
+            this.warningModalEl = null;
+        }
+    }
+
     showInactivityWarning() {
-        const modal = document.createElement('div');
-        modal.className = 'modal fade show';
-        modal.style.display = 'block';
-        modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        modal.id = 'inactivityWarning';
-        modal.innerHTML = `
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-warning">
-                        <h5 class="modal-title">⏰ Inactividad Detectada</h5>
+        // Evitar duplicados
+        this.dismissWarning();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'inactivity-warning-modal';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;';
+        overlay.innerHTML = `
+            <div style="background:white;border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.25);max-width:440px;width:90%;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:linear-gradient(135deg,#f59e0b,#d97706);">
+                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.2);color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+                        <i class="fas fa-clock"></i>
                     </div>
-                    <div class="modal-body">
-                        <p>Su sesión se cerrará en <span id="countdown">120</span> segundos por inactividad.</p>
-                        <p>Haga clic en cualquier parte para continuar.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="this.closest('.modal').remove()">
-                            Continuar Trabajando
-                        </button>
-                    </div>
+                    <h3 style="color:white;margin:0;font-size:1.1rem;">Inactividad Detectada</h3>
+                </div>
+                <div style="text-align:center;padding:2rem 1.5rem;">
+                    <p style="font-size:1rem;color:#1e293b;margin:0 0 12px;">
+                        Su sesion se cerrara en <strong id="inactivity-countdown" style="font-size:1.3rem;color:#dc2626;">120</strong> segundos por inactividad.
+                    </p>
+                    <p style="font-size:0.9rem;color:#475569;margin:0;">Haga clic en el boton para continuar trabajando.</p>
+                </div>
+                <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid #e2e8f0;">
+                    <button type="button" id="inactivity-continue-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#334e68,#102a43);color:white;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;">
+                        <i class="fas fa-hand-pointer"></i> Continuar Trabajando
+                    </button>
                 </div>
             </div>
         `;
-        document.body.appendChild(modal);
-        
+        document.body.appendChild(overlay);
+        this.warningModalEl = overlay;
+
+        // Boton "Continuar Trabajando"
+        const continueBtn = document.getElementById('inactivity-continue-btn');
+        if (continueBtn) {
+            continueBtn.addEventListener('click', () => {
+                this.resetTimer();
+            });
+        }
+
         // Countdown
         let seconds = 120;
-        const countdownEl = modal.querySelector('#countdown');
-        const countdownInterval = setInterval(() => {
+        const countdownEl = overlay.querySelector('#inactivity-countdown');
+        this.countdownInterval = setInterval(() => {
             seconds--;
             if (countdownEl) countdownEl.textContent = seconds;
-            if (seconds <= 0 || !document.getElementById('inactivityWarning')) {
-                clearInterval(countdownInterval);
+            if (seconds <= 0) {
+                clearInterval(this.countdownInterval);
+                this.countdownInterval = null;
             }
         }, 1000);
-        
-        // Auto-cerrar modal al hacer clic
-        modal.addEventListener('click', () => {
-            modal.remove();
-            this.resetTimer();
-        });
     }
 
     async handleInactivity() {
-        console.warn('⏰ Usuario inactivo - cerrando sesión');
-        await this.authService.logout();
+        console.warn('Usuario inactivo - cerrando sesion');
+        this.dismissWarning();
+
+        // Mostrar mensaje de sesion expirada
+        this.authService.showSessionExpiredMessage();
+
+        // Limpiar datos de sesion sin redirigir (showSessionExpiredMessage ya lo hace)
+        this.authService.stopTokenVerification();
+        try {
+            if (this.authService.token) {
+                await this.authService.api.request('/api/auth/logout', { method: 'POST' });
+            }
+        } catch (e) {
+            // Ignorar errores de logout en inactividad
+        }
+        this.authService.token = null;
+        this.authService.user = null;
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        this.authService.api.setAuthToken(null);
     }
 
     destroy() {
         if (this.timer) clearTimeout(this.timer);
         if (this.warningTimer) clearTimeout(this.warningTimer);
-        
+        this.dismissWarning();
+
         this.events.forEach(event => {
-            document.removeEventListener(event, () => this.resetTimer(), true);
+            document.removeEventListener(event, this._boundResetTimer, true);
         });
     }
 }
