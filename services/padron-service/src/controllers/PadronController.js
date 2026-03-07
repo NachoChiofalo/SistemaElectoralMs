@@ -520,6 +520,88 @@ class PadronController {
         }
     }
 
+    /**
+     * GET /padron/exportar-padron
+     * Exportar padron completo en formato CSV (solo admin)
+     */
+    async exportarPadronCSV(req, res) {
+        try {
+            await this.inicializar();
+
+            if (!req.user || req.user.rol !== 'administrador') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Acceso denegado: se requieren permisos de administrador'
+                });
+            }
+
+            const rows = await this.padronService.exportarPadronCSV();
+
+            const headers = [
+                'DNI', 'Apellido', 'Nombre', 'Anio Nacimiento', 'Domicilio',
+                'Tipo Ejemplar', 'Circuito', 'Sexo', 'Edad',
+                'Opcion Politica', 'Observacion', 'Fecha Relevamiento',
+                'Fecha Modificacion', 'Es Nuevo Votante', 'Esta Fallecido',
+                'Es Empleado Municipal', 'Recibe Ayuda Social',
+                'Observaciones Detalle', 'Fecha Detalle'
+            ];
+
+            const escapeCsvValue = (value) => {
+                if (value === null || value === undefined) return '';
+                const str = String(value);
+                if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            };
+
+            const csvRows = rows.map(row => [
+                row.dni,
+                row.apellido,
+                row.nombre,
+                row.anio_nac,
+                row.domicilio,
+                row.tipo_ejemplar,
+                row.circuito,
+                row.sexo,
+                row.edad,
+                row.opcion_politica,
+                row.observacion,
+                row.fecha_relevamiento ? new Date(row.fecha_relevamiento).toISOString() : '',
+                row.fecha_modificacion ? new Date(row.fecha_modificacion).toISOString() : '',
+                row.es_nuevo_votante ? 'Si' : 'No',
+                row.esta_fallecido ? 'Si' : 'No',
+                row.es_empleado_municipal ? 'Si' : 'No',
+                row.recibe_ayuda_social ? 'Si' : 'No',
+                row.observaciones_detalle,
+                row.fecha_detalle ? new Date(row.fecha_detalle).toISOString() : ''
+            ].map(escapeCsvValue).join(','));
+
+            const BOM = '\uFEFF';
+            const csvContent = BOM + headers.join(',') + '\n' + csvRows.join('\n');
+
+            const today = new Date().toISOString().slice(0, 10);
+
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename=padron_completo_${today}.csv`);
+
+            await this.auditoriaService.registrarOperacion(
+                req, 'EXPORTAR_CSV', 'padron', null, null,
+                { total_registros: rows.length },
+                `Exportacion CSV de padron completo: ${rows.length} registros`
+            );
+
+            res.send(csvContent);
+
+        } catch (error) {
+            console.error('Error exportando padron CSV:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
     // ==================== ENDPOINTS DETALLE VOTANTE ====================
 
     /**

@@ -193,6 +193,32 @@ class ApiService {
         return response.blob();
     }
 
+    /**
+     * Exportar padron completo como CSV (admin-only)
+     */
+    async exportarPadron() {
+        const url = `${this.baseURL}/api/padron/exportar-padron`;
+
+        const headers = {};
+        if (this.authToken) {
+            headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: headers
+        });
+
+        if (!response.ok) {
+            if (response.status === 403) {
+                throw new Error('Acceso denegado: solo administradores pueden exportar el padron');
+            }
+            throw new Error(`Error al exportar padron: ${response.status}`);
+        }
+
+        return response.blob();
+    }
+
     // ==================== MÉTODOS DE RESULTADOS ====================
 
     /**

@@ -96,6 +96,9 @@ class PadronComponent {
                     <button id="btn-exportar" class="btn btn-secondary" data-requires-permission="padron.export" title="Exportar relevamientos CSV">
                         <i class="fas fa-download"></i> <span class="btn-text">Exportar</span>
                     </button>
+                    <button id="btn-exportar-padron" class="btn btn-secondary" data-requires-permission="padron.export" title="Exportar padron completo CSV">
+                        <i class="fas fa-file-csv"></i> <span class="btn-text">Exportar Padron</span>
+                    </button>
                     <button id="btn-estadisticas" class="btn btn-info" data-requires-permission="resultados.view" title="Ver estadísticas detalladas">
                         <i class="fas fa-chart-pie"></i> <span class="btn-text">Estadísticas</span>
                     </button>
@@ -406,6 +409,7 @@ class PadronComponent {
         document.getElementById('btn-nuevo-votante').addEventListener('click', () => this.abrirModalNuevoVotante());
         document.getElementById('btn-importar').addEventListener('click', () => this.abrirModalImportar());
         document.getElementById('btn-exportar').addEventListener('click', () => this.exportarDatos());
+        document.getElementById('btn-exportar-padron').addEventListener('click', () => this.exportarPadron());
         document.getElementById('btn-estadisticas').addEventListener('click', () => this.mostrarEstadisticas());
 
         // Botones móviles
@@ -1159,6 +1163,20 @@ class PadronComponent {
 
         } catch (error) {
             this.mostrarError(`Error al exportar datos: ${error.message}`);
+        }
+    }
+
+    async exportarPadron() {
+        try {
+            this.mostrarNotificacion('Generando exportacion del padron completo...', 'info');
+            const blob = await window.apiService.exportarPadron();
+            const nombreArchivo = `padron_completo_${new Date().toISOString().slice(0, 10)}.csv`;
+
+            window.apiService.descargarArchivo(blob, nombreArchivo);
+            this.mostrarNotificacion('Padron exportado correctamente', 'success');
+
+        } catch (error) {
+            this.mostrarError(`Error al exportar padron: ${error.message}`);
         }
     }
 

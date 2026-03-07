@@ -425,6 +425,24 @@ class Database {
         return result.rows;
     }
 
+    async exportarPadronCSV() {
+        const query = `
+            SELECT
+                v.dni, v.apellido, v.nombre, v.anio_nac, v.domicilio,
+                v.tipo_ejemplar, v.circuito, v.sexo, v.edad,
+                r.opcion_politica, r.observacion, r.fecha_relevamiento,
+                r.fecha_modificacion, r.es_nuevo_votante, r.esta_fallecido,
+                r.es_empleado_municipal, r.recibe_ayuda_social,
+                r.observaciones_detalle, r.fecha_detalle
+            FROM padron.votantes v
+            LEFT JOIN padron.relevamientos r ON v.dni = r.dni
+            ORDER BY v.apellido ASC, v.nombre ASC
+        `;
+
+        const result = await this.query(query);
+        return result.rows;
+    }
+
     async close() {
         await this.pool.end();
     }

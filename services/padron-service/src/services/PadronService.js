@@ -197,6 +197,10 @@ class PadronService {
     async exportarRelevamientosCSV() {
         return await this.db.exportarRelevamientosCSV();
     }
+
+    async exportarPadronCSV() {
+        return await this.db.exportarPadronCSV();
+    }
 }
 
 module.exports = PadronService;

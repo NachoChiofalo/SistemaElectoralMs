@@ -55,6 +55,10 @@ router.get('/exportar-relevamientos', (req, res) => {
     padronController.exportarRelevamientosCSV(req, res);
 });
 
+router.get('/exportar-padron', (req, res) => {
+    padronController.exportarPadronCSV(req, res);
+});
+
 router.get('/estado', (req, res) => {
     padronController.obtenerEstado(req, res);
 });
