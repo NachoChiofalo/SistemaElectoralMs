@@ -51,6 +51,10 @@ router.get('/estadisticas', (req, res) => {
     padronController.obtenerEstadisticas(req, res);
 });
 
+router.get('/exportar-relevamientos', (req, res) => {
+    padronController.exportarRelevamientosCSV(req, res);
+});
+
 router.get('/estado', (req, res) => {
     padronController.obtenerEstado(req, res);
 });

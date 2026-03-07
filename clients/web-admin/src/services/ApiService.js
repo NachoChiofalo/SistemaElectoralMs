@@ -168,12 +168,25 @@ class ApiService {
     }
 
     /**
-     * Exportar datos
+     * Exportar relevamientos como CSV (admin-only)
      */
     async exportarDatos() {
-        const response = await fetch(`${this.baseURL}/api/padron/exportar`);
-        
+        const url = `${this.baseURL}/api/padron/exportar-relevamientos`;
+
+        const headers = {};
+        if (this.authToken) {
+            headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: headers
+        });
+
         if (!response.ok) {
+            if (response.status === 403) {
+                throw new Error('Acceso denegado: solo administradores pueden exportar datos');
+            }
             throw new Error(`Error al exportar: ${response.status}`);
         }
 

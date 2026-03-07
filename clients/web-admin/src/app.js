@@ -213,6 +213,13 @@ class App {
                     element.style.display = 'none';
                 }
             });
+
+            const exportElements = document.querySelectorAll('[data-requires-permission="padron.export"]');
+            exportElements.forEach(element => {
+                if (!this.hasPermission('padron.export')) {
+                    element.style.display = 'none';
+                }
+            });
         }, 500);
     }
 

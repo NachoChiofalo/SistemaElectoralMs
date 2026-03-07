@@ -193,6 +193,10 @@ class PadronService {
     async obtenerEstadisticasPorCircuito() {
         return await this.db.obtenerEstadisticasPorCircuito();
     }
+
+    async exportarRelevamientosCSV() {
+        return await this.db.exportarRelevamientosCSV();
+    }
 }
 
 module.exports = PadronService;

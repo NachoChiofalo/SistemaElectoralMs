@@ -93,7 +93,7 @@ class PadronComponent {
                     <button id="btn-importar" class="btn btn-primary" data-requires-permission="padron.edit" title="Importar datos desde archivo CSV">
                         <i class="fas fa-upload"></i> <span class="btn-text">Importar CSV</span>
                     </button>
-                    <button id="btn-exportar" class="btn btn-secondary" data-requires-permission="padron.view" title="Exportar datos actuales">
+                    <button id="btn-exportar" class="btn btn-secondary" data-requires-permission="padron.export" title="Exportar relevamientos CSV">
                         <i class="fas fa-download"></i> <span class="btn-text">Exportar</span>
                     </button>
                     <button id="btn-estadisticas" class="btn btn-info" data-requires-permission="resultados.view" title="Ver estadísticas detalladas">
@@ -1150,13 +1150,13 @@ class PadronComponent {
 
     async exportarDatos() {
         try {
-            this.mostrarNotificacion('Generando exportación...', 'info');
+            this.mostrarNotificacion('Generando exportacion CSV...', 'info');
             const blob = await window.apiService.exportarDatos();
-            const nombreArchivo = `padron_electoral_${new Date().toISOString().slice(0, 10)}.json`;
-            
+            const nombreArchivo = `relevamientos_${new Date().toISOString().slice(0, 10)}.csv`;
+
             window.apiService.descargarArchivo(blob, nombreArchivo);
             this.mostrarNotificacion('Datos exportados correctamente', 'success');
-            
+
         } catch (error) {
             this.mostrarError(`Error al exportar datos: ${error.message}`);
         }
