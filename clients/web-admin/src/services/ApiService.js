@@ -249,6 +249,10 @@ class ApiService {
         return await this.request('/api/padron/resultados/por-circuito');
     }
 
+    async obtenerEstadisticasCondicionesDetalladas() {
+        return await this.request('/api/padron/resultados/condiciones-detalladas');
+    }
+
     // ==================== MÉTODOS DE USUARIOS ====================
 
     /**

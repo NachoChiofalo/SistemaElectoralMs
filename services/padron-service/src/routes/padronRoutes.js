@@ -92,6 +92,10 @@ router.get('/resultados/por-circuito', (req, res) => {
     padronController.obtenerEstadisticasPorCircuito(req, res);
 });
 
+router.get('/resultados/condiciones-detalladas', (req, res) => {
+    padronController.obtenerEstadisticasCondicionesDetalladas(req, res);
+});
+
 // ==================== RUTAS DETALLE VOTANTE ====================
 
 // Crear o actualizar detalle de votante

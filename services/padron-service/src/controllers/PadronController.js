@@ -421,7 +421,7 @@ class PadronController {
     async obtenerEstadisticasPorCircuito(req, res) {
         try {
             await this.inicializar();
-            
+
             const estadisticas = await this.padronService.obtenerEstadisticasPorCircuito();
             res.json({
                 success: true,
@@ -429,6 +429,24 @@ class PadronController {
             });
         } catch (error) {
             console.error('❌ Error obteniendo estadísticas por circuito:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
+    async obtenerEstadisticasCondicionesDetalladas(req, res) {
+        try {
+            await this.inicializar();
+
+            const estadisticas = await this.padronService.obtenerEstadisticasCondicionesDetalladas();
+            res.json({
+                success: true,
+                data: estadisticas
+            });
+        } catch (error) {
+            console.error('❌ Error obteniendo estadísticas de condiciones detalladas:', error);
             res.status(500).json({
                 success: false,
                 message: error.message

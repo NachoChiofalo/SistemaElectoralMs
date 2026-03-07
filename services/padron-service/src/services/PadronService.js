@@ -194,6 +194,10 @@ class PadronService {
         return await this.db.obtenerEstadisticasPorCircuito();
     }
 
+    async obtenerEstadisticasCondicionesDetalladas() {
+        return await this.db.obtenerEstadisticasCondicionesDetalladas();
+    }
+
     async exportarRelevamientosCSV() {
         return await this.db.exportarRelevamientosCSV();
     }

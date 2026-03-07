@@ -407,6 +407,44 @@ class Database {
         return result.rows;
     }
 
+    async obtenerEstadisticasCondicionesDetalladas() {
+        const query = `
+            SELECT
+                COUNT(r.dni) as total_relevados,
+                SUM(CASE WHEN r.es_empleado_municipal = TRUE THEN 1 ELSE 0 END) as total_empleados_municipales,
+                SUM(CASE WHEN r.recibe_ayuda_social = TRUE THEN 1 ELSE 0 END) as total_ayuda_social,
+                SUM(CASE WHEN r.esta_fallecido = TRUE THEN 1 ELSE 0 END) as total_fallecidos,
+                SUM(CASE WHEN r.es_nuevo_votante = TRUE THEN 1 ELSE 0 END) as total_nuevos_votantes,
+                -- Empleados municipales por opcion politica
+                SUM(CASE WHEN r.es_empleado_municipal = TRUE AND r.opcion_politica = 'PJ' THEN 1 ELSE 0 END) as empleados_pj,
+                SUM(CASE WHEN r.es_empleado_municipal = TRUE AND r.opcion_politica = 'UCR' THEN 1 ELSE 0 END) as empleados_ucr,
+                SUM(CASE WHEN r.es_empleado_municipal = TRUE AND r.opcion_politica = 'Indeciso' THEN 1 ELSE 0 END) as empleados_indeciso,
+                -- Ayuda social por opcion politica
+                SUM(CASE WHEN r.recibe_ayuda_social = TRUE AND r.opcion_politica = 'PJ' THEN 1 ELSE 0 END) as ayuda_social_pj,
+                SUM(CASE WHEN r.recibe_ayuda_social = TRUE AND r.opcion_politica = 'UCR' THEN 1 ELSE 0 END) as ayuda_social_ucr,
+                SUM(CASE WHEN r.recibe_ayuda_social = TRUE AND r.opcion_politica = 'Indeciso' THEN 1 ELSE 0 END) as ayuda_social_indeciso,
+                -- Nuevos votantes por opcion politica
+                SUM(CASE WHEN r.es_nuevo_votante = TRUE AND r.opcion_politica = 'PJ' THEN 1 ELSE 0 END) as nuevos_pj,
+                SUM(CASE WHEN r.es_nuevo_votante = TRUE AND r.opcion_politica = 'UCR' THEN 1 ELSE 0 END) as nuevos_ucr,
+                SUM(CASE WHEN r.es_nuevo_votante = TRUE AND r.opcion_politica = 'Indeciso' THEN 1 ELSE 0 END) as nuevos_indeciso,
+                -- Fallecidos por opcion politica
+                SUM(CASE WHEN r.esta_fallecido = TRUE AND r.opcion_politica = 'PJ' THEN 1 ELSE 0 END) as fallecidos_pj,
+                SUM(CASE WHEN r.esta_fallecido = TRUE AND r.opcion_politica = 'UCR' THEN 1 ELSE 0 END) as fallecidos_ucr,
+                SUM(CASE WHEN r.esta_fallecido = TRUE AND r.opcion_politica = 'Indeciso' THEN 1 ELSE 0 END) as fallecidos_indeciso,
+                -- Empleados municipales por sexo
+                SUM(CASE WHEN r.es_empleado_municipal = TRUE AND v.sexo = 'M' THEN 1 ELSE 0 END) as empleados_masculino,
+                SUM(CASE WHEN r.es_empleado_municipal = TRUE AND v.sexo = 'F' THEN 1 ELSE 0 END) as empleados_femenino,
+                -- Ayuda social por sexo
+                SUM(CASE WHEN r.recibe_ayuda_social = TRUE AND v.sexo = 'M' THEN 1 ELSE 0 END) as ayuda_social_masculino,
+                SUM(CASE WHEN r.recibe_ayuda_social = TRUE AND v.sexo = 'F' THEN 1 ELSE 0 END) as ayuda_social_femenino
+            FROM padron.votantes v
+            LEFT JOIN padron.relevamientos r ON v.dni = r.dni
+        `;
+
+        const result = await this.query(query);
+        return result.rows[0];
+    }
+
     async exportarRelevamientosCSV() {
         const query = `
             SELECT
