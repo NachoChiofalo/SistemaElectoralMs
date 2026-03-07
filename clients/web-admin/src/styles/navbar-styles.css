@@ -41,6 +41,14 @@
     white-space: nowrap;
 }
 
+/* Collapse container - flex on desktop */
+.navbar-collapse {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 20px;
+}
+
 /* Navigation Items */
 .navbar-nav {
     display: flex;

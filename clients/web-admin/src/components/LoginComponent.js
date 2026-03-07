@@ -19,13 +19,13 @@ class LoginComponent {
                             <i class="fas fa-vote-yea"></i>
                             Sistema Electoral
                         </h1>
-                        <h2>Relevamiento de Votantes</h2>
+                        <h2></h2>
                         <p>Ingrese sus credenciales para acceder al sistema</p>
                     </div>
 
                     <form id="loginForm" class="login-form">
                         <div class="form-group">
-                            <label for="username">
+                            <label for="username">  
                                 <i class="fas fa-user"></i>
                                 Usuario
                             </label>
@@ -62,23 +62,7 @@ class LoginComponent {
                         <div id="loginError" class="error-message" style="display: none;"></div>
                     </form>
 
-                    <div class="login-footer">
-                        <div class="credentials-info">
-                            <h4><i class="fas fa-info-circle"></i> Credenciales de Prueba</h4>
-                            <div class="credential-item">
-                                <strong>Administrador:</strong>
-                                <span>admin1 / admin123</span>
-                            </div>
-                            <div class="credential-item">
-                                <strong>Encargado 1:</strong>
-                                <span>encargado1 / enc123</span>
-                            </div>
-                            <div class="credential-item">
-                                <strong>Consultor 2:</strong>
-                                <span>consultor1 / consultor123</span>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         `;

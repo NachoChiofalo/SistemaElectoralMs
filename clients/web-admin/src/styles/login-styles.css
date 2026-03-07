@@ -44,6 +44,7 @@
 }
 
 .login-header h1 {
+    color: white;
     margin: 0 0 8px 0;
     font-size: 1.8rem;
     font-weight: 700;
@@ -56,6 +57,7 @@
 }
 
 .login-header h2 {
+    color: white;
     margin: 0 0 8px 0;
     font-size: 1.1rem;
     font-weight: 400;
@@ -63,6 +65,7 @@
 }
 
 .login-header p {
+    color: white;
     margin: 0;
     font-size: 0.9rem;
     opacity: 0.8;
