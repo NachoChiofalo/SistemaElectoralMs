@@ -11,124 +11,12 @@
     <link rel="stylesheet" href="src/styles/detalle-votante-styles.css">
     <link rel="stylesheet" href="src/styles/login-styles.css">
     <style>
-        /* Mobile-specific optimizations */
-        @media (max-width: 768px) {
-            .app-header .header-content {
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px;
-            }
-            
-            .app-header h1 {
-                font-size: 1.5rem;
-                text-align: center;
-            }
-            
-            .header-actions {
-                flex-direction: column;
-                width: 100%;
-                gap: 15px;
-            }
-            
-            .app-nav {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                width: 100%;
-            }
-            
-            .nav-btn {
-                width: 100%;
-                justify-content: center;
-                padding: 12px 15px;
-                min-height: 48px;
-                font-size: 16px;
-                border-radius: 8px;
-                transition: all 0.3s ease;
-            }
-            
-            .nav-btn:hover, .nav-btn:focus {
-                transform: none;
-                background-color: var(--secondary-light);
-            }
-            
-            .user-actions {
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .app-header h1 {
-                font-size: 1.2rem;
-            }
-            
-            .nav-btn {
-                padding: 14px 15px;
-                font-size: 14px;
-            }
-            
-            .app-main {
-                padding: 10px;
-            }
-        }
-        
-        /* Header Actions Layout */
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            flex: 1;
-            justify-content: space-between;
-        }
-        
-        .user-actions {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #fff;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-1px);
-        }
-        
-        .logout-btn:active {
-            transform: translateY(0);
-        }
-        
         /* Touch-friendly improvements */
         .nav-btn, .logout-btn {
             cursor: pointer;
             -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
         }
-        
+
         /* Accessibility improvements */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -137,20 +25,14 @@
                 transition-duration: 0.01ms !important;
             }
         }
-        
+
         /* High contrast mode support */
         @media (prefers-contrast: high) {
             .nav-btn, .logout-btn {
                 border: 2px solid currentColor;
             }
         }
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            .nav-btn, .logout-btn {
-                border: 2px solid currentColor;
-            }
-        }
-        
+
         body {
             font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
             background-color: var(--ds-bg-page, #f8fafc);
@@ -164,6 +46,65 @@
             margin: 0 auto;
             padding: 0 20px;
         }
+
+        /* Padron navigation buttons */
+        .padron-nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .padron-nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: var(--ds-font-family, inherit);
+            transition: all 0.3s ease;
+            font-size: 14px;
+            border: none;
+        }
+
+        .padron-nav-btn-back {
+            background: var(--ds-bg-subtle, #f1f5f9);
+            color: var(--ds-text-secondary, #475569);
+            border: 1px solid var(--ds-border-default, #cbd5e1);
+        }
+
+        .padron-nav-btn-back:hover {
+            background: var(--ds-secondary-200, #e2e8f0);
+            border-color: var(--ds-border-strong, #94a3b8);
+            transform: translateY(-1px);
+        }
+
+        .padron-nav-btn-results {
+            background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1, #a855f7));
+            color: white;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.25);
+        }
+
+        .padron-nav-btn-results:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .padron-nav-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .padron-nav-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 12px 16px;
+                min-height: 44px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -175,44 +116,15 @@
         <!-- Sección de Padrón Electoral -->
         <section id="padron" class="section active" role="region" aria-label="Gestión de Padrón Electoral">
             <!-- Botón de acceso a Resultados -->
-            <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <button onclick="window.location.href='dashboard.html'" 
-                        style="display: inline-flex; 
-                               align-items: center; 
-                               gap: 8px; 
-                               padding: 10px 16px; 
-                               background: var(--ds-bg-subtle, #f1f5f9); 
-                               color: var(--ds-text-secondary, #475569); 
-                               border: 1px solid var(--ds-border-default, #cbd5e1); 
-                               border-radius: 8px; 
-                               font-weight: 500; 
-                               cursor: pointer; 
-                               font-family: var(--ds-font-family, inherit);
-                               transition: all 0.3s ease;"
-                        onmouseover="this.style.background='var(--ds-secondary-200, #e2e8f0)'; this.style.borderColor='var(--ds-border-strong, #94a3b8)'; this.style.transform='translateY(-1px)';"
-                        onmouseout="this.style.background='var(--ds-bg-subtle, #f1f5f9)'; this.style.borderColor='var(--ds-border-default, #cbd5e1)'; this.style.transform='translateY(0)';">
+            <div class="padron-nav-buttons">
+                <button onclick="window.location.href='dashboard.html'" class="padron-nav-btn padron-nav-btn-back">
                     <i class="fas fa-arrow-left"></i>
-                    Volver al Dashboard
+                    <span class="btn-text">Volver al Dashboard</span>
                 </button>
-                
-                <button onclick="window.location.href='resultados.html'" 
-                        style="display: inline-flex; 
-                               align-items: center; 
-                               gap: 8px; 
-                               padding: 12px 20px; 
-                               background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1, #a855f7)); 
-                               color: white; 
-                               border: none; 
-                               border-radius: 8px; 
-                               font-weight: 600; 
-                               cursor: pointer; 
-                               font-family: var(--ds-font-family, inherit);
-                               transition: all 0.3s ease;
-                               box-shadow: 0 2px 10px rgba(99, 102, 241, 0.25);"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(99, 102, 241, 0.4)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(99, 102, 241, 0.25)';">
+
+                <button onclick="window.location.href='resultados.html'" class="padron-nav-btn padron-nav-btn-results">
                     <i class="fas fa-chart-pie"></i>
-                    Ver Resultados del Relevamiento
+                    <span class="btn-text">Ver Resultados</span>
                 </button>
             </div>
             
