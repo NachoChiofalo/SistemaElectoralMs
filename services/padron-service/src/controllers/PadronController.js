@@ -214,8 +214,8 @@ class PadronController {
             // Auditoria
             await this.auditoriaService.registrarOperacion(
                 req, 'ACTUALIZAR_RELEVAMIENTO', 'relevamiento', dni,
-                datosAnteriores ? { opcion_politica: datosAnteriores.opcion_politica, observacion: datosAnteriores.observacion, telefono: datosAnteriores.telefono } : null,
-                { opcion_politica: opcionPolitica, observacion: observacion || '', telefono: telefono || '' },
+                datosAnteriores || null,
+                resultado,
                 `Relevamiento actualizado para DNI ${dni}: ${opcionPolitica}`
             );
 
@@ -644,17 +644,21 @@ class PadronController {
                 });
             }
 
-            // Obtener datos anteriores para auditoria
+            // Obtener datos anteriores para auditoria (votante completo con relevamiento)
+            const votanteAnterior = await this.padronService.obtenerVotantePorDni(dni);
             const detalleAnterior = await this.detalleVotanteService.obtenerDetallePorDni(dni);
 
             const detalle = await this.detalleVotanteService.crearOActualizarDetalle(dni, condiciones);
 
-            // Auditoria
+            // Obtener datos completos despues del cambio
+            const votanteDespues = await this.padronService.obtenerVotantePorDni(dni);
+
+            // Auditoria con datos completos
             const operacion = detalleAnterior ? 'ACTUALIZAR_DETALLE' : 'CREAR_DETALLE';
             await this.auditoriaService.registrarOperacion(
                 req, operacion, 'detalle_votante', dni,
-                detalleAnterior || null,
-                condiciones,
+                votanteAnterior || null,
+                votanteDespues || null,
                 `${detalleAnterior ? 'Actualizado' : 'Creado'} detalle para DNI ${dni}`
             );
 
@@ -767,8 +771,8 @@ class PadronController {
 
             const { dni } = req.params;
 
-            // Obtener datos anteriores para auditoria
-            const detalleAnterior = await this.detalleVotanteService.obtenerDetallePorDni(dni);
+            // Obtener datos anteriores para auditoria (votante completo)
+            const votanteAnterior = await this.padronService.obtenerVotantePorDni(dni);
 
             const eliminado = await this.detalleVotanteService.eliminarDetalle(dni);
 
@@ -779,10 +783,13 @@ class PadronController {
                 });
             }
 
+            // Obtener datos completos despues del cambio
+            const votanteDespues = await this.padronService.obtenerVotantePorDni(dni);
+
             // Auditoria
             await this.auditoriaService.registrarOperacion(
                 req, 'ELIMINAR_DETALLE', 'detalle_votante', dni,
-                detalleAnterior || null, null,
+                votanteAnterior || null, votanteDespues || null,
                 `Detalle eliminado para DNI ${dni}`
             );
 

@@ -565,11 +565,10 @@ class PadronComponent {
                         </div>
                     </td>
                     <td data-label="Observación">
-                        <input type="text"
-                               class="observacion-input"
+                        <textarea class="observacion-input"
                                placeholder="Observación..."
-                               value="${observacion}"
-                               onchange="padronComponent.actualizarObservacion('${votante.dni}', this.value)">
+                               rows="2"
+                               onchange="padronComponent.actualizarObservacion('${votante.dni}', this.value)">${observacion}</textarea>
                     </td>
                     <td data-label="Teléfono">
                         <input type="tel"
