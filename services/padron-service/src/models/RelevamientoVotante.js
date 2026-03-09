@@ -2,17 +2,19 @@
  * Modelo de Relevamiento - Información política adicional por votante
  */
 class RelevamientoVotante {
-    constructor(dni, opcionPolitica = 'Indeciso', observacion = '', fechaRelevamiento = null) {
+    constructor(dni, opcionPolitica = 'Indeciso', observacion = '', fechaRelevamiento = null, telefono = '') {
         this.dni = dni;
         this.opcionPolitica = opcionPolitica; // 'PJ', 'UCR', 'Indeciso'
         this.observacion = observacion;
+        this.telefono = telefono;
         this.fechaRelevamiento = fechaRelevamiento || new Date().toISOString();
         this.fechaModificacion = this.fechaRelevamiento;
     }
 
-    actualizar(opcionPolitica, observacion) {
+    actualizar(opcionPolitica, observacion, telefono) {
         this.opcionPolitica = opcionPolitica;
         this.observacion = observacion;
+        this.telefono = telefono;
         this.fechaModificacion = new Date().toISOString();
     }
 
@@ -21,6 +23,7 @@ class RelevamientoVotante {
             dni: this.dni,
             opcionPolitica: this.opcionPolitica,
             observacion: this.observacion,
+            telefono: this.telefono,
             fechaRelevamiento: this.fechaRelevamiento,
             fechaModificacion: this.fechaModificacion
         };
@@ -31,7 +34,8 @@ class RelevamientoVotante {
             data.dni,
             data.opcionPolitica,
             data.observacion,
-            data.fechaRelevamiento
+            data.fechaRelevamiento,
+            data.telefono
         );
         relevamiento.fechaModificacion = data.fechaModificacion;
         return relevamiento;

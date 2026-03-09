@@ -211,6 +211,7 @@ class PadronComponent {
                                 </th>
                                 <th>Opción Política</th>
                                 <th>Observación</th>
+                                <th>Teléfono</th>
                                 <th>Condiciones</th>
                                 <th>Acciones</th>
                             </tr>
@@ -535,7 +536,7 @@ class PadronComponent {
         if (votantes.length === 0) {
             this.elementos.tbody.innerHTML = `
                 <tr>
-                    <td colspan="10" class="sin-datos">
+                    <td colspan="11" class="sin-datos">
                         <i class="fas fa-users"></i>
                         No se encontraron votantes con los criterios seleccionados
                     </td>
@@ -548,6 +549,7 @@ class PadronComponent {
             const { votante, relevamiento, detalle } = item;
             const opcionPolitica = relevamiento?.opcionPolitica || '';
             const observacion = relevamiento?.observacion || '';
+            const telefono = relevamiento?.telefono || '';
 
             return `
                 <tr class="fila-votante ${relevamiento ? 'con-relevamiento' : 'sin-relevamiento'}" data-dni="${votante.dni}">
@@ -563,11 +565,18 @@ class PadronComponent {
                         </div>
                     </td>
                     <td data-label="Observación">
-                        <input type="text" 
-                               class="observacion-input" 
+                        <input type="text"
+                               class="observacion-input"
                                placeholder="Observación..."
                                value="${observacion}"
                                onchange="padronComponent.actualizarObservacion('${votante.dni}', this.value)">
+                    </td>
+                    <td data-label="Teléfono">
+                        <input type="tel"
+                               class="telefono-input"
+                               placeholder="Teléfono..."
+                               value="${telefono}"
+                               onchange="padronComponent.actualizarTelefono('${votante.dni}', this.value)">
                     </td>
                     <td data-label="Condiciones" class="condiciones-cell">
                         ${this.renderizarCondicionesInline(votante.dni, detalle)}
@@ -757,8 +766,11 @@ class PadronComponent {
                 }
             }
 
-            // Guardar en la base de datos
-            await window.apiService.actualizarRelevamiento(dni, opcionPolitica);
+            // Guardar en la base de datos (preservar observacion y telefono existentes)
+            const relevamiento = await window.apiService.obtenerRelevamiento(dni);
+            const observacion = relevamiento.data?.observacion || '';
+            const telefono = relevamiento.data?.telefono || '';
+            await window.apiService.actualizarRelevamiento(dni, opcionPolitica, observacion, telefono);
             this.mostrarNotificacion('Relevamiento actualizado', 'success');
             await this.actualizarEstadisticasRapidas();
         } catch (error) {
@@ -773,14 +785,32 @@ class PadronComponent {
      */
     async actualizarObservacion(dni, observacion) {
         try {
-            // Obtener opción política actual
+            // Obtener relevamiento actual para preservar otros campos
             const relevamiento = await window.apiService.obtenerRelevamiento(dni);
             const opcionPolitica = relevamiento.data?.opcionPolitica || 'Indeciso';
-            
-            await window.apiService.actualizarRelevamiento(dni, opcionPolitica, observacion);
+            const telefono = relevamiento.data?.telefono || '';
+
+            await window.apiService.actualizarRelevamiento(dni, opcionPolitica, observacion, telefono);
             this.mostrarNotificacion('Observación actualizada', 'success');
         } catch (error) {
             this.mostrarError(`Error al actualizar observación: ${error.message}`);
+        }
+    }
+
+    /**
+     * Actualizar teléfono de un votante
+     */
+    async actualizarTelefono(dni, telefono) {
+        try {
+            // Obtener relevamiento actual para preservar otros campos
+            const relevamiento = await window.apiService.obtenerRelevamiento(dni);
+            const opcionPolitica = relevamiento.data?.opcionPolitica || 'Indeciso';
+            const observacion = relevamiento.data?.observacion || '';
+
+            await window.apiService.actualizarRelevamiento(dni, opcionPolitica, observacion, telefono);
+            this.mostrarNotificacion('Teléfono actualizado', 'success');
+        } catch (error) {
+            this.mostrarError(`Error al actualizar teléfono: ${error.message}`);
         }
     }
 

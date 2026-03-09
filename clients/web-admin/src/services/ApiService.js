@@ -120,12 +120,13 @@ class ApiService {
     /**
      * Actualizar relevamiento
      */
-    async actualizarRelevamiento(dni, opcionPolitica, observacion = '') {
+    async actualizarRelevamiento(dni, opcionPolitica, observacion = '', telefono = '') {
         return await this.request(`/api/padron/relevamientos/${dni}`, {
             method: 'PUT',
             body: JSON.stringify({
                 opcionPolitica,
-                observacion
+                observacion,
+                telefono
             })
         });
     }

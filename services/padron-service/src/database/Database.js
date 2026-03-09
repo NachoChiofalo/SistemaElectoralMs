@@ -57,6 +57,7 @@ class Database {
                     recibe_ayuda_social BOOLEAN DEFAULT FALSE,
                     observaciones_detalle TEXT,
                     fecha_detalle TIMESTAMP,
+                    telefono VARCHAR(50) DEFAULT '',
                     UNIQUE(dni)
                 )
             `);
@@ -83,6 +84,9 @@ class Database {
             await this.query(`CREATE INDEX IF NOT EXISTS idx_votantes_sexo ON padron.votantes(sexo)`);
             await this.query(`CREATE INDEX IF NOT EXISTS idx_relevamientos_opcion ON padron.relevamientos(opcion_politica)`);
             await this.query(`CREATE INDEX IF NOT EXISTS idx_relevamientos_fecha ON padron.relevamientos(fecha_relevamiento)`);
+
+            // Migraciones: agregar columnas nuevas a tablas existentes
+            await this.query(`ALTER TABLE padron.relevamientos ADD COLUMN IF NOT EXISTS telefono VARCHAR(50) DEFAULT ''`);
 
             console.log('✓ Schema padron inicializado correctamente');
         } catch (error) {
@@ -164,7 +168,7 @@ class Database {
         params.push(limite, offset);
 
         const queryText = `
-            SELECT v.*, r.opcion_politica, r.fecha_relevamiento, r.observacion
+            SELECT v.*, r.opcion_politica, r.fecha_relevamiento, r.observacion, r.telefono
             FROM padron.votantes v
             LEFT JOIN padron.relevamientos r ON v.dni = r.dni
             ${whereClause}
@@ -226,16 +230,17 @@ class Database {
 
     async actualizarRelevamiento(dni, relevamiento) {
         const query = `
-            INSERT INTO padron.relevamientos (dni, opcion_politica, observacion)
-            VALUES ($1, $2, $3)
+            INSERT INTO padron.relevamientos (dni, opcion_politica, observacion, telefono)
+            VALUES ($1, $2, $3, $4)
             ON CONFLICT (dni) DO UPDATE SET
                 opcion_politica = EXCLUDED.opcion_politica,
                 observacion = EXCLUDED.observacion,
+                telefono = EXCLUDED.telefono,
                 fecha_modificacion = CURRENT_TIMESTAMP
             RETURNING *
         `;
 
-        const params = [dni, relevamiento.opcion_politica || relevamiento.voto, relevamiento.observacion || relevamiento.observaciones];
+        const params = [dni, relevamiento.opcion_politica || relevamiento.voto, relevamiento.observacion || relevamiento.observaciones, relevamiento.telefono || ''];
         const result = await this.query(query, params);
         return result.rows[0];
     }
@@ -258,7 +263,7 @@ class Database {
 
     async obtenerVotantePorDni(dni) {
         const query = `
-            SELECT v.*, r.opcion_politica, r.fecha_relevamiento, r.observacion, r.fecha_modificacion
+            SELECT v.*, r.opcion_politica, r.fecha_relevamiento, r.observacion, r.fecha_modificacion, r.telefono
             FROM padron.votantes v
             LEFT JOIN padron.relevamientos r ON v.dni = r.dni
             WHERE v.dni = $1
@@ -453,7 +458,7 @@ class Database {
                 r.opcion_politica, r.observacion, r.fecha_relevamiento,
                 r.fecha_modificacion, r.es_nuevo_votante, r.esta_fallecido,
                 r.es_empleado_municipal, r.recibe_ayuda_social,
-                r.observaciones_detalle, r.fecha_detalle
+                r.observaciones_detalle, r.fecha_detalle, r.telefono
             FROM padron.votantes v
             INNER JOIN padron.relevamientos r ON v.dni = r.dni
             ORDER BY v.apellido ASC, v.nombre ASC
@@ -471,7 +476,7 @@ class Database {
                 r.opcion_politica, r.observacion, r.fecha_relevamiento,
                 r.fecha_modificacion, r.es_nuevo_votante, r.esta_fallecido,
                 r.es_empleado_municipal, r.recibe_ayuda_social,
-                r.observaciones_detalle, r.fecha_detalle
+                r.observaciones_detalle, r.fecha_detalle, r.telefono
             FROM padron.votantes v
             LEFT JOIN padron.relevamientos r ON v.dni = r.dni
             ORDER BY v.apellido ASC, v.nombre ASC

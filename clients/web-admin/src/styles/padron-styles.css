@@ -743,6 +743,22 @@ body {
     box-shadow: 0 0 0 2px rgba(72, 101, 129, 0.1);
 }
 
+/* ==================== TELÉFONO ==================== */
+
+.telefono-input {
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--padron-border);
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.telefono-input:focus {
+    outline: none;
+    border-color: var(--padron-secondary);
+    box-shadow: 0 0 0 2px rgba(72, 101, 129, 0.1);
+}
+
 /* ==================== ACCIONES ==================== */
 
 .acciones {
@@ -1694,6 +1710,16 @@ select.form-input {
         font-size: 14px;
     }
 
+    /* Input de teléfono en móvil */
+    .tabla-padron tbody td .telefono-input {
+        width: 100%;
+        flex: 1;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
     /* Paginación en móvil */
     .paginacion-container {
         padding: 1rem;
@@ -1729,7 +1755,8 @@ select.form-input {
     /* Prevent zoom on iOS for form inputs */
     .padron-filtros input,
     .padron-filtros select,
-    .observacion-input {
+    .observacion-input,
+    .telefono-input {
         font-size: 16px;
     }
 
@@ -1844,6 +1871,12 @@ select.form-input {
 
     /* Input más pequeño */
     .tabla-padron tbody td .observacion-input {
+        padding: 8px;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .tabla-padron tbody td .telefono-input {
         padding: 8px;
         font-size: 14px;
         width: 100%;

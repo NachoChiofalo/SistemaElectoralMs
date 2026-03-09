@@ -114,6 +114,7 @@ class PadronController {
                 relevamiento: row.opcion_politica ? {
                     opcionPolitica: row.opcion_politica,
                     observacion: row.observacion || '',
+                    telefono: row.telefono || '',
                     fechaRelevamiento: row.fecha_relevamiento
                 } : null
             }));
@@ -176,6 +177,7 @@ class PadronController {
                 dni: votante.dni,
                 opcionPolitica: votante.opcion_politica || 'Indeciso',
                 observacion: votante.observacion || '',
+                telefono: votante.telefono || '',
                 fechaRelevamiento: votante.fecha_relevamiento || null,
                 fechaModificacion: votante.fecha_modificacion || votante.fecha_relevamiento || null
             };
@@ -192,7 +194,7 @@ class PadronController {
             await this.inicializar();
 
             const { dni } = req.params;
-            const { opcionPolitica, observacion } = req.body;
+            const { opcionPolitica, observacion, telefono } = req.body;
 
             if (!opcionPolitica) {
                 return res.status(400).json({ error: 'El campo opcionPolitica es requerido' });
@@ -203,7 +205,8 @@ class PadronController {
 
             const relevamiento = {
                 voto: opcionPolitica,  // Mapear al campo interno
-                observaciones: observacion || ''
+                observaciones: observacion || '',
+                telefono: telefono || ''
             };
 
             const resultado = await this.padronService.actualizarRelevamiento(dni, relevamiento);
@@ -211,8 +214,8 @@ class PadronController {
             // Auditoria
             await this.auditoriaService.registrarOperacion(
                 req, 'ACTUALIZAR_RELEVAMIENTO', 'relevamiento', dni,
-                datosAnteriores ? { opcion_politica: datosAnteriores.opcion_politica, observacion: datosAnteriores.observacion } : null,
-                { opcion_politica: opcionPolitica, observacion: observacion || '' },
+                datosAnteriores ? { opcion_politica: datosAnteriores.opcion_politica, observacion: datosAnteriores.observacion, telefono: datosAnteriores.telefono } : null,
+                { opcion_politica: opcionPolitica, observacion: observacion || '', telefono: telefono || '' },
                 `Relevamiento actualizado para DNI ${dni}: ${opcionPolitica}`
             );
 
@@ -479,7 +482,7 @@ class PadronController {
                 'Opcion Politica', 'Observacion', 'Fecha Relevamiento',
                 'Fecha Modificacion', 'Es Nuevo Votante', 'Esta Fallecido',
                 'Es Empleado Municipal', 'Recibe Ayuda Social',
-                'Observaciones Detalle', 'Fecha Detalle'
+                'Observaciones Detalle', 'Fecha Detalle', 'Telefono'
             ];
 
             const escapeCsvValue = (value) => {
@@ -510,7 +513,8 @@ class PadronController {
                 row.es_empleado_municipal ? 'Si' : 'No',
                 row.recibe_ayuda_social ? 'Si' : 'No',
                 row.observaciones_detalle,
-                row.fecha_detalle ? new Date(row.fecha_detalle).toISOString() : ''
+                row.fecha_detalle ? new Date(row.fecha_detalle).toISOString() : '',
+                row.telefono
             ].map(escapeCsvValue).join(','));
 
             const BOM = '\uFEFF';
@@ -561,7 +565,7 @@ class PadronController {
                 'Opcion Politica', 'Observacion', 'Fecha Relevamiento',
                 'Fecha Modificacion', 'Es Nuevo Votante', 'Esta Fallecido',
                 'Es Empleado Municipal', 'Recibe Ayuda Social',
-                'Observaciones Detalle', 'Fecha Detalle'
+                'Observaciones Detalle', 'Fecha Detalle', 'Telefono'
             ];
 
             const escapeCsvValue = (value) => {
@@ -592,7 +596,8 @@ class PadronController {
                 row.es_empleado_municipal ? 'Si' : 'No',
                 row.recibe_ayuda_social ? 'Si' : 'No',
                 row.observaciones_detalle,
-                row.fecha_detalle ? new Date(row.fecha_detalle).toISOString() : ''
+                row.fecha_detalle ? new Date(row.fecha_detalle).toISOString() : '',
+                row.telefono
             ].map(escapeCsvValue).join(','));
 
             const BOM = '\uFEFF';
