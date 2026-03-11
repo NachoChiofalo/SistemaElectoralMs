@@ -43,20 +43,46 @@ class AuthService {
      * Mostrar mensaje de sesión expirada
      */
     showSessionExpiredMessage() {
+        this._showModal({
+            headerBg: 'linear-gradient(135deg,#dc2626,#ef4444)',
+            icon: 'fa-clock',
+            title: 'Sesion Expirada',
+            body: 'Su sesion ha expirado por inactividad.',
+            sub: 'Sera redirigido al inicio de sesion...'
+        });
+    }
+
+    /**
+     * Mostrar mensaje de sesión cerrada por otro dispositivo
+     */
+    showSessionKickedMessage() {
+        this._showModal({
+            headerBg: 'linear-gradient(135deg,#7c3aed,#6d28d9)',
+            icon: 'fa-desktop',
+            title: 'Sesion Cerrada',
+            body: 'Su cuenta fue accedida desde otro dispositivo.',
+            sub: 'Sera redirigido al inicio de sesion...'
+        });
+    }
+
+    _showModal({ headerBg, icon, title, body, sub }) {
+        const existing = document.getElementById('session-expired-modal');
+        if (existing) existing.remove();
+
         const overlay = document.createElement('div');
         overlay.id = 'session-expired-modal';
         overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;';
         overlay.innerHTML = `
             <div style="background:white;border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.25);max-width:440px;width:90%;overflow:hidden;">
-                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:linear-gradient(135deg,#dc2626,#ef4444);">
+                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:${headerBg};">
                     <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.2);color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas ${icon}"></i>
                     </div>
-                    <h3 style="color:white;margin:0;font-size:1.1rem;">Sesion Expirada</h3>
+                    <h3 style="color:white;margin:0;font-size:1.1rem;">${title}</h3>
                 </div>
                 <div style="text-align:center;padding:2rem 1.5rem;">
-                    <p style="font-size:1rem;color:#1e293b;margin:0 0 8px;">Su sesion ha expirado por inactividad.</p>
-                    <p style="font-size:0.9rem;color:#475569;margin:0;">Sera redirigido al inicio de sesion...</p>
+                    <p style="font-size:1rem;color:#1e293b;margin:0 0 8px;">${body}</p>
+                    <p style="font-size:0.9rem;color:#475569;margin:0;">${sub}</p>
                 </div>
                 <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid #e2e8f0;">
                     <button type="button" id="session-expired-login-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#334e68,#102a43);color:white;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;">
@@ -177,14 +203,37 @@ class AuthService {
                 localStorage.setItem('userData', JSON.stringify(this.user));
                 return true;
             } else {
-                // Token inválido, limpiar datos
-                this.logout();
+                this._handleInvalidSession(response.message);
                 return false;
             }
         } catch (error) {
             console.error('Error verificando token:', error);
-            this.logout();
+            this._handleInvalidSession(error.message);
             return false;
+        }
+    }
+
+    /**
+     * Manejar sesión inválida/expirada (detecta causa para mostrar mensaje correcto)
+     */
+    _handleInvalidSession(message) {
+        const isInactivity = message && (
+            message.includes('inactividad') ||
+            message.includes('expirada')
+        );
+        const isOtherDevice = message && message.includes('otro dispositivo');
+
+        this.stopTokenVerification();
+        this.token = null;
+        this.user = null;
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        this.api.setAuthToken(null);
+
+        if (isOtherDevice) {
+            this.showSessionKickedMessage();
+        } else {
+            this.showSessionExpiredMessage();
         }
     }
 
@@ -320,23 +369,16 @@ class InactivityService {
         console.warn('Usuario inactivo - cerrando sesion');
         this.dismissWarning();
 
-        // Mostrar mensaje de sesion expirada
-        this.authService.showSessionExpiredMessage();
-
-        // Limpiar datos de sesion sin redirigir (showSessionExpiredMessage ya lo hace)
-        this.authService.stopTokenVerification();
         try {
             if (this.authService.token) {
                 await this.authService.api.request('/api/auth/logout', { method: 'POST' });
             }
         } catch (e) {
-            // Ignorar errores de logout en inactividad
+            // Ignorar errores de red al hacer logout por inactividad
         }
-        this.authService.token = null;
-        this.authService.user = null;
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-        this.authService.api.setAuthToken(null);
+
+        // Usar el helper centralizado que limpia el estado y muestra el modal
+        this.authService._handleInvalidSession('inactividad');
     }
 
     destroy() {

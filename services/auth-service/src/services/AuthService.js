@@ -11,6 +11,8 @@ class AuthService {
     }
     this.jwtExpiration = process.env.JWT_EXPIRATION || '24h';
     this.refreshTokenExpiration = process.env.REFRESH_TOKEN_EXPIRATION || '7d';
+    const inactivityMinutes = parseInt(process.env.INACTIVITY_TIMEOUT_MINUTES || '10', 10);
+    this.inactivityTimeoutMs = inactivityMinutes * 60 * 1000;
   }
 
   /**
@@ -101,6 +103,21 @@ class AuthService {
           expires_at TIMESTAMP NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+      `);
+
+      // Crear tabla de sesiones activas (una sesión por usuario)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS active_sessions (
+          user_id INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
+          session_jti VARCHAR(255) NOT NULL,
+          last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Migración: agregar last_activity si la tabla ya existía sin esa columna
+      await client.query(`
+        ALTER TABLE active_sessions ADD COLUMN IF NOT EXISTS last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
       `);
 
       // Inicializar roles por defecto
@@ -414,12 +431,22 @@ class AuthService {
     const refreshExpires = new Date();
     refreshExpires.setDate(refreshExpires.getDate() + 7); // 7 días
 
-    // Guardar refresh token
+    // Guardar refresh token y registrar sesión activa
+    const userId = user.id || user.user_id;
     const client = await this.db.getConnection();
     try {
       await client.query(
         'INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)',
-        [user.id, refreshToken, refreshExpires]
+        [userId, refreshToken, refreshExpires]
+      );
+
+      // Registrar sesión activa (una sola sesión por usuario, invalida la anterior)
+      await client.query(
+        `INSERT INTO active_sessions (user_id, session_jti, last_activity)
+         VALUES ($1, $2, CURRENT_TIMESTAMP)
+         ON CONFLICT (user_id) DO UPDATE
+         SET session_jti = EXCLUDED.session_jti, last_activity = CURRENT_TIMESTAMP`,
+        [userId, jti]
       );
     } finally {
       client.release();
@@ -454,6 +481,31 @@ class AuthService {
         if (blacklistResult.rows.length > 0) {
           throw new Error('Token revocado');
         }
+
+        // Verificar que el token corresponde a la sesión activa (una sesión por usuario)
+        const sessionResult = await client.query(
+          'SELECT session_jti, last_activity FROM active_sessions WHERE user_id = $1',
+          [decoded.id]
+        );
+
+        if (sessionResult.rows.length === 0 || sessionResult.rows[0].session_jti !== decoded.jti) {
+          throw new Error('Sesión inválida. El usuario ha iniciado sesión en otro dispositivo');
+        }
+
+        // Verificar inactividad: si pasó más tiempo del permitido desde la última actividad
+        const lastActivity = new Date(sessionResult.rows[0].last_activity);
+        const inactiveDuration = Date.now() - lastActivity.getTime();
+        if (inactiveDuration > this.inactivityTimeoutMs) {
+          // Eliminar la sesión expirada por inactividad
+          await client.query('DELETE FROM active_sessions WHERE user_id = $1', [decoded.id]);
+          throw new Error('Sesión expirada por inactividad');
+        }
+
+        // Actualizar last_activity en cada verificación válida
+        await client.query(
+          'UPDATE active_sessions SET last_activity = CURRENT_TIMESTAMP WHERE user_id = $1',
+          [decoded.id]
+        );
 
         // Obtener datos actuales del usuario
         const userResult = await client.query(
@@ -563,6 +615,12 @@ class AuthService {
           if (decoded.id) {
             await client.query(
               'DELETE FROM refresh_tokens WHERE user_id = $1',
+              [decoded.id]
+            );
+
+            // Eliminar sesión activa
+            await client.query(
+              'DELETE FROM active_sessions WHERE user_id = $1',
               [decoded.id]
             );
           }
