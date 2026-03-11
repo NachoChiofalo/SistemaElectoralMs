@@ -90,9 +90,6 @@ class PadronComponent {
                     <button id="btn-nuevo-votante" class="btn btn-success" data-requires-permission="padron.edit" title="Agregar nuevo votante al padrón">
                         <i class="fas fa-user-plus"></i> <span class="btn-text">Nuevo Votante</span>
                     </button>
-                    <button id="btn-importar" class="btn btn-primary" data-requires-permission="padron.edit" title="Importar datos desde archivo CSV">
-                        <i class="fas fa-upload"></i> <span class="btn-text">Importar CSV</span>
-                    </button>
                     <button id="btn-exportar" class="btn btn-secondary" data-requires-permission="padron.export" title="Exportar relevamientos CSV">
                         <i class="fas fa-download"></i> <span class="btn-text">Exportar</span>
                     </button>
@@ -406,36 +403,42 @@ class PadronComponent {
      * Inicializar eventos
      */
     inicializarEventos() {
-        // Botones principales
-        document.getElementById('btn-nuevo-votante').addEventListener('click', () => this.abrirModalNuevoVotante());
-        document.getElementById('btn-importar').addEventListener('click', () => this.abrirModalImportar());
-        document.getElementById('btn-exportar').addEventListener('click', () => this.exportarDatos());
-        document.getElementById('btn-exportar-padron').addEventListener('click', () => this.exportarPadron());
-        document.getElementById('btn-estadisticas').addEventListener('click', () => this.mostrarEstadisticas());
+        // Helper para asignar eventos de forma segura (soporta botones ocultos por permisos)
+        const on = (id, event, handler) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener(event, handler);
+        };
+
+        // Botones principales (pueden ser null si el usuario no tiene el permiso requerido)
+        on('btn-nuevo-votante', 'click', () => this.abrirModalNuevoVotante());
+        on('btn-importar',      'click', () => this.abrirModalImportar());
+        on('btn-exportar',      'click', () => this.exportarDatos());
+        on('btn-exportar-padron', 'click', () => this.exportarPadron());
+        on('btn-estadisticas',  'click', () => this.mostrarEstadisticas());
 
         // Botones móviles
-        const btnFiltrosMobile = document.getElementById('btn-filtros-mobile');
-        if (btnFiltrosMobile) {
-            btnFiltrosMobile.addEventListener('click', () => this.toggleFiltrosMobile());
-        }
-
-        const btnCerrarFiltros = document.getElementById('btn-cerrar-filtros');
-        if (btnCerrarFiltros) {
-            btnCerrarFiltros.addEventListener('click', () => this.cerrarFiltrosMobile());
-        }
+        on('btn-filtros-mobile', 'click', () => this.toggleFiltrosMobile());
+        on('btn-cerrar-filtros', 'click', () => this.cerrarFiltrosMobile());
 
         // Filtros
-        document.getElementById('btn-aplicar-filtros').addEventListener('click', () => this.aplicarFiltros());
-        document.getElementById('btn-limpiar-filtros').addEventListener('click', () => this.limpiarFiltros());
+        on('btn-aplicar-filtros', 'click', () => this.aplicarFiltros());
+        on('btn-limpiar-filtros', 'click', () => this.limpiarFiltros());
+        on('filtro-busqueda', 'keypress', (e) => { if (e.key === 'Enter') this.aplicarFiltros(); });
 
         // Auto-aplicar filtros en móvil cuando cambian
         if (window.innerWidth <= 768) {
-            document.getElementById('filtro-busqueda').addEventListener('input', this.debounce(() => this.aplicarFiltros(), 500));
-            document.getElementById('filtro-circuito').addEventListener('change', () => this.aplicarFiltros());
-            document.getElementById('filtro-sexo').addEventListener('change', () => this.aplicarFiltros());
-            document.getElementById('filtro-opcion-politica').addEventListener('change', () => this.aplicarFiltros());
-            document.getElementById('filtro-sin-relevamiento').addEventListener('change', () => this.aplicarFiltros());
+            on('filtro-busqueda',        'input',  this.debounce(() => this.aplicarFiltros(), 500));
+            on('filtro-circuito',        'change', () => this.aplicarFiltros());
+            on('filtro-sexo',            'change', () => this.aplicarFiltros());
+            on('filtro-opcion-politica', 'change', () => this.aplicarFiltros());
+            on('filtro-sin-relevamiento','change', () => this.aplicarFiltros());
         }
+
+        // Cambiar registros por página
+        on('registros-por-pagina', 'change', () => this.cambiarRegistrosPorPagina());
+
+        // Importar CSV
+        on('archivo-csv', 'change', (e) => this.manejarArchivoCSV(e));
 
         // Evento de redimensionado de ventana
         window.addEventListener('resize', () => this.handleResize());
@@ -443,36 +446,26 @@ class PadronComponent {
         // Cerrar filtros móviles al tocar fuera (en el overlay)
         document.addEventListener('click', (e) => {
             const filtrosContainer = document.getElementById('filtros-container');
-            if (filtrosContainer.classList.contains('show') && 
-                !filtrosContainer.contains(e.target) && 
-                !document.getElementById('btn-filtros-mobile').contains(e.target)) {
+            const btnFiltrosMobile = document.getElementById('btn-filtros-mobile');
+            if (filtrosContainer && filtrosContainer.classList.contains('show') &&
+                !filtrosContainer.contains(e.target) &&
+                (!btnFiltrosMobile || !btnFiltrosMobile.contains(e.target))) {
                 this.cerrarFiltrosMobile();
             }
         });
-
-        // Cambiar registros por página
-        document.getElementById('registros-por-pagina').addEventListener('change', () => this.cambiarRegistrosPorPagina());
 
         // Validación en tiempo real del formulario nuevo votante
         this.inicializarValidacionNuevoVotante();
 
         // Ordenamiento de tabla
-        this.elementos.tabla.addEventListener('click', (e) => {
-            if (e.target.closest('.sortable')) {
-                const campo = e.target.closest('.sortable').dataset.campo;
-                this.cambiarOrdenamiento(campo);
-            }
-        });
-
-        // Importar CSV
-        document.getElementById('archivo-csv').addEventListener('change', (e) => this.manejarArchivoCSV(e));
-
-        // Enter en búsqueda
-        document.getElementById('filtro-busqueda').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.aplicarFiltros();
-            }
-        });
+        if (this.elementos.tabla) {
+            this.elementos.tabla.addEventListener('click', (e) => {
+                if (e.target.closest('.sortable')) {
+                    const campo = e.target.closest('.sortable').dataset.campo;
+                    this.cambiarOrdenamiento(campo);
+                }
+            });
+        }
     }
 
     /**

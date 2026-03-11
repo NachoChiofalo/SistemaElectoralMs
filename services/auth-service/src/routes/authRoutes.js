@@ -18,7 +18,10 @@ router.post('/login', async (req, res, next) => {
       });
     }
 
-    const result = await authService.login(username, password);
+    const rawIp = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
+    const ip_address = rawIp.split(',')[0].trim();
+
+    const result = await authService.login(username, password, ip_address);
     
     res.json({
       success: true,

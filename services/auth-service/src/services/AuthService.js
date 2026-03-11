@@ -346,9 +346,79 @@ class AuthService {
   }
 
   /**
+   * Asegurar que el schema y tabla de auditoría existen (compartida con padron-service)
+   */
+  async _ensureAuditoriaTable() {
+    if (this._auditoriaReady) return;
+    try {
+      const client = await this.db.getConnection();
+      try {
+        await client.query('CREATE SCHEMA IF NOT EXISTS padron');
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS padron.auditoria (
+            id SERIAL PRIMARY KEY,
+            usuario_id VARCHAR(50),
+            usuario_nombre VARCHAR(200),
+            usuario_username VARCHAR(100),
+            operacion VARCHAR(50) NOT NULL,
+            entidad VARCHAR(50) NOT NULL,
+            entidad_id VARCHAR(50),
+            datos_anteriores JSONB,
+            datos_nuevos JSONB,
+            detalles TEXT,
+            ip_address VARCHAR(200),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          )
+        `);
+        await client.query('CREATE INDEX IF NOT EXISTS idx_auditoria_operacion ON padron.auditoria(operacion)');
+        await client.query('CREATE INDEX IF NOT EXISTS idx_auditoria_created_at ON padron.auditoria(created_at DESC)');
+      } finally {
+        client.release();
+      }
+      this._auditoriaReady = true;
+    } catch (err) {
+      console.error('Error asegurando tabla de auditoría:', err.message);
+      this._auditoriaReady = true; // no bloquear el flujo
+    }
+  }
+
+  /**
+   * Registrar evento de auditoría (no lanza error aunque falle)
+   */
+  async _registrarAuditoria({ usuario_id, usuario_nombre, usuario_username, operacion, entidad, entidad_id, datos_anteriores, datos_nuevos, detalles, ip_address }) {
+    try {
+      await this._ensureAuditoriaTable();
+      const client = await this.db.getConnection();
+      try {
+        await client.query(
+          `INSERT INTO padron.auditoria
+            (usuario_id, usuario_nombre, usuario_username, operacion, entidad, entidad_id, datos_anteriores, datos_nuevos, detalles, ip_address)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+          [
+            usuario_id ? String(usuario_id) : null,
+            usuario_nombre || null,
+            usuario_username || null,
+            operacion,
+            entidad,
+            entidad_id ? String(entidad_id) : null,
+            datos_anteriores ? JSON.stringify(datos_anteriores) : null,
+            datos_nuevos ? JSON.stringify(datos_nuevos) : null,
+            detalles || null,
+            ip_address || null
+          ]
+        );
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error('Error registrando auditoría:', err.message);
+    }
+  }
+
+  /**
    * Autenticar usuario
    */
-  async login(username, password) {
+  async login(username, password, ip_address) {
     const client = await this.db.getConnection();
     
     try {
@@ -367,23 +437,62 @@ class AuthService {
       `, [username]);
 
       if (userResult.rows.length === 0) {
+        await this._registrarAuditoria({
+          usuario_username: username,
+          operacion: 'LOGIN_FALLIDO',
+          entidad: 'SESION',
+          detalles: `Intento de login fallido: usuario '${username}' no encontrado`,
+          ip_address
+        });
         throw new Error('Credenciales inválidas');
       }
 
       const user = userResult.rows[0];
 
       if (!user.activo) {
+        await this._registrarAuditoria({
+          usuario_id: user.id,
+          usuario_nombre: user.nombre_completo,
+          usuario_username: user.username,
+          operacion: 'LOGIN_FALLIDO',
+          entidad: 'SESION',
+          entidad_id: String(user.id),
+          detalles: 'Intento de login fallido: usuario inactivo',
+          ip_address
+        });
         throw new Error('Usuario inactivo');
       }
 
       // Verificar contraseña
       const isValidPassword = await bcrypt.compare(password, user.password_hash);
       if (!isValidPassword) {
+        await this._registrarAuditoria({
+          usuario_id: user.id,
+          usuario_nombre: user.nombre_completo,
+          usuario_username: user.username,
+          operacion: 'LOGIN_FALLIDO',
+          entidad: 'SESION',
+          entidad_id: String(user.id),
+          detalles: 'Intento de login fallido: contraseña incorrecta',
+          ip_address
+        });
         throw new Error('Credenciales inválidas');
       }
 
       // Generar tokens
       const tokens = await this.generateTokens(user);
+
+      // Registrar login exitoso en auditoría
+      await this._registrarAuditoria({
+        usuario_id: user.id,
+        usuario_nombre: user.nombre_completo,
+        usuario_username: user.username,
+        operacion: 'LOGIN',
+        entidad: 'SESION',
+        entidad_id: String(user.id),
+        detalles: `Login exitoso. Rol: ${user.rol_nombre}`,
+        ip_address
+      });
 
       return {
         user: {
