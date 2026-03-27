@@ -33,6 +33,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - AUTH_PORT=${AUTH_PORT:-3002}
+      - DATABASE_URL=${DATABASE_URL:-}
       - DB_HOST=${DB_HOST:-postgres}
       - DB_PORT=${DB_PORT:-5432}
       - DB_NAME=${DB_NAME:-sistema_electoral}
@@ -62,6 +63,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - PORT=${PADRON_PORT:-3001}
+      - DATABASE_URL=${DATABASE_URL:-}
       - DB_HOST=${DB_HOST:-postgres}
       - DB_PORT=${DB_PORT:-5432}
       - DB_NAME=${DB_NAME:-sistema_electoral}

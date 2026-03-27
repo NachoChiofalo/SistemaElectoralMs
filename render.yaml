@@ -1,13 +1,6 @@
 # Render Blueprint - Sistema Electoral Microservicios
 # Docs: https://docs.render.com/blueprint-spec
 
-databases:
-  - name: sistema-electoral-db
-    plan: free
-    databaseName: sistema_electoral
-    user: electoral_user
-    postgresMajorVersion: "15"
-
 services:
   # Auth Service
   - type: web
@@ -23,9 +16,7 @@ services:
       - key: PORT
         value: "3002"
       - key: DATABASE_URL
-        fromDatabase:
-          name: sistema-electoral-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRATION
@@ -47,9 +38,7 @@ services:
       - key: PORT
         value: "3001"
       - key: DATABASE_URL
-        fromDatabase:
-          name: sistema-electoral-db
-          property: connectionString
+        sync: false
 
   # API Gateway (punto de entrada publico, incluye web-admin embebido)
   - type: web

@@ -1,11 +1,27 @@
-const { Pool } = require('../services/auth-service/node_modules/pg');
-const bcrypt = require('../services/auth-service/node_modules/bcryptjs');
+let Pool;
+let bcrypt;
 
-const DATABASE_URL = 'postgresql://electoral_user:smeeeLByHNYA5ws2kGSQuTuGrVneon5k@dpg-d6kv9vngi27c738usgk0.oregon-postgres.render.com/sistema_electoral_lqsh';
+try {
+  ({ Pool } = require('pg'));
+  bcrypt = require('bcryptjs');
+} catch (error) {
+  ({ Pool } = require('../services/auth-service/node_modules/pg'));
+  bcrypt = require('../services/auth-service/node_modules/bcryptjs');
+}
+
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  throw new Error(
+    'DATABASE_URL es obligatorio. Ejemplo: postgresql://postgres:<PASSWORD>@db.<project-ref>.supabase.co:5432/postgres?sslmode=require'
+  );
+}
+
+const isLocalDatabase = /localhost|127\.0\.0\.1/.test(DATABASE_URL);
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: isLocalDatabase ? false : { rejectUnauthorized: false },
   connectionTimeoutMillis: 30000,
   idleTimeoutMillis: 30000,
   max: 2,
@@ -17,7 +33,7 @@ async function tryConnect(retries = 3) {
       console.log(`Intento ${i}/${retries} de conexion...`);
       const client = await pool.connect();
       await client.query('SELECT 1');
-      console.log('Conectado a la DB de Render');
+      console.log('Conectado a la base de datos remota configurada');
       return client;
     } catch (e) {
       console.log(`  Fallo: ${e.message}`);
