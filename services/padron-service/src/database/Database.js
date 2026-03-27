@@ -2,18 +2,7 @@ const { Pool } = require('pg');
 
 class Database {
     constructor() {
-        const poolConfig = process.env.DATABASE_URL
-            ? {
-                  connectionString: process.env.DATABASE_URL,
-                  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-              }
-            : {
-                  host: process.env.DB_HOST,
-                  port: process.env.DB_PORT,
-                  database: process.env.DB_NAME,
-                  user: process.env.DB_USER,
-                  password: process.env.DB_PASSWORD,
-              };
+        const poolConfig = this.buildPoolConfig();
 
         this.pool = new Pool(poolConfig);
 
@@ -21,6 +10,41 @@ class Database {
         this.pool.on('error', (err) => {
             console.error('Error inesperado en el pool de conexiones:', err);
         });
+    }
+
+    buildPoolConfig() {
+        if (!process.env.DATABASE_URL) {
+            return {
+                host: process.env.DB_HOST,
+                port: process.env.DB_PORT,
+                database: process.env.DB_NAME,
+                user: process.env.DB_USER,
+                password: process.env.DB_PASSWORD,
+            };
+        }
+
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(process.env.DATABASE_URL);
+        } catch (error) {
+            return {
+                connectionString: process.env.DATABASE_URL,
+                ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+            };
+        }
+
+        const host = (parsedUrl.hostname || '').toLowerCase();
+        const isLocal = host === 'localhost' || host === '127.0.0.1';
+        const sslMode = (process.env.PGSSLMODE || parsedUrl.searchParams.get('sslmode') || '').toLowerCase();
+        const shouldUseSsl = !isLocal && sslMode !== 'disable';
+        const rejectUnauthorized = sslMode === 'verify-full';
+
+        parsedUrl.searchParams.delete('sslmode');
+
+        return {
+            connectionString: parsedUrl.toString(),
+            ssl: shouldUseSsl ? { rejectUnauthorized } : false,
+        };
     }
 
     async initializeSchema() {
