@@ -701,9 +701,12 @@ class PadronController {
             });
         } catch (error) {
             console.error('❌ Error obteniendo detalle votante:', error);
-            res.status(500).json({
-                success: false,
-                message: error.message
+            res.status(200).json({
+                success: true,
+                data: null,
+                notFound: true,
+                degraded: true,
+                message: 'No fue posible obtener el detalle en este momento'
             });
         }
     }

@@ -100,8 +100,10 @@ class DetalleVotanteService {
 
             return this.mapearDesdeDB(result.rows[0]);
         } catch (error) {
-            console.error('Error al obtener detalle:', error);
-            throw error;
+            // Este endpoint se usa para enriquecer la UI; si falla, devolvemos null
+            // para no bloquear la carga del padrón completo.
+            console.warn(`No se pudo obtener detalle para DNI ${dni}:`, error.message);
+            return null;
         }
     }
 

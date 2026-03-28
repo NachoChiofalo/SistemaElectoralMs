@@ -60,6 +60,12 @@ class ApiService {
                     return { success: false, data: null, notFound: true };
                 }
 
+                // 500 puede ocurrir en consultas opcionales de detalle; degradar sin romper UI
+                if (response.status === 500 && endpoint.includes('/api/padron/detalle-votante')) {
+                    console.warn('ℹ️ Detalle de votante no disponible temporalmente, se continúa sin detalle');
+                    return { success: false, data: null, degraded: true };
+                }
+
                 // Manejo suave de rate limiting para no romper la UI
                 if (response.status === 429) {
                     console.warn('⚠️ Límite de solicitudes alcanzado en gateway');
