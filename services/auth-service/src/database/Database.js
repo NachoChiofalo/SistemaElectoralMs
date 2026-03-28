@@ -17,8 +17,18 @@ class Database {
     });
   }
 
+  normalizeDatabaseUrl(rawUrl) {
+    if (!rawUrl) return '';
+
+    const trimmed = String(rawUrl).trim();
+    const withoutPrefix = trimmed.replace(/^DATABASE_URL\s*=\s*/i, '');
+    return withoutPrefix.replace(/^"|"$/g, '').replace(/^'|'$/g, '');
+  }
+
   buildPoolConfig() {
-    if (!process.env.DATABASE_URL) {
+    const normalizedDatabaseUrl = this.normalizeDatabaseUrl(process.env.DATABASE_URL);
+
+    if (!normalizedDatabaseUrl) {
       return {
         host: process.env.DB_HOST || 'postgres',
         port: process.env.DB_PORT || 5432,
@@ -30,10 +40,10 @@ class Database {
 
     let parsedUrl;
     try {
-      parsedUrl = new URL(process.env.DATABASE_URL);
+      parsedUrl = new URL(normalizedDatabaseUrl);
     } catch (error) {
       return {
-        connectionString: process.env.DATABASE_URL,
+        connectionString: normalizedDatabaseUrl,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
       };
     }
@@ -45,6 +55,8 @@ class Database {
     const rejectUnauthorized = sslMode === 'verify-full';
 
     parsedUrl.searchParams.delete('sslmode');
+
+    console.log(`DB destino auth-service: ${parsedUrl.hostname}:${parsedUrl.port || 5432}`);
 
     return {
       connectionString: parsedUrl.toString(),
