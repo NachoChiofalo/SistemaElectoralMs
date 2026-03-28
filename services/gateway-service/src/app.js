@@ -38,6 +38,7 @@ class GatewayApp {
         'http://localhost:3000',
         'http://localhost:8080',
         process.env.FRONTEND_URL,
+        process.env.PUBLIC_EXTERNAL_URL,
         process.env.RENDER_EXTERNAL_URL
       ].filter(Boolean),
       credentials: true
@@ -108,6 +109,14 @@ class GatewayApp {
         },
         onProxyRes: (proxyRes, req, res) => {
           console.log('📤 Proxy response:', proxyRes.statusCode, req.url);
+        },
+        onError: (err, req, res) => {
+          console.error('Error en proxy padron:', err.message);
+          res.status(503).json({
+            success: false,
+            message: 'Servicio de padrón no disponible',
+            detail: process.env.NODE_ENV === 'development' ? err.message : undefined
+          });
         }
       })
     );
@@ -140,7 +149,7 @@ class GatewayApp {
     });
 
     // Servir archivos estáticos del web-admin (embebidos en el contenedor)
-    // En produccion (Render): los archivos estan en /app/public/
+    // En produccion: los archivos estan en /app/public/
     // En desarrollo local: se puede usar WEB_ADMIN_URL como proxy alternativo
     const publicDir = path.join(__dirname, '..', 'public');
     if (process.env.WEB_ADMIN_URL) {

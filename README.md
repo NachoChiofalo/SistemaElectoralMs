@@ -40,7 +40,7 @@ SistemaElectoralMs/
 ├── shared/                # Código compartido
 ├── scripts/               # Scripts de inicialización y deploy
 ├── docker-compose.yml     # Orquestación local
-└── render.yaml            # Blueprint para Render
+└── render.yaml            # Blueprint de despliegue (DB externa por DATABASE_URL)
 ```
 
 ---
@@ -232,12 +232,15 @@ Los tokens JWT incluyen los permisos del usuario. La validación se realiza tant
 ### Variables de entorno
 
 ```env
-# PostgreSQL
-DB_HOST=postgres
-DB_PORT=5432
-DB_NAME=sistema_electoral
-DB_USER=electoral_user
-DB_PASSWORD=electoral_password
+# PostgreSQL remoto (recomendado: Supabase)
+DATABASE_URL=postgresql://postgres:<PASSWORD>@db.<project-ref>.supabase.co:5432/postgres?sslmode=require
+
+# Alternativa local con Docker
+# DB_HOST=postgres
+# DB_PORT=5432
+# DB_NAME=sistema_electoral
+# DB_USER=electoral_user
+# DB_PASSWORD=electoral_password
 
 # Auth Service
 JWT_SECRET=your-super-secret-jwt-key
@@ -252,18 +255,19 @@ PADRON_SERVICE_URL=http://padron-service:3001
 
 ---
 
-## 🚀 Deployment en Render
+## 🚀 Deployment en Render + Supabase
 
-El proyecto incluye configuración lista para deployment en Render mediante el archivo `render.yaml` (Blueprint).
+El proyecto está preparado para desplegar servicios en Render usando una base PostgreSQL externa (por ejemplo, Supabase) vía `DATABASE_URL`.
 
-1. Push el repositorio a GitHub
-2. En Render Dashboard: **New** > **Blueprint** > seleccionar el repositorio
-3. Render detecta el `render.yaml` y crea todos los servicios + base de datos automáticamente
+1. Crear el proyecto en Supabase y obtener la cadena de conexión.
+2. Push del repositorio a GitHub.
+3. En Render Dashboard: **New** > **Blueprint** > seleccionar el repositorio.
+4. Configurar manualmente `DATABASE_URL` en `auth-service` y `padron-service` con la URL de Supabase.
 
 El Blueprint configura:
-- Base de datos PostgreSQL 15 managed
-- 4 servicios Docker (auth, padron, gateway, web-admin)
-- Variables de entorno auto-referenciadas entre servicios
+- 3 servicios Docker (auth, padron, gateway)
+- Variables entre servicios por entorno
+- `DATABASE_URL` como secreto externo administrado en Render
 
 ---
 

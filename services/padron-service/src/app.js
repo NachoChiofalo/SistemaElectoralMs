@@ -17,6 +17,7 @@ app.use(cors({
     origin: [
         process.env.CORS_ORIGIN || 'http://localhost:3000',
         process.env.FRONTEND_URL,
+        process.env.PUBLIC_EXTERNAL_URL,
         process.env.RENDER_EXTERNAL_URL
     ].filter(Boolean),
     credentials: true
@@ -51,6 +52,11 @@ db.initializeSchema()
         });
     })
     .catch((err) => {
+        if (process.env.NODE_ENV === 'production') {
+            console.error('❌ Error inicializando schema en producción. Abortando inicio:', err.message);
+            process.exit(1);
+        }
+
         console.error('❌ Error inicializando schema, iniciando servidor de todas formas:', err.message);
         app.listen(PORT, () => {
             console.log(`🗳️ Servicio de Padrón ejecutándose en puerto ${PORT} (sin schema inicializado)`);

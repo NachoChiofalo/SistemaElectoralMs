@@ -65,7 +65,7 @@ docker-compose logs -f
 | Auth Service | http://localhost:3002/health | Health check de autenticación |
 | Padron Service | http://localhost:3001/health | Health check del padrón |
 | Web Admin | http://localhost:3000 | Cliente web (acceso directo sin auth) |
-| PostgreSQL | localhost:5432 | Base de datos |
+| PostgreSQL | localhost:5432 o remoto | Base de datos |
 
 ### 👥 Usuarios y Credenciales
 
@@ -145,11 +145,14 @@ AUTH_PORT=3002
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRATION=24h
 REFRESH_TOKEN_EXPIRATION=7d
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=electoral_db
-DB_USER=postgres
-DB_PASSWORD=postgres
+DATABASE_URL=postgresql://postgres:<PASSWORD>@db.<project-ref>.supabase.co:5432/postgres?sslmode=require
+
+# Alternativa local
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_NAME=electoral_db
+# DB_USER=postgres
+# DB_PASSWORD=postgres
 ```
 
 ### 🗄️ Base de Datos
