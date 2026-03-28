@@ -109,6 +109,14 @@ class GatewayApp {
         },
         onProxyRes: (proxyRes, req, res) => {
           console.log('📤 Proxy response:', proxyRes.statusCode, req.url);
+        },
+        onError: (err, req, res) => {
+          console.error('Error en proxy padron:', err.message);
+          res.status(503).json({
+            success: false,
+            message: 'Servicio de padrón no disponible',
+            detail: process.env.NODE_ENV === 'development' ? err.message : undefined
+          });
         }
       })
     );

@@ -52,6 +52,11 @@ db.initializeSchema()
         });
     })
     .catch((err) => {
+        if (process.env.NODE_ENV === 'production') {
+            console.error('❌ Error inicializando schema en producción. Abortando inicio:', err.message);
+            process.exit(1);
+        }
+
         console.error('❌ Error inicializando schema, iniciando servidor de todas formas:', err.message);
         app.listen(PORT, () => {
             console.log(`🗳️ Servicio de Padrón ejecutándose en puerto ${PORT} (sin schema inicializado)`);
