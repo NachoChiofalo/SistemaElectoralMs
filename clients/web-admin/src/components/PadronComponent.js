@@ -11,6 +11,11 @@ class PadronComponent {
             cargando: false
         };
         this.elementos = {};
+        this.rateLimit = {
+            retries: 0,
+            timerId: null,
+            lastAction: null
+        };
     }
 
     /**
@@ -107,6 +112,14 @@ class PadronComponent {
 
             <div id="estadisticas-rapidas" class="padron-estadisticas-rapidas">
                 <!-- Estadísticas se cargan dinámicamente -->
+            </div>
+
+            <div id="padron-rate-banner" class="padron-banner hidden" role="status" aria-live="polite">
+                <div class="padron-banner-content">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span id="padron-rate-banner-text">Limite de solicitudes alcanzado.</span>
+                </div>
+                <button id="padron-rate-banner-retry" class="btn btn-secondary btn-sm">Reintentar</button>
             </div>
 
             <div class="padron-filtros" id="filtros-container">
@@ -395,7 +408,10 @@ class PadronComponent {
             tbody: document.getElementById('tabla-body'),
             info: document.getElementById('tabla-info'),
             paginacion: document.getElementById('paginacion-container'),
-            estadisticasRapidas: document.getElementById('estadisticas-rapidas')
+            estadisticasRapidas: document.getElementById('estadisticas-rapidas'),
+            rateBanner: document.getElementById('padron-rate-banner'),
+            rateBannerText: document.getElementById('padron-rate-banner-text'),
+            rateBannerRetry: document.getElementById('padron-rate-banner-retry')
         };
     }
 
@@ -415,6 +431,7 @@ class PadronComponent {
         on('btn-exportar',      'click', () => this.exportarDatos());
         on('btn-exportar-padron', 'click', () => this.exportarPadron());
         on('btn-estadisticas',  'click', () => this.mostrarEstadisticas());
+        on('padron-rate-banner-retry', 'click', () => this.reintentarRateLimit());
 
         // Botones móviles
         on('btn-filtros-mobile', 'click', () => this.toggleFiltrosMobile());
@@ -476,13 +493,16 @@ class PadronComponent {
             this.mostrarCargando(true);
             
             // Cargar filtros disponibles
-            await this.cargarFiltrosDisponibles();
+            const filtrosOk = await this.cargarFiltrosDisponibles();
+            if (filtrosOk === false) return;
             
             // Cargar estadísticas rápidas
-            await this.actualizarEstadisticasRapidas();
+            const statsOk = await this.actualizarEstadisticasRapidas();
+            if (statsOk === false) return;
             
             // Cargar votantes
-            await this.actualizarTabla();
+            const tablaOk = await this.actualizarTabla();
+            if (tablaOk === false) return;
             
         } catch (error) {
             this.mostrarError(`Error al cargar datos: ${error.message}`);
@@ -507,6 +527,22 @@ class PadronComponent {
             };
 
             const respuesta = await window.apiService.obtenerVotantes(parametros);
+
+            if (!respuesta || !Array.isArray(respuesta.data)) {
+                if (respuesta?.rateLimited) {
+                    this.programarReintentoRateLimit(
+                        'Limite de solicitudes alcanzado.',
+                        () => this.actualizarTabla()
+                    );
+                } else {
+                    this.mostrarError('No se pudo cargar la lista de votantes.');
+                }
+
+                this.renderizarTabla([]);
+                this.renderizarPaginacion({ paginaActual: 1, totalPaginas: 1 });
+                this.actualizarInfoTabla({ inicio: 0, fin: 0, totalRegistros: 0 });
+                return false;
+            }
             
             // Cargar detalles de votantes si están disponibles
             const votantesConDetalles = await this.enriquecerConDetalles(respuesta.data);
@@ -514,9 +550,12 @@ class PadronComponent {
             this.renderizarTabla(votantesConDetalles);
             this.renderizarPaginacion(respuesta.paginacion);
             this.actualizarInfoTabla(respuesta.paginacion);
+            this.resetRateLimitState();
+            return true;
             
         } catch (error) {
             this.mostrarError(`Error al cargar votantes: ${error.message}`);
+            return false;
         } finally {
             this.mostrarCargando(false);
         }
@@ -526,7 +565,7 @@ class PadronComponent {
      * Renderizar tabla con datos
      */
     renderizarTabla(votantes) {
-        if (votantes.length === 0) {
+        if (!Array.isArray(votantes) || votantes.length === 0) {
             this.elementos.tbody.innerHTML = `
                 <tr>
                     <td colspan="11" class="sin-datos">
@@ -658,7 +697,9 @@ class PadronComponent {
      * Actualizar información de la tabla
      */
     actualizarInfoTabla(paginacion) {
-        const { inicio, fin, totalRegistros } = paginacion;
+        const inicio = paginacion?.inicio ?? 0;
+        const fin = paginacion?.fin ?? 0;
+        const totalRegistros = typeof paginacion?.totalRegistros === 'number' ? paginacion.totalRegistros : 0;
         this.elementos.info.textContent = 
             `Mostrando ${inicio} a ${fin} de ${totalRegistros.toLocaleString()} registros`;
     }
@@ -669,7 +710,18 @@ class PadronComponent {
     async actualizarEstadisticasRapidas() {
         try {
             const respuesta = await window.apiService.obtenerEstadisticas();
-            const stats = respuesta.data;
+            if (respuesta?.rateLimited) {
+                this.programarReintentoRateLimit(
+                    'Limite de solicitudes alcanzado.',
+                    () => this.cargarDatos()
+                );
+                return false;
+            }
+            const stats = respuesta?.data || {};
+            const estadisticasPoliticas = stats.estadisticasPoliticas || {};
+            const totalVotantes = typeof stats.totalVotantes === 'number' ? stats.totalVotantes : 0;
+            const totalRelevamientos = typeof stats.totalRelevamientos === 'number' ? stats.totalRelevamientos : 0;
+            const porcentajeCompletado = typeof stats.porcentajeCompletado === 'number' ? stats.porcentajeCompletado : 0;
 
             this.elementos.estadisticasRapidas.innerHTML = `
                 <div class="estadisticas-grid">
@@ -678,7 +730,7 @@ class PadronComponent {
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-number">${stats.totalVotantes.toLocaleString()}</div>
+                            <div class="stat-number">${totalVotantes.toLocaleString()}</div>
                             <div class="stat-label">Total Votantes</div>
                         </div>
                     </div>
@@ -688,13 +740,13 @@ class PadronComponent {
                             <i class="fas fa-check-circle"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-number">${stats.totalRelevamientos.toLocaleString()}</div>
+                            <div class="stat-number">${totalRelevamientos.toLocaleString()}</div>
                             <div class="stat-label">Relevamientos</div>
                             <div class="stat-progress">
                                 <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${stats.porcentajeCompletado}%"></div>
+                                    <div class="progress-fill" style="width: ${porcentajeCompletado}%"></div>
                                 </div>
-                                <span class="progress-text">${stats.porcentajeCompletado}%</span>
+                                <span class="progress-text">${porcentajeCompletado}%</span>
                             </div>
                         </div>
                     </div>
@@ -704,7 +756,7 @@ class PadronComponent {
                             <i class="fas fa-flag"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-number">${stats.estadisticasPoliticas.PJ || 0}</div>
+                            <div class="stat-number">${estadisticasPoliticas.PJ || 0}</div>
                             <div class="stat-label">PJ</div>
                         </div>
                     </div>
@@ -714,7 +766,7 @@ class PadronComponent {
                             <i class="fas fa-flag"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-number">${stats.estadisticasPoliticas.UCR || 0}</div>
+                            <div class="stat-number">${estadisticasPoliticas.UCR || 0}</div>
                             <div class="stat-label">UCR</div>
                         </div>
                     </div>
@@ -724,14 +776,16 @@ class PadronComponent {
                             <i class="fas fa-question-circle"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-number">${stats.estadisticasPoliticas.Indeciso || 0}</div>
+                            <div class="stat-number">${estadisticasPoliticas.Indeciso || 0}</div>
                             <div class="stat-label">Indecisos</div>
                         </div>
                     </div>
                 </div>
             `;
+            return true;
         } catch (error) {
             console.error('Error al cargar estadísticas:', error);
+            return true;
         }
     }
 
@@ -890,14 +944,23 @@ class PadronComponent {
     async cargarFiltrosDisponibles() {
         try {
             const respuesta = await window.apiService.obtenerFiltrosDisponibles();
-            const filtros = respuesta.data;
+            if (respuesta?.rateLimited) {
+                this.programarReintentoRateLimit(
+                    'Limite de solicitudes alcanzado.',
+                    () => this.cargarDatos()
+                );
+                return false;
+            }
+            const filtros = respuesta?.data;
 
             const selectCircuito = document.getElementById('filtro-circuito');
+            const circuitos = Array.isArray(filtros?.circuitos) ? filtros.circuitos : [];
             selectCircuito.innerHTML = '<option value="">Todos los circuitos</option>' +
-                filtros.circuitos.map(c => `<option value="${c}">${c}</option>`).join('');
-                
+                circuitos.map(c => `<option value="${c}">${c}</option>`).join('');
+            return true;
         } catch (error) {
             console.error('Error al cargar filtros:', error);
+            return true;
         }
     }
 
@@ -1283,6 +1346,66 @@ class PadronComponent {
         // Aquí se podría agregar un spinner o indicador de carga
     }
 
+    mostrarBannerRateLimit(mensaje, mostrarBoton = true) {
+        if (!this.elementos.rateBanner) return;
+        if (this.elementos.rateBannerText) {
+            this.elementos.rateBannerText.textContent = mensaje;
+        }
+        if (this.elementos.rateBannerRetry) {
+            this.elementos.rateBannerRetry.style.display = mostrarBoton ? '' : 'none';
+        }
+        this.elementos.rateBanner.classList.remove('hidden');
+    }
+
+    ocultarBannerRateLimit() {
+        if (!this.elementos.rateBanner) return;
+        this.elementos.rateBanner.classList.add('hidden');
+    }
+
+    resetRateLimitState() {
+        this.rateLimit.retries = 0;
+        this.rateLimit.lastAction = null;
+        if (this.rateLimit.timerId) {
+            clearTimeout(this.rateLimit.timerId);
+            this.rateLimit.timerId = null;
+        }
+        this.ocultarBannerRateLimit();
+    }
+
+    reintentarRateLimit() {
+        const accion = this.rateLimit.lastAction || (() => this.cargarDatos());
+        this.resetRateLimitState();
+        accion();
+    }
+
+    programarReintentoRateLimit(motivo, accion) {
+        const maxRetries = 3;
+        this.rateLimit.lastAction = accion;
+
+        if (this.rateLimit.timerId) {
+            return;
+        }
+
+        if (this.rateLimit.retries >= maxRetries) {
+            this.mostrarBannerRateLimit(`${motivo} Intenta de nuevo en unos minutos.`, true);
+            return;
+        }
+
+        const baseDelay = 2000;
+        const delay = Math.min(20000, baseDelay * 2 ** this.rateLimit.retries);
+        const jitter = Math.floor(Math.random() * 500);
+        const delayMs = delay + jitter;
+        const segundos = Math.ceil(delayMs / 1000);
+
+        this.mostrarBannerRateLimit(`${motivo} Reintentando en ${segundos}s...`, true);
+
+        this.rateLimit.timerId = setTimeout(async () => {
+            this.rateLimit.timerId = null;
+            this.rateLimit.retries += 1;
+            await accion();
+        }, delayMs);
+    }
+
     mostrarNotificacion(mensaje, tipo = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification notification-${tipo}`;
@@ -1445,6 +1568,10 @@ class PadronComponent {
      */
     async enriquecerConDetalles(votantes) {
         try {
+            if (!Array.isArray(votantes) || votantes.length === 0) {
+                return [];
+            }
+
             const votantesConDetalles = [];
             
             // Procesar de a lotes para evitar sobrecarga
@@ -1478,6 +1605,9 @@ class PadronComponent {
             return votantesConDetalles;
         } catch (error) {
             console.warn('Error cargando detalles, continuando sin ellos:', error);
+            if (!Array.isArray(votantes)) {
+                return [];
+            }
             return votantes.map(item => ({ ...item, detalle: null }));
         }
     }

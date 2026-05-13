@@ -1,0 +1,72 @@
+ApiService.js:416 🌐 ApiService inicializado correctamente
+AuthService.js:405 🔐 AuthService inicializado correctamente
+PadronComponent.js:1498 🖥️ PadronComponent cargado correctamente
+app.js:369 🔧 App.js cargado
+app.js:13 🚀 Iniciando aplicación...
+app.js:14 📋 Servicios disponibles: Object
+ApiService.js:41 🌐 API Request: POST https://gateway-service-6sps.onrender.com/api/auth/verify
+chrome-extension://j…ntent_reporter.js:1 Uncaught SyntaxError: Cannot use import statement outside a module
+AuthService.js:402 ⏰ InactivityService inicializado
+app.js:23 🔐 Estado de autenticación: true
+app.js:33 👤 Usuario autenticado: DaianaMontenegro
+app.js:50 🔑 Cargando permisos del usuario...
+ApiService.js:41 🌐 API Request: GET https://gateway-service-6sps.onrender.com/api/auth/me
+app.js:56 ✅ Permisos del usuario cargados: Object
+app.js:37 🔑 Permisos cargados: Array(5)
+app.js:94 🚀 Iniciando aplicación principal...
+app.js:109 🔐 Verificando permisos: Object
+app.js:117 ✅ Usuario tiene permisos de padrón - inicializando componente...
+PadronComponent.js:20 🖥️ Inicializando componente de Padrón...
+PadronComponent.js:21   - Container ID: padron-container
+PadronComponent.js:29 ✅ Container encontrado: <div id=​"padron-container" class=​"padron-electoral-container">​…​</div>​
+PadronComponent.js:32 🔍 Verificando conexión con API...
+ApiService.js:365 🔍 Verificando estado de API...
+ApiService.js:369   - URL de health: https://gateway-service-6sps.onrender.com/health
+ApiService.js:379   - Response status: 200
+ApiService.js:380   - Response ok: true
+ApiService.js:384   - Health data: Object
+PadronComponent.js:35 📡 Estado API: ✅ DISPONIBLE
+PadronComponent.js:49 🎨 Creando interfaz del padrón...
+PadronComponent.js:52 ✅ Interfaz creada
+PadronComponent.js:58 🎪 Inicializando eventos...
+PadronComponent.js:61 ✅ Eventos inicializados
+PadronComponent.js:66 📊 Cargando datos...
+ApiService.js:41 🌐 API Request: GET https://gateway-service-6sps.onrender.com/api/padron/filtros
+api/padron/filtros:1  Failed to load resource: the server responded with a status of 429 ()
+ApiService.js:71 ⚠️ Límite de solicitudes alcanzado en gateway
+request @ ApiService.js:71
+PadronComponent.js:900 Error al cargar filtros: TypeError: Cannot read properties of null (reading 'circuitos')
+    at PadronComponent.cargarFiltrosDisponibles (PadronComponent.js:897:25)
+    at async PadronComponent.cargarDatos (PadronComponent.js:479:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+cargarFiltrosDisponibles @ PadronComponent.js:900
+ApiService.js:41 🌐 API Request: GET https://gateway-service-6sps.onrender.com/api/padron/estadisticas
+api/padron/estadisticas:1  Failed to load resource: the server responded with a status of 429 ()
+ApiService.js:71 ⚠️ Límite de solicitudes alcanzado en gateway
+request @ ApiService.js:71
+PadronComponent.js:734 Error al cargar estadísticas: TypeError: Cannot read properties of null (reading 'totalVotantes')
+    at PadronComponent.actualizarEstadisticasRapidas (PadronComponent.js:681:62)
+    at async PadronComponent.cargarDatos (PadronComponent.js:482:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+actualizarEstadisticasRapidas @ PadronComponent.js:734
+ApiService.js:41 🌐 API Request: GET https://gateway-service-6sps.onrender.com/api/padron/votantes?pagina=1&limite=50&ordenCampo=apellido&ordenDireccion=asc
+api/padron/votantes?pagina=1&limite=50&ordenCampo=apellido&ordenDireccion=asc:1  Failed to load resource: the server responded with a status of 429 ()
+ApiService.js:71 ⚠️ Límite de solicitudes alcanzado en gateway
+request @ ApiService.js:71
+PadronComponent.js:1480 Error cargando detalles, continuando sin ellos: TypeError: Cannot read properties of null (reading 'length')
+    at PadronComponent.enriquecerConDetalles (PadronComponent.js:1452:42)
+    at PadronComponent.actualizarTabla (PadronComponent.js:512:52)
+    at async PadronComponent.cargarDatos (PadronComponent.js:485:13)
+    at async PadronComponent.init (PadronComponent.js:68:13)
+    at async App.initMainApp (app.js:119:38)
+    at async App.init (app.js:40:9)
+enriquecerConDetalles @ PadronComponent.js:1480
+PadronComponent.js:69 ✅ Datos cargados
+PadronComponent.js:75 ✅ Componente de Padrón inicializado correctamente
+app.js:121 ✅ Padrón inicializado correctamente
+app.js:142 🎯 Aplicación principal inicializada
+app.js:42 🎉 Aplicación iniciada correctamente

@@ -1256,6 +1256,33 @@ select.form-input {
     color: var(--padron-primary);
 }
 
+.padron-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    background: rgba(212, 151, 38, 0.12);
+    border: 1px solid var(--padron-warning);
+    border-radius: var(--ds-radius-md, 8px);
+    color: var(--padron-primary);
+    box-shadow: var(--padron-shadow);
+}
+
+.padron-banner.hidden {
+    display: none;
+}
+
+.padron-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.padron-banner i {
+    color: var(--padron-warning);
+}
 .import-format code {
     font-family: monospace;
     font-size: 0.875rem;
