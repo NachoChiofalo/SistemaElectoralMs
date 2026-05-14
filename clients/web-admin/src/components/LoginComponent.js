@@ -5,6 +5,8 @@ class LoginComponent {
     constructor() {
         this.element = null;
         this.isLoading = false;
+        this.cooldownTimerId = null;
+        this.cooldownRemaining = 0;
     }
 
     /**
@@ -103,7 +105,7 @@ class LoginComponent {
     async handleLogin(e) {
         e.preventDefault();
 
-        if (this.isLoading) return;
+        if (this.isLoading || this.cooldownTimerId) return;
 
         const form = e.target.closest('form');
         const formData = new FormData(form);
@@ -117,6 +119,8 @@ class LoginComponent {
 
         this.setLoading(true);
         this.hideError();
+
+        let cooldownSeconds = null;
 
         try {
             const result = await window.authService.login(username, password);
@@ -135,8 +139,14 @@ class LoginComponent {
         } catch (error) {
             console.error('❌ Error en login:', error);
             this.showError(error.message || 'Error al iniciar sesión');
+            if (error.rateLimited) {
+                cooldownSeconds = Number.isFinite(error.retryAfter) ? error.retryAfter : 10;
+            }
         } finally {
             this.setLoading(false);
+            if (cooldownSeconds) {
+                this.startRateLimitCooldown(cooldownSeconds);
+            }
         }
     }
 
@@ -157,6 +167,35 @@ class LoginComponent {
             btn.disabled = false;
             inputs.forEach(input => input.disabled = false);
         }
+    }
+
+    startRateLimitCooldown(seconds) {
+        const btn = this.element.querySelector('#loginBtn');
+        if (!btn) return;
+
+        if (this.cooldownTimerId) {
+            clearInterval(this.cooldownTimerId);
+            this.cooldownTimerId = null;
+        }
+
+        this.cooldownRemaining = Math.max(1, Math.ceil(seconds));
+        btn.disabled = true;
+
+        const updateButton = () => {
+            if (this.cooldownRemaining <= 0) {
+                clearInterval(this.cooldownTimerId);
+                this.cooldownTimerId = null;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+                btn.disabled = false;
+                return;
+            }
+
+            btn.innerHTML = `<i class="fas fa-hourglass-half"></i> Reintentar en ${this.cooldownRemaining}s`;
+            this.cooldownRemaining -= 1;
+        };
+
+        updateButton();
+        this.cooldownTimerId = setInterval(updateButton, 1000);
     }
 
     /**

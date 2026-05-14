@@ -69,7 +69,14 @@ class ApiService {
                 // Manejo suave de rate limiting para no romper la UI
                 if (response.status === 429) {
                     console.warn('⚠️ Límite de solicitudes alcanzado en gateway');
-                    return { success: false, data: null, rateLimited: true };
+                    const retryAfterHeader = response.headers.get('Retry-After');
+                    const retryAfter = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : null;
+                    return {
+                        success: false,
+                        data: null,
+                        rateLimited: true,
+                        retryAfter: Number.isFinite(retryAfter) ? retryAfter : null
+                    };
                 }
 
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);

@@ -130,6 +130,19 @@ class AuthService {
                 body: JSON.stringify({ username, password })
             });
 
+            if (response?.rateLimited) {
+                const retryAfter = Number.isFinite(response.retryAfter) ? response.retryAfter : null;
+                const retryText = retryAfter ? ` Reintenta en ${retryAfter}s.` : ' Reintenta en unos segundos.';
+                const error = new Error(`Limite de solicitudes alcanzado.${retryText}`);
+                error.rateLimited = true;
+                error.retryAfter = retryAfter;
+                throw error;
+            }
+
+            if (!response) {
+                throw new Error('No se pudo conectar con el servidor de autenticacion');
+            }
+
             if (response.success) {
                 this.token = response.data.accessToken;
                 this.user = response.data.user;
@@ -196,6 +209,11 @@ class AuthService {
             const response = await this.api.request('/api/auth/verify', {
                 method: 'POST'
             });
+
+            if (response?.rateLimited) {
+                console.warn('⚠️ Verificacion de token limitada por el gateway');
+                return true;
+            }
 
             if (response.success && response.data) {
                 // Actualizar datos del usuario
