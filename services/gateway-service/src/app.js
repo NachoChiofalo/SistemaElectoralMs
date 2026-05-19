@@ -23,6 +23,15 @@ class GatewayApp {
   }
 
   initializeMiddleware() {
+    // Trust proxy for accurate client IPs behind a load balancer/reverse proxy
+    const trustProxyEnv = process.env.TRUST_PROXY;
+    const trustProxySetting = trustProxyEnv === undefined
+      ? 1
+      : (trustProxyEnv === 'true' ? true
+        : (trustProxyEnv === 'false' ? false
+          : (/^\d+$/.test(trustProxyEnv) ? Number(trustProxyEnv) : trustProxyEnv)));
+    this.app.set('trust proxy', trustProxySetting);
+
     // Seguridad - configurar helmet para permitir inline scripts/styles del frontend
     this.app.use(helmet({
       contentSecurityPolicy: false,
