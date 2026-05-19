@@ -96,33 +96,52 @@ class PadronController {
                 limite: limite
             };
 
+            const includeDetalles = req.query.includeDetalles === 'true' || req.query.includeDetalles === '1';
+
             const resultado = await this.padronService.obtenerVotantesPaginados(pagina, filtros);
             
             // Formatear datos para el frontend: separar votante y relevamiento
-            const votantesFormateados = resultado.votantes.map(row => ({
-                votante: {
-                    dni: row.dni,
-                    anioNac: row.anio_nac,
-                    apellido: row.apellido,
-                    nombre: row.nombre,
-                    domicilio: row.domicilio,
-                    tipoEjempl: row.tipo_ejemplar,
-                    circuito: row.circuito,
-                    sexo: row.sexo,
-                    edad: row.edad
-                },
-                relevamiento: row.opcion_politica ? {
+            const votantesFormateados = resultado.votantes.map(row => {
+                const relevamiento = row.opcion_politica ? {
                     opcionPolitica: row.opcion_politica,
                     observacion: row.observacion || '',
                     telefono: row.telefono || '',
                     fechaRelevamiento: row.fecha_relevamiento
-                } : null
-            }));
+                } : null;
+
+                const detalle = includeDetalles && row.relevamiento_dni ? {
+                    dni: row.dni,
+                    esNuevoVotante: !!row.es_nuevo_votante,
+                    estaFallecido: !!row.esta_fallecido,
+                    esEmpleadoMunicipal: !!row.es_empleado_municipal,
+                    recibeAyudaSocial: !!row.recibe_ayuda_social,
+                    observacionesDetalle: row.observaciones_detalle || '',
+                    fechaCreacion: row.fecha_detalle || row.fecha_relevamiento || null,
+                    fechaModificacion: row.fecha_detalle || row.fecha_relevamiento || null
+                } : null;
+
+                return {
+                    votante: {
+                        dni: row.dni,
+                        anioNac: row.anio_nac,
+                        apellido: row.apellido,
+                        nombre: row.nombre,
+                        domicilio: row.domicilio,
+                        tipoEjempl: row.tipo_ejemplar,
+                        circuito: row.circuito,
+                        sexo: row.sexo,
+                        edad: row.edad
+                    },
+                    relevamiento,
+                    ...(includeDetalles ? { detalle } : {})
+                };
+            });
             
             // Formatear respuesta compatible con frontend original
             res.json({
                 success: true,
                 data: votantesFormateados,
+                detallesIncluidos: includeDetalles,
                 paginacion: {
                     paginaActual: resultado.pagina,
                     totalPaginas: resultado.totalPaginas,

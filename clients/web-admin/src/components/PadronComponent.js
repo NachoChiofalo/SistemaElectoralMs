@@ -523,7 +523,8 @@ class PadronComponent {
                 limite: document.getElementById('registros-por-pagina').value,
                 ...this.estado.filtros,
                 ordenCampo: this.estado.ordenamiento.campo,
-                ordenDireccion: this.estado.ordenamiento.direccion
+                ordenDireccion: this.estado.ordenamiento.direccion,
+                includeDetalles: true
             };
 
             const respuesta = await window.apiService.obtenerVotantes(parametros);
@@ -544,8 +545,10 @@ class PadronComponent {
                 return false;
             }
             
-            // Cargar detalles de votantes si están disponibles
-            const votantesConDetalles = await this.enriquecerConDetalles(respuesta.data);
+            const detallesIncluidos = respuesta?.detallesIncluidos === true;
+            const votantesConDetalles = detallesIncluidos
+                ? respuesta.data
+                : await this.enriquecerConDetalles(respuesta.data);
             
             this.renderizarTabla(votantesConDetalles);
             this.renderizarPaginacion(respuesta.paginacion);

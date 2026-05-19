@@ -204,7 +204,19 @@ class Database {
         params.push(limite, offset);
 
         const queryText = `
-            SELECT v.*, r.opcion_politica, r.fecha_relevamiento, r.observacion, r.telefono
+            SELECT
+                v.*,
+                r.dni AS relevamiento_dni,
+                r.opcion_politica,
+                r.fecha_relevamiento,
+                r.observacion,
+                r.telefono,
+                r.es_nuevo_votante,
+                r.esta_fallecido,
+                r.es_empleado_municipal,
+                r.recibe_ayuda_social,
+                r.observaciones_detalle,
+                r.fecha_detalle
             FROM padron.votantes v
             LEFT JOIN padron.relevamientos r ON v.dni = r.dni
             ${whereClause}
