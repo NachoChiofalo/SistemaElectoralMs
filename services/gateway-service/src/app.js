@@ -56,7 +56,11 @@ class GatewayApp {
     // Rate limiting más amplio para evitar 429 en UI
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutos
-      max: 1000, // ampliar límite para evitar bloqueos en lotes de requests
+      max: 10000, // Límite incrementado masivamente para evitar bloqueos falsos
+      keyGenerator: (req) => {
+        // Usar headers de proxy si existen, caso contrario req.ip
+        return req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.ip;
+      },
       message: {
         success: false,
         message: 'Demasiadas solicitudes, intente más tarde'
