@@ -53,20 +53,19 @@ class GatewayApp {
       credentials: true
     }));
 
-    // Rate limiting más amplio para evitar 429 en UI
-    const limiter = rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutos
-      max: 10000, // Límite incrementado masivamente para evitar bloqueos falsos
-      keyGenerator: (req) => {
-        // Usar headers de proxy si existen, caso contrario req.ip
-        return req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.ip;
-      },
-      message: {
-        success: false,
-        message: 'Demasiadas solicitudes, intente más tarde'
-      }
-    });
-    this.app.use('/api/', limiter);
+    // Rate limiting desactivado temporalmente debido a problemas con proxies en Render
+    // const limiter = rateLimit({
+    //   windowMs: 15 * 60 * 1000,
+    //   max: 10000,
+    //   keyGenerator: (req) => {
+    //     return req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.ip;
+    //   },
+    //   message: {
+    //     success: false,
+    //     message: 'Demasiadas solicitudes, intente más tarde'
+    //   }
+    // });
+    // this.app.use('/api/', limiter);
 
     // Logging
     this.app.use(morgan('combined'));
