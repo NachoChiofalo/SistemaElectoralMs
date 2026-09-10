@@ -24,8 +24,12 @@ pool: hasta 120 conexiones potenciales contra Supabase.
 **Los errores se lanzan, no se responden.** `errores.*` de `core/errors` + `asyncHandler`.
 Nada de `res.status(500).json(...)` dentro de un handler.
 
-**El esquema se cambia con migraciones.** Nada de `CREATE TABLE IF NOT EXISTS` en el
-arranque. Una migración aplicada no se edita: se agrega la siguiente.
+**El esquema se cambia con migraciones, y toda migración tiene que ser idempotente**
+(`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`). Verificado: `npm run migrate` corrido
+directo contra una base con las tablas y datos del sistema viejo no tocó lo existente
+y sembró lo que faltaba. Eso es lo que permite no usar `migrate:adopt` — que existe
+pero es más arriesgado, porque salta migraciones enteras sin ejecutarlas. Una
+migración aplicada no se edita: se agrega la siguiente.
 
 **Toda ruta de datos exige token.** Los módulos declaran `requiresAuth: true` y el
 factory lo aplica a todo el router, para que una ruta nueva nazca protegida.

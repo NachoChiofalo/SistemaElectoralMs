@@ -125,13 +125,43 @@ antes que servir contra un esquema desactualizado.
 ### Primera vez contra la base existente
 
 La base de Supabase ya tiene todas las tablas, creadas por el código anterior con
-`CREATE TABLE IF NOT EXISTS` en cada boot. Las migraciones `001` describen ese estado,
-así que hay que adoptarlas en lugar de ejecutarlas:
+`CREATE TABLE IF NOT EXISTS` en cada boot. Cada migración de este proyecto usa
+`IF NOT EXISTS` / `ON CONFLICT DO NOTHING` en cada sentencia, así que **correr
+`npm run migrate` directo es seguro** contra la base existente: no toca las tablas
+ni las filas que ya están, y aplica lo que sí es nuevo (roles/permisos si faltan,
+índices, la extensión `pg_trgm`).
 
 ```bash
-npm run migrate:adopt     # UNA sola vez, contra la base que ya tiene el esquema
-npm run migrate           # aplica lo que sí es nuevo (índices)
-npm run migrate:status    # verificar
+npm run migrate           # seguro contra una base con datos existentes
+npm run migrate:status    # verificar qué se aplicó
+```
+
+Verificado: se probó contra una base con un usuario `admin` preexistente y las
+tablas de `roles`/`usuarios` ya creadas — el usuario no se modificó, y `permisos` y
+`rol_permisos` (que estaban vacíos) se poblaron correctamente.
+
+Existe también `npm run migrate:adopt`, que marca las migraciones de un módulo como
+aplicadas **sin ejecutar su SQL**. No hace falta para este conjunto de migraciones
+—son todas idempotentes— y de hecho es más arriesgado: si una migración adoptada
+también sembraba datos (como `002_roles_y_permisos.sql`), esos datos nunca se
+insertan. Queda disponible solo para el caso de que una migración futura no sea
+idempotente y haga falta saltarla a mano.
+
+---
+
+## Tests de migraciones contra Postgres real
+
+`npm test` no necesita base — 55 tests corren con mocks. Hay 8 tests adicionales que
+sí requieren un Postgres real y se saltan automáticamente si no está disponible;
+verifican justamente lo que sostiene la recomendación de arriba (`npm run migrate`
+directo, sin `adopt`):
+
+```bash
+docker run -d --name pg-test -p 55432:5432 \
+  -e POSTGRES_DB=test_migraciones -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test \
+  postgres:15-alpine
+
+DATABASE_URL_TEST=postgresql://test:test@localhost:55432/test_migraciones npm test
 ```
 
 ---
