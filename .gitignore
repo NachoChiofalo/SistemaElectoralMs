@@ -80,3 +80,5 @@ settings.local.json
 
 >>>>>>> b8f9cde6d3ce21c986abafb9f0768ecba23c9d55
 tmpclaude-*
+# snapshots de contrato (se generan localmente)
+scripts/snapshots/
