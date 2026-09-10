@@ -16,4 +16,5 @@ module.exports = [
   // auditoria va primero: auth y padron consumen su servicio.
   require('./auditoria/module'),
   require('./auth/module'),
+  require('./padron/module'),
 ];
