@@ -13,7 +13,8 @@
     "migrate:status": "node scripts/migrate.js status",
     "migrate:adopt": "node scripts/migrate.js adopt",
     "snapshot": "node scripts/api-snapshot.js",
-    "test": "node --test \"test/**/*.test.js\""
+    "test": "node --test \"test/**/*.test.js\"",
+    "seed:usuarios": "node scripts/seed-usuarios.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

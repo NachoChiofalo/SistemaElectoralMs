@@ -13,5 +13,7 @@
  */
 
 module.exports = [
-  // Los modulos se van agregando aca a medida que se migran.
+  // auditoria va primero: auth y padron consumen su servicio.
+  require('./auditoria/module'),
+  require('./auth/module'),
 ];
