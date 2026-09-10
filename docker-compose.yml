@@ -1,140 +1,72 @@
+# Entorno local del Sistema Electoral.
+#
+# De seis servicios (gateway, auth, padron, web-admin, postgres, redis) a uno.
+#
+# La base de produccion vive en Supabase: para trabajar contra ella alcanza con poner
+# DATABASE_URL en el .env y levantar solo `app`. El servicio `postgres` de abajo esta
+# en un perfil opcional, para desarrollar sin conexion o sin tocar datos reales.
+#
+#   docker compose up app                      -> contra Supabase (DATABASE_URL)
+#   docker compose --profile local up          -> contra un Postgres en el contenedor
+
 services:
-  # API Gateway (Punto de entrada único)
-  api-gateway:
-    build: ./services/gateway-service
-    container_name: api-gateway
+  app:
+    build: .
+    container_name: sistema-electoral
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - GATEWAY_PORT=${GATEWAY_PORT:-8080}
-      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL:-http://auth-service:3002}
-      - PADRON_SERVICE_URL=${PADRON_SERVICE_URL:-http://padron-service:3001}
-      - WEB_ADMIN_URL=${WEB_ADMIN_URL:-http://web-admin:3000}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
-    depends_on:
-      - auth-service
-      - padron-service
-      - web-admin
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 8080
+      DATABASE_URL: ${DATABASE_URL:-}
+      # Solo se usan si DATABASE_URL esta vacio (perfil local).
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-sistema_electoral}
+      DB_USER: ${DB_USER:-electoral_user}
+      DB_PASSWORD: ${DB_PASSWORD:-electoral_password}
+      DB_POOL_MAX: ${DB_POOL_MAX:-8}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-2h}
+      REFRESH_TOKEN_EXPIRATION: ${REFRESH_TOKEN_EXPIRATION:-7d}
+      INACTIVITY_TIMEOUT_MINUTES: ${INACTIVITY_TIMEOUT_MINUTES:-30}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
     restart: unless-stopped
+    # Un solo proceso es un punto unico de falla: el reinicio automatico y el
+    # healthcheck son lo que lo compensan.
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://127.0.0.1:8080/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\""]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 384M
 
-  # Servicio de Autenticación
-  auth-service:
-    build: ./services/auth-service
-    container_name: auth-service
-    ports:
-      - "3002:3002"
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - AUTH_PORT=${AUTH_PORT:-3002}
-      - DATABASE_URL=${DATABASE_URL:-}
-      - DB_HOST=${DB_HOST:-postgres}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_NAME=${DB_NAME:-sistema_electoral}
-      - DB_USER=${DB_USER:-electoral_user}
-      - DB_PASSWORD=${DB_PASSWORD:-electoral_password}
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      - JWT_EXPIRATION=${JWT_EXPIRATION:-24h}
-      - REFRESH_TOKEN_EXPIRATION=${REFRESH_TOKEN_EXPIRATION:-7d}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3002/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Servicio de Padrón Electoral
-  padron-service:
-    build: ./services/padron-service
-    container_name: padron-service
-    ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - PORT=${PADRON_PORT:-3001}
-      - DATABASE_URL=${DATABASE_URL:-}
-      - DB_HOST=${DB_HOST:-postgres}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_NAME=${DB_NAME:-sistema_electoral}
-      - DB_USER=${DB_USER:-electoral_user}
-      - DB_PASSWORD=${DB_PASSWORD:-electoral_password}
-    volumes:
-      - ./services/padron-service/uploads:/app/uploads
-      - padron_uploads:/app/uploads
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Cliente Web de Administración
-  web-admin:
-    build: ./clients/web-admin
-    container_name: web-admin-client
-    ports:
-      - "3000:3000"
-    depends_on:
-      - padron-service
-      - auth-service
-    restart: unless-stopped
-
-  # Base de datos (PostgreSQL) - Para futuro uso
   postgres:
+    profiles: ["local"]
     image: postgres:15-alpine
     container_name: electoral-db
     environment:
-      - POSTGRES_DB=${DB_NAME:-sistema_electoral}
-      - POSTGRES_USER=${DB_USER:-electoral_user}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-electoral_password}
+      POSTGRES_DB: ${DB_NAME:-sistema_electoral}
+      POSTGRES_USER: ${DB_USER:-electoral_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-electoral_password}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-electoral_user} -d ${DB_NAME:-sistema_electoral}"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 30s
 
-  # Redis para caché (opcional, para futuro uso)
-  redis:
-    image: redis:7-alpine
-    container_name: electoral-redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-
+# Se elimino el servicio redis: estaba declarado y ningun servicio lo usaba. La cache
+# de sesiones y de resultados vive en el proceso, que es correcto mientras haya una
+# sola instancia.
 volumes:
   postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-  padron_uploads:
-    driver: local
-
-networks:
-  default:
-    name: electoral-network
-    driver: bridge

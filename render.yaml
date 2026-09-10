@@ -1,61 +1,53 @@
-# Render Blueprint - Sistema Electoral Microservicios
-# Docs: https://docs.render.com/blueprint-spec
+# Render Blueprint - Sistema Electoral
+# https://render.com/docs/blueprint-spec
+#
+# De tres servicios web (auth, padron, gateway) a uno. La base sigue siendo Supabase,
+# por DATABASE_URL.
 
 services:
-  # Auth Service
   - type: web
-    name: auth-service
-    runtime: docker
-    plan: free
-    dockerfilePath: ./services/auth-service/Dockerfile
-    dockerContext: ./services/auth-service
-    healthCheckPath: /health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: "3002"
-      - key: DATABASE_URL
-        sync: false
-      - key: JWT_SECRET
-        generateValue: true
-      - key: JWT_EXPIRATION
-        value: "24h"
-      - key: REFRESH_TOKEN_EXPIRATION
-        value: "7d"
-
-  # Padron Service
-  - type: web
-    name: padron-service
-    runtime: docker
-    plan: free
-    dockerfilePath: ./services/padron-service/Dockerfile
-    dockerContext: ./services/padron-service
-    healthCheckPath: /health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: "3001"
-      - key: DATABASE_URL
-        sync: false
-
-  # API Gateway (punto de entrada publico, incluye web-admin embebido)
-  - type: web
-    name: gateway-service
+    name: sistema-electoral
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health
+
+    # Las migraciones corren antes de arrancar, no dentro del proceso. Si fallan, el
+    # deploy se detiene en lugar de levantar contra un esquema desactualizado.
+    preDeployCommand: npm run migrate
+
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: "8080"
-      - key: AUTH_SERVICE_URL
+
+      # Cadena de conexion de Supabase. Conviene usar el pooler (puerto 6543) en lugar
+      # de la conexion directa: Render abre y cierra instancias y el pooler absorbe eso.
+      - key: DATABASE_URL
         sync: false
-      - key: PADRON_SERVICE_URL
-        sync: false
+
+      - key: DB_POOL_MAX
+        value: "8"
+
       - key: JWT_SECRET
         sync: false
+      - key: JWT_EXPIRATION
+        value: "2h"
+      - key: REFRESH_TOKEN_EXPIRATION
+        value: "7d"
+      - key: INACTIVITY_TIMEOUT_MINUTES
+        value: "30"
+
+      # Render termina TLS en su proxy: un solo salto por delante.
+      - key: TRUST_PROXY
+        value: "1"
+
+      - key: LOG_LEVEL
+        value: info
+
+      # Ajustar al plan contratado. En el plan free (512 MB) 256 deja margen para el
+      # resto del proceso.
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=256"
