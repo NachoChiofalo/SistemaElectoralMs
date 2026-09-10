@@ -13,6 +13,32 @@ const { contarPendientes } = require('./core/migrations');
 const { crearApp } = require('./core/app');
 const modulos = require('./modules');
 
+const INTENTOS_CONEXION = 5;
+
+/**
+ * Conecta reintentando con espera creciente.
+ *
+ * Supabase puede tardar en aceptar conexiones justo despues de un despliegue, o tener
+ * un corte breve. Abortar al primer intento convertiria un hipo de tres segundos en un
+ * deploy fallido. Despues de los reintentos si se aborta: arrancar sin base no sirve
+ * de nada y es mejor que el orquestador lo vea.
+ */
+async function conectarConReintentos() {
+  for (let intento = 1; ; intento += 1) {
+    try {
+      return await db.verificar();
+    } catch (error) {
+      if (intento >= INTENTOS_CONEXION) throw error;
+
+      const espera = Math.min(1000 * 2 ** (intento - 1), 8000);
+      logger.warn(`Intento ${intento}/${INTENTOS_CONEXION} de conexion fallido, reintentando en ${espera} ms`, {
+        error: error.message,
+      });
+      await new Promise((resolve) => { setTimeout(resolve, espera); });
+    }
+  }
+}
+
 async function arrancar() {
   const { errores, avisos } = validar();
   avisos.forEach((aviso) => logger.warn(`Configuracion: ${aviso}`));
@@ -23,7 +49,7 @@ async function arrancar() {
   }
 
   logger.info(`Conectando a ${db.descripcion}`);
-  const latencia = await db.verificar();
+  const latencia = await conectarConReintentos();
   logger.info(`Base de datos conectada (${latencia} ms, pool max ${config.db.max})`);
 
   // Las migraciones ya no corren en el arranque: son un paso explicito del deploy

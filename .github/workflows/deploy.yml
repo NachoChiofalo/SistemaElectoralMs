@@ -1,4 +1,8 @@
 # Pipeline de CI para Sistema Electoral
+#
+# Antes instalaba y testeaba cuatro paquetes por separado, y cada paso terminaba en
+# `|| echo "Tests not configured yet"`, asi que un test roto no rompia el build.
+# Ahora hay un solo paquete y los fallos fallan.
 name: CI
 
 on:
@@ -10,59 +14,81 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: Test and Validate
+    name: Tests y validacion
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: |
-          services/*/package-lock.json
-          clients/*/package-lock.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-    - name: Install dependencies - Auth Service
-      run: |
-        cd services/auth-service
-        npm ci
+      - name: Instalar dependencias
+        run: npm ci
 
-    - name: Install dependencies - Gateway Service
-      run: |
-        cd services/gateway-service
-        npm ci
+      - name: Tests
+        run: npm test
 
-    - name: Install dependencies - Padron Service
-      run: |
-        cd services/padron-service
-        npm ci
+      - name: Auditoria de dependencias de produccion
+        run: npm audit --omit=dev --audit-level=moderate
 
-    - name: Install dependencies - Web Admin
-      run: |
-        cd clients/web-admin
-        npm install
+      - name: Validar build de la imagen
+        run: docker build -t sistema-electoral:ci .
 
-    - name: Run tests - Auth Service
-      run: |
-        cd services/auth-service
-        npm test || echo "Tests not configured yet"
+      - name: Verificar que la imagen levanta y falla limpio sin base
+        run: |
+          # Sin base alcanzable el proceso reintenta y despues aborta: es la conducta
+          # buscada. Lo que se valida es que la imagen ejecute el codigo del proyecto
+          # y llegue hasta ese punto, en lugar de romper por un archivo que falta o
+          # una dependencia que no quedo en la imagen.
+          salida=$(docker run --rm \
+            -e JWT_SECRET=secreto-de-ci-suficientemente-largo-para-validar \
+            -e DB_HOST=inexistente \
+            -e DB_CONNECT_TIMEOUT_MS=1000 \
+            -e LOG_LEVEL=info \
+            sistema-electoral:ci 2>&1) && codigo=0 || codigo=$?
 
-    - name: Run tests - Gateway Service
-      run: |
-        cd services/gateway-service
-        npm test || echo "Tests not configured yet"
+          echo "$salida"
 
-    - name: Run tests - Padron Service
-      run: |
-        cd services/padron-service
-        npm test || echo "Tests not configured yet"
+          if [ "$codigo" -eq 0 ]; then
+            echo "Se esperaba que abortara sin base de datos"
+            exit 1
+          fi
 
-    - name: Validate Docker builds
-      run: |
-        docker build -t test-auth ./services/auth-service
-        docker build -t test-gateway ./services/gateway-service
-        docker build -t test-padron ./services/padron-service
-        docker build -t test-web ./clients/web-admin
+          echo "$salida" | grep -q "No se pudo arrancar" || {
+            echo "Fallo por un motivo distinto al esperado"
+            exit 1
+          }
+
+      - name: Verificar que responde con base disponible
+        run: |
+          docker run -d --name ci-db -p 5432:5432 \
+            -e POSTGRES_DB=sistema_electoral \
+            -e POSTGRES_USER=electoral_user \
+            -e POSTGRES_PASSWORD=electoral_password \
+            postgres:15-alpine
+
+          for i in $(seq 1 30); do
+            docker exec ci-db pg_isready -U electoral_user -d sistema_electoral && break
+            sleep 2
+          done
+
+          docker run -d --name ci-app --network host \
+            -e JWT_SECRET=secreto-de-ci-suficientemente-largo-para-validar \
+            -e DATABASE_URL=postgresql://electoral_user:electoral_password@localhost:5432/sistema_electoral \
+            sistema-electoral:ci sh -c "npm run migrate && node src/server.js"
+
+          for i in $(seq 1 30); do
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/health || true)
+            if [ "$codigo" = "200" ]; then
+              echo "El servidor respondio 200"
+              curl -s http://localhost:8080/health
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "El servidor no respondio a /health"
+          docker logs ci-app
+          exit 1
