@@ -19,6 +19,10 @@
  *   DATABASE_URL_TEST=postgresql://test:test@localhost:55432/test_migraciones npm test
  */
 
+// Igual que en el resto de los tests: evita que config.js cargue un .env local (que
+// podria tener una DATABASE_URL real) antes de que este archivo fije la suya propia.
+process.env.NODE_ENV = 'test';
+
 const test = require('node:test');
 const assert = require('node:assert/strict');
 

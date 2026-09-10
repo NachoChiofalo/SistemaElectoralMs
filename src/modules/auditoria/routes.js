@@ -1,14 +1,22 @@
 const express = require('express');
 const { asyncHandler, errores } = require('../../core/errors');
+const { requirePermission } = require('../../core/security/authorize');
 
 /**
  * Rutas de consulta de auditoria.
  *
  * Se mantienen bajo /api/padron/auditoria, que es donde las busca el frontend, aunque
  * el modulo ya no viva dentro de padron.
+ *
+ * El sistema anterior no gateaba estos endpoints por ningun permiso: cualquier
+ * usuario autenticado podia leer el registro completo (quien hizo que, con que IP,
+ * valores antes/despues). El frontend ya marca "Auditoria" como adminOnly en la
+ * navegacion (NavbarComponent.js) sin que el servidor lo exigiera. admin.system es
+ * el permiso declarado para este modulo en module.js; ahora se aplica de verdad.
  */
 function construirRutas(servicio) {
   const router = express.Router();
+  router.use(requirePermission('admin.system'));
 
   const enteroOpcional = (valor) => {
     if (valor === undefined || valor === '') return undefined;

@@ -5,7 +5,13 @@
  * levanta. Es preferible fallar en el arranque que descubrirlo en el primer login.
  */
 
-require('dotenv').config();
+// Los tests fijan las variables que necesitan a mano y esperan que NO exista conexion
+// a base salvo que la agreguen ellos mismos. Si se cargara .env aca, un .env local con
+// una DATABASE_URL real (de Supabase, por ejemplo) se colaria en cada test suite y
+// terminaria conectando a produccion sin que nadie lo pidiera.
+if (process.env.NODE_ENV !== 'test') {
+  require('dotenv').config();
+}
 
 const MINUTO = 60 * 1000;
 

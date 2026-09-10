@@ -5,8 +5,23 @@ const os = require('os');
 const path = require('path');
 
 const { asyncHandler, errores } = require('../../core/errors');
-const { requireAdmin } = require('../../core/security/authorize');
+const { requireAdmin, requirePermission } = require('../../core/security/authorize');
 const { exportar } = require('./exporter');
+
+/**
+ * Antes de esto, /api/padron solo exigia estar autenticado: el gateway importaba
+ * requirePermission pero nunca lo aplicaba a ninguna ruta, y el controlador solo
+ * verificaba rol === 'administrador' en los dos endpoints de exportar CSV. Cualquier
+ * usuario logueado, sin importar el rol, podia leer y editar el padron completo.
+ *
+ * Cada ruta de abajo declara ahora el permiso que realmente le corresponde segun
+ * migrations/002_roles_y_permisos.sql. exportar-relevamientos y exportar-padron
+ * mantienen requireAdmin, que es el unico control que el sistema anterior si tenia.
+ */
+const verPadron = requirePermission('padron.view');
+const editarPadron = requirePermission('padron.edit');
+const relevarPadron = requirePermission('padron.relevamiento');
+const verResultados = requirePermission('resultados.view');
 
 const LIMITE_CSV_BYTES = 25 * 1024 * 1024;
 
@@ -40,7 +55,7 @@ function construirRutas(padron, db) {
 
   // ==================== votantes ====================
 
-  router.get('/votantes', asyncHandler(async (req, res) => {
+  router.get('/votantes', verPadron, asyncHandler(async (req, res) => {
     const incluirDetalles = req.query.includeDetalles === 'true' || req.query.includeDetalles === '1';
 
     const resultado = await padron.votantesPaginados(entero(req.query.pagina, 1), {
@@ -69,7 +84,7 @@ function construirRutas(padron, db) {
     });
   }));
 
-  router.post('/votantes', asyncHandler(async (req, res) => {
+  router.post('/votantes', editarPadron, asyncHandler(async (req, res) => {
     const { dni, nombre, apellido } = req.body || {};
 
     if (!dni || !nombre || !apellido) {
@@ -80,17 +95,17 @@ function construirRutas(padron, db) {
     res.status(201).json({ success: true, message: 'Votante creado exitosamente', data: votante });
   }));
 
-  router.get('/votantes/:dni', asyncHandler(async (req, res) => {
+  router.get('/votantes/:dni', verPadron, asyncHandler(async (req, res) => {
     res.json(await padron.votantePorDni(req.params.dni));
   }));
 
   // ==================== relevamientos ====================
 
-  router.get('/relevamientos/:dni', asyncHandler(async (req, res) => {
+  router.get('/relevamientos/:dni', verPadron, asyncHandler(async (req, res) => {
     res.json({ success: true, data: await padron.relevamientoPorDni(req.params.dni) });
   }));
 
-  router.put('/relevamientos/:dni', asyncHandler(async (req, res) => {
+  router.put('/relevamientos/:dni', relevarPadron, asyncHandler(async (req, res) => {
     const { opcionPolitica, observacion, telefono } = req.body || {};
 
     if (!opcionPolitica) throw errores.solicitudInvalida('El campo opcionPolitica es requerido');
@@ -106,11 +121,11 @@ function construirRutas(padron, db) {
 
   // ==================== estado y configuracion ====================
 
-  router.get('/estado', asyncHandler(async (req, res) => {
+  router.get('/estado', verPadron, asyncHandler(async (req, res) => {
     res.json({ success: true, data: await padron.estado() });
   }));
 
-  router.get('/health', asyncHandler(async (req, res) => {
+  router.get('/health', verPadron, asyncHandler(async (req, res) => {
     const estado = await padron.estado();
     res.json({
       status: 'ok',
@@ -121,15 +136,15 @@ function construirRutas(padron, db) {
     });
   }));
 
-  router.get('/configuracion', (req, res) => {
+  router.get('/configuracion', verPadron, (req, res) => {
     res.json({ success: true, data: padron.configuracion() });
   });
 
-  router.get('/filtros', asyncHandler(async (req, res) => {
+  router.get('/filtros', verPadron, asyncHandler(async (req, res) => {
     res.json({ success: true, data: await padron.filtrosDisponibles() });
   }));
 
-  router.get('/estadisticas', asyncHandler(async (req, res) => {
+  router.get('/estadisticas', verPadron, asyncHandler(async (req, res) => {
     res.json({ success: true, data: await padron.estadisticas() });
   }));
 
@@ -144,14 +159,14 @@ function construirRutas(padron, db) {
   };
 
   for (const [ruta, calcular] of Object.entries(resultados)) {
-    router.get(`/resultados/${ruta}`, asyncHandler(async (req, res) => {
+    router.get(`/resultados/${ruta}`, verResultados, asyncHandler(async (req, res) => {
       res.json({ success: true, data: await calcular() });
     }));
   }
 
   // ==================== detalle de votante ====================
 
-  router.post('/detalle-votante', asyncHandler(async (req, res) => {
+  router.post('/detalle-votante', editarPadron, asyncHandler(async (req, res) => {
     const { dni, condiciones } = req.body || {};
     if (!dni) throw errores.solicitudInvalida('DNI es requerido');
 
@@ -162,7 +177,7 @@ function construirRutas(padron, db) {
    * Que un votante todavia no tenga detalle es normal, no un error: el frontend pide
    * este endpoint al abrir cualquier ficha. Por eso responde 200 con data: null.
    */
-  router.get('/detalle-votante/:dni', asyncHandler(async (req, res) => {
+  router.get('/detalle-votante/:dni', verPadron, asyncHandler(async (req, res) => {
     const detalle = await padron.detallePorDni(req.params.dni);
 
     if (!detalle) {
@@ -177,12 +192,12 @@ function construirRutas(padron, db) {
     return res.json({ success: true, data: detalle });
   }));
 
-  router.delete('/detalle-votante/:dni', asyncHandler(async (req, res) => {
+  router.delete('/detalle-votante/:dni', editarPadron, asyncHandler(async (req, res) => {
     await padron.eliminarDetalle(req.params.dni, req);
     res.json({ success: true, message: 'Detalle eliminado correctamente' });
   }));
 
-  router.get('/condiciones-especiales', asyncHandler(async (req, res) => {
+  router.get('/condiciones-especiales', verPadron, asyncHandler(async (req, res) => {
     const votantes = await padron.votantesConCondicionesEspeciales({
       esNuevoVotante: flagOpcional(req.query.esNuevoVotante),
       estaFallecido: flagOpcional(req.query.estaFallecido),
@@ -193,13 +208,19 @@ function construirRutas(padron, db) {
     res.json({ success: true, data: votantes });
   }));
 
-  router.get('/estadisticas-condiciones-especiales', asyncHandler(async (req, res) => {
-    res.json({ success: true, data: await padron.estadisticasCondicionesEspeciales() });
-  }));
+  // Estadistica agregada sobre condiciones especiales: le sirve tanto a quien
+  // releva (padron.view) como a quien solo mira resultados (resultados.view).
+  router.get(
+    '/estadisticas-condiciones-especiales',
+    requirePermission('padron.view', 'resultados.view'),
+    asyncHandler(async (req, res) => {
+      res.json({ success: true, data: await padron.estadisticasCondicionesEspeciales() });
+    }),
+  );
 
   // ==================== importar y exportar ====================
 
-  router.post('/importar-csv', subida.single('csv'), asyncHandler(async (req, res) => {
+  router.post('/importar-csv', editarPadron, subida.single('csv'), asyncHandler(async (req, res) => {
     if (!req.file) throw errores.solicitudInvalida('No se ha subido ningun archivo');
 
     try {
