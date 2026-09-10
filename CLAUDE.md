@@ -1,229 +1,122 @@
-# CLAUDE — Resumen del repositorio Sistema Electoral (Microservicios)
+# Sistema Electoral — guía para trabajar en este repo
 
-Este documento describe de forma concisa y práctica la arquitectura, componentes, endpoints principales, variables de entorno, comandos de desarrollo/despliegue y observaciones importantes del repositorio.
+Monolito modular en Node 20. Un proceso sirve la API y el frontend. La base es
+PostgreSQL en **Supabase** y no se cambia.
 
-**Nota:** Archivo generado automáticamente tras una revisión del código fuente. Para detalles por archivo, ver la sección "Archivos clave".
-
----
-
-## Resumen rápido
-
-- Arquitectura: Microservicios con API Gateway que enruta a `auth-service` (autenticación) y `padron-service` (padrón electoral). Cliente web `web-admin` alimenta la UI.
-- Contenedores: `docker-compose.yml` orquesta `api-gateway`, `auth-service`, `padron-service`, `web-admin`, `postgres` y `redis` (opcional).
-- Lenguaje principal: Node.js 18 (Express).
+Antes esto eran microservicios (`gateway-service`, `auth-service`, `padron-service` y
+un contenedor con `serve` para el frontend). Si encontrás documentación, ramas o
+comentarios que hablen de puertos 3001/3002/8080 separados, están desactualizados.
 
 ---
 
-## Diagrama (alto nivel)
+## Reglas que no se rompen
 
-Clients → API Gateway (8080) → { Auth Service (3002), Padron Service (3001) }
-Database: PostgreSQL 15 (5432)
-Web Admin (3000) puede ser servido directamente o a través del gateway.
+**No tocar el frontend para cambiar el backend.** `public/` consume `/api/*` con
+`window.location.origin`. Si un cambio de servidor obliga a editar `public/`, el cambio
+está mal planteado. La excepción es una feature nueva que necesite UI nueva.
 
----
+**Un solo pool de PostgreSQL.** Se recibe por inyección (`db` en `register`). Nunca
+`new Pool()`. La versión anterior tenía ocho instancias de `Database`, cada una con su
+pool: hasta 120 conexiones potenciales contra Supabase.
 
-## Servicios y responsabilidades
+**`process.env` solo se lee en `core/config.js`.** El resto usa `config`.
 
-- API Gateway (`services/gateway-service`)
-  - Punto de entrada único. Middleware: helmet, cors, compression, morgan, express-rate-limit.
-  - Proxy a `/api/auth` → Auth Service.
-  - Proxy a `/api/padron` → Padron Service (requiere `authMiddleware`).
-  - Servir archivos estáticos del cliente o proxy al `WEB_ADMIN_URL`.
-  - Health: `GET /health`.
-  - Archivos clave: `services/gateway-service/src/app.js`, `app-simple.js`, `middleware/*`.
+**Los errores se lanzan, no se responden.** `errores.*` de `core/errors` + `asyncHandler`.
+Nada de `res.status(500).json(...)` dentro de un handler.
 
-- Auth Service (`services/auth-service`)
-  - Maneja login, logout, refresh de tokens, verificación y endpoints de usuarios.
-  - Endpoints proxied por gateway en `/api/auth` y `/api/users`.
-  - Health: `GET /health`.
-  - Inicializa DB y usuarios por defecto (`/init-db` endpoint).
-  - Archivos clave: `services/auth-service/src/app.js`, `routes/authRoutes.js`, `routes/userRoutes.js`, `services/AuthService.js`, `database/Database.js`.
+**El esquema se cambia con migraciones.** Nada de `CREATE TABLE IF NOT EXISTS` en el
+arranque. Una migración aplicada no se edita: se agrega la siguiente.
 
-- Padron Service (`services/padron-service`)
-  - Gestión de votantes, relevamientos, import/export CSV, estadísticas y auditoría.
-  - Endpoints proxied por gateway en `/api/padron`.
-  - Rutas principales: `GET /votantes`, `GET /votantes/:dni`, `POST /importar-csv`, rutas de `resultados/*`, `detalle-votante/*`, `auditoria/*`, `GET /health`.
-  - Archivos clave: `services/padron-service/src/routes/padronRoutes.js`, `controllers/PadronController.js`, `database/Database.js`, `models/*.js`.
-
-- Web Admin Client (`clients/web-admin`)
-  - Frontend vanilla JS + HTML. Utiliza `window.apiService` y `window.authService` para comunicarse con la API.
-  - Archivos clave: `clients/web-admin/index.html`, `src/app.js`, `src/services/*`, `src/components/*`.
-
-- Shared & Scripts
-  - `shared/` contiene utilidades compartidas.
-  - `scripts/` incluye SQL y scripts de desarrollo (init-db, crear-usuarios, dev scripts).
+**Toda ruta de datos exige token.** Los módulos declaran `requiresAuth: true` y el
+factory lo aplica a todo el router, para que una ruta nueva nazca protegida.
 
 ---
 
-## Endpoints principales (resumen)
+## Mapa
 
-- Gateway
-  - `GET /health` — health del gateway
-  - Proxy:
-    - `/api/auth/*` → Auth Service
-    - `/api/users/*` → Auth Service (rutas protegidas)
-    - `/api/padron/*` → Padron Service (rutas protegidas)
+| Necesitás… | Está en |
+|---|---|
+| Config y validación de entorno | `src/core/config.js` |
+| El pool y los helpers de SQL | `src/core/db.js` |
+| Login, tokens, sesión única, inactividad | `src/core/security/` |
+| Middlewares de autenticación y permisos | `src/core/security/authorize.js` |
+| Montaje de la app y de los módulos | `src/core/app.js` |
+| La lista de módulos | `src/modules/index.js` |
+| Registro de auditoría | `src/modules/auditoria/` |
+| Usuarios, roles, permisos | `src/modules/auth/` |
+| Votantes, relevamientos, resultados | `src/modules/padron/` |
+| Importación por COPY | `src/modules/padron/importer.js` |
+| Exportación en streaming | `src/modules/padron/exporter.js` |
 
-- Auth Service (ejemplos)
-  - `POST /api/auth/login` → { accessToken, refreshToken, user }
-  - `POST /api/auth/logout`
-  - `POST /api/auth/verify`
-  - `POST /api/auth/refresh`
-  - `GET /api/auth/me` → información y permisos del usuario
-  - `GET /api/users/profile` — perfil (protegido)
-  - `POST /api/users` — crear usuario (admin)
-
-- Padron Service (ejemplos)
-  - `POST /api/padron/importar-csv` — subir CSV con `multipart/form-data` (campo `csv`)
-  - `GET /api/padron/votantes` — list paginada y con filtros
-  - `GET /api/padron/votantes/:dni` — obtener votante
-  - `PUT /api/padron/relevamientos/:dni` — actualizar relevamiento
-  - `GET /api/padron/estadisticas` — estadísticas básicas
-  - `GET /api/padron/resultados/por-sexo`, `/por-rango-etario`, `/por-circuito` — resultados
-  - `GET /api/padron/health` — health del servicio
+Cada módulo sigue el mismo corte: `routes` (HTTP) → `service` (reglas) → `repository`
+(SQL). `routes` no escribe SQL; `repository` no conoce `req`/`res`.
 
 ---
 
-## Variables de entorno más relevantes
-
-(Se usan tanto en `docker-compose.yml` como en `services/*/.env`)
-
-- Gateway
-  - `GATEWAY_PORT` (8080 por defecto)
-  - `AUTH_SERVICE_URL` — URL del Auth Service
-  - `PADRON_SERVICE_URL` — URL del Padron Service
-  - `WEB_ADMIN_URL` — URL del cliente web en desarrollo (opcional)
-  - `FRONTEND_URL`, `PUBLIC_EXTERNAL_URL`, `RENDER_EXTERNAL_URL`
-
-- Auth & Padron
-  - `DATABASE_URL` (recomendado: Supabase/Remote Postgres)
-  - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-  - `JWT_SECRET`, `JWT_EXPIRATION`, `REFRESH_TOKEN_EXPIRATION`
-
-- Postgres
-  - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
-
----
-
-## Base de datos — esquema y tablas importantes
-
-- Schemas/tables (padron-service crea `padron` schema):
-  - `padron.votantes` — DNI (PK), nombre, apellido, ano_nac, circuito, sexo, edad, domicilio
-  - `padron.relevamientos` — id, dni (FK), opcion_politica, observaciones, telefono, flags
-  - `padron.auditoria` — registros de cambios (usuario, operacion, entidad, antes/despues, ip)
-- Auth-service maneja tablas: `usuarios`, `roles`, `permisos`, `refresh_tokens`, `token_blacklist` (según README y código).
-
----
-
-## Cómo levantar el entorno (rápido)
-
-Con Docker Compose (recomendado):
+## Comandos
 
 ```bash
-# desde la raíz del repo
-docker-compose up -d --build
-# Ver logs
-docker-compose logs -f api-gateway
-```
-
-En desarrollo sin Docker (por servicio):
-
-```bash
-# Gateway
-cd services/gateway-service
-npm install
-node src/app.js
-
-# Auth
-cd services/auth-service
-npm install
-node src/app.js
-
-# Padron
-cd services/padron-service
-npm install
-node src/app.js
-
-# Web Admin (cliente estático)
-cd clients/web-admin
-# suele ser solo archivos estáticos, o usar un servidor estático
+npm run dev              # con --watch
+npm test                 # 55 tests, no necesitan base
+npm run migrate:status   # qué está aplicado
+npm run migrate          # aplicar pendientes
+npm run seed:usuarios    # crear el administrador
 ```
 
 ---
 
-## Observaciones y recomendaciones (buenas prácticas y riesgos)
+## Dónde está el rendimiento
 
-- Seguridad
-  - `JWT_SECRET` por defecto debe cambiarse en producción.
-  - Asegurar `DATABASE_URL` con SSL y `rejectUnauthorized` en producción.
-  - Revisar exposición de `/init-db` (en `auth-service`) — debe estar protegida o deshabilitada en prod.
+El sistema corre en un servidor chico. Tres cosas cargan con casi todo el ahorro; antes
+de tocarlas, entender por qué son como son.
 
-- Operación
-  - Gateway añade headers `X-User-*` forwardeando identidad; validar que downstream confíe en el gateway cuando se usa en red privada.
-  - El rate limiter en gateway permite alto throughput (1000 por 15min). Ajustar por entorno.
+**`core/security/sessions.js`.** Antes cada request protegido hacía un salto HTTP al
+auth-service más cuatro consultas (blacklist, sesión activa, `UPDATE last_activity`,
+usuario). Ahora es `jwt.verify` en proceso más una caché en memoria, y `last_activity`
+se persiste con write-behind. En el caso típico, autenticarse no toca la base.
 
-- Escalabilidad
-  - Considerar separar hosting del cliente web (CDN) en producción.
-  - Agregar healthchecks y probes en orquestador (ya hay health en docker-compose).
+La caché es local al proceso, y eso es lo que la hace correcta: login, logout, cambio de
+rol y desactivación la invalidan de forma exacta e inmediata. **Con más de una
+instancia, esto necesita Redis.** Es el supuesto que sostiene el diseño.
 
-- Calidad del código
-  - Existen utilidades compartidas en `shared/` que pueden centralizar validaciones y mappers.
-  - Tests: no se detectaron tests automatizados en la revisión rápida; recomendable añadir unit/integration tests para Auth y Padron.
+**`modules/padron/importer.js`.** El importador viejo hacía
+`.on('data', async fila => await insertar(fila))`: sin pausar el stream, lanzaba miles
+de INSERT en paralelo. Ahora es COPY a una tabla temporal con backpressure real. No
+volver a insertar fila por fila.
 
----
-
-## Archivos clave (para inspección rápida)
-
-- Root
-  - `package.json` — script `start` inicia gateway (node services/gateway-service/src/app.js)
-  - `docker-compose.yml` — orquestación local
-  - `Dockerfile` — imagen monolítica orientada a contenerizar gateway + web-admin estático
-  - `README.md`, `README-AUTH.md`, `README-ROLES.md`, `RESULTADOS-README.md`
-
-- Gateway
-  - `services/gateway-service/src/app.js` — main (proxy, middleware)
-  - `services/gateway-service/src/middleware/authMiddleware.js`
-  - `services/gateway-service/src/middleware/permissionMiddleware.js`
-  - `services/gateway-service/Dockerfile`
-
-- Auth
-  - `services/auth-service/src/app.js`
-  - `services/auth-service/src/routes/authRoutes.js`
-  - `services/auth-service/src/routes/userRoutes.js`
-  - `services/auth-service/src/services/AuthService.js`
-  - `services/auth-service/src/database/Database.js`
-
-- Padron
-  - `services/padron-service/src/routes/padronRoutes.js`
-  - `services/padron-service/src/controllers/PadronController.js`
-  - `services/padron-service/src/database/Database.js`
-  - `services/padron-service/src/models/*.js`
-
-- Cliente
-  - `clients/web-admin/index.html`
-  - `clients/web-admin/src/app.js`
-  - `clients/web-admin/src/services/AuthService.js`
-  - `clients/web-admin/src/services/ApiService.js`
+**`modules/padron/service.js` → `CacheResultados`.** Los cinco endpoints de
+`resultados/*` agregan sobre todo el padrón. Se cachean 60 s y **toda escritura de
+relevamiento invalida el caché** — si agregás una escritura, invalidá.
 
 ---
 
-## Recomendaciones inmediatas
+## Contrato de la API
 
-1. Cambiar `JWT_SECRET` en entorno de producción y rotarlo periódicamente.
-2. Proteger o eliminar el endpoint `/init-db` antes de exponer servicios al público.
-3. Añadir pruebas automatizadas (al menos unitarias) para `AuthService` y `PadronController`.
-4. Documentar contractos API (OpenAPI/Swagger) para facilitar integración del frontend.
-5. Revisar manejo de errores y logging sensible (no loggear secretos ni tokens completos).
+`scripts/api-snapshot.js` releva la forma de las respuestas y compara contra una línea
+de base. Correrlo antes y después de cualquier cambio que toque rutas:
 
----
-
-## Notas finales
-
-- He generado este resumen tras inspeccionar los archivos principales del repo. El código contiene más ficheros y detalles (migraciones SQL, scripts, componentes front-end). Si quieres, puedo:
-  - Generar un OpenAPI básico con los endpoints encontrados.
-  - Añadir una checklist de seguridad más detallada.
-  - Crear documentación por servicio en formato `docs/<servicio>.md`.
+```bash
+node scripts/api-snapshot.js --base http://localhost:8080 --compare scripts/snapshots/before.json
+```
 
 ---
 
-Archivo creado automáticamente por revisión de código.
+## Deuda conocida
+
+- El listado de votantes pagina con `OFFSET`. Con el padrón actual (~5.500 filas) no
+  molesta; si crece mucho, conviene keyset — pero eso cambia el contrato de paginación
+  que consume el frontend. El exportador ya usa keyset.
+- `public/` es JS plano sin build. Es una decisión, no un olvido: no hay que
+  compilarlo ni servirlo aparte.
+- Quedan páginas sin backend: `fiscales.html` y `comicio.html`. Sus permisos ya están
+  en la migración de auth.
+- Sin tests de integración contra una base real. Los 55 tests corren sin PostgreSQL;
+  lo que toca la base se verifica con el snapshot de contrato.
+
+---
+
+## Agregar un módulo
+
+[docs/AGREGAR-MODULO.md](docs/AGREGAR-MODULO.md). Carpeta nueva con `module.js` y una
+línea en `src/modules/index.js`. El orden de esa lista importa: un módulo solo ve los
+servicios de los que están antes.
