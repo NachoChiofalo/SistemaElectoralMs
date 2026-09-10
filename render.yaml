@@ -13,9 +13,26 @@ services:
     dockerContext: .
     healthCheckPath: /health
 
-    # Las migraciones corren antes de arrancar, no dentro del proceso. Si fallan, el
-    # deploy se detiene en lugar de levantar contra un esquema desactualizado.
-    preDeployCommand: npm run migrate
+    # El plan free no soporta preDeployCommand (se implementa como un "one-off job",
+    # y el plan free no permite jobs de una sola ejecucion). La alternativa correcta
+    # para Docker es correr la migracion como parte del propio arranque del
+    # contenedor, antes de levantar el servidor.
+    #
+    # El `exec` importa: sin el, `node` queda como hijo del shell y una senal SIGTERM
+    # (la que manda Render al reciclar la instancia, reenviada por tini) puede no
+    # llegarle — el apagado ordenado de server.js nunca se ejecutaria. Con `exec`,
+    # node REEMPLAZA al shell en el mismo PID y recibe la senal directo.
+    #
+    # Correr `npm run migrate` en cada arranque es intencional, no un descuido: en el
+    # plan free el servicio se duerme a los 15 min sin trafico y se reinicia en el
+    # proximo request, asi que esto se ejecuta seguido. Las migraciones son
+    # idempotentes (verificado) y el runner ya trackea que esta aplicado, asi que el
+    # caso normal es un puñado de SELECT contra schema_migrations, no trabajo real.
+    #
+    # Si en el futuro se pasa a un plan pago, preDeployCommand es la opcion mas
+    # prolija (separa migrar de arrancar, y un fallo de migracion no reinicia en loop
+    # al servicio ya corriendo).
+    dockerCommand: sh -c "npm run migrate && exec node src/server.js"
 
     envVars:
       - key: NODE_ENV

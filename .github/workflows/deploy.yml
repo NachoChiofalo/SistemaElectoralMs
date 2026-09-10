@@ -77,7 +77,7 @@ jobs:
           docker run -d --name ci-app --network host \
             -e JWT_SECRET=secreto-de-ci-suficientemente-largo-para-validar \
             -e DATABASE_URL=postgresql://electoral_user:electoral_password@localhost:5432/sistema_electoral \
-            sistema-electoral:ci sh -c "npm run migrate && node src/server.js"
+            sistema-electoral:ci sh -c "npm run migrate && exec node src/server.js"
 
           for i in $(seq 1 30); do
             codigo=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/health || true)
