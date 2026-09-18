@@ -2,13 +2,27 @@
 // Barra de navegación unificada para todas las páginas
 
 (function(global) {
+    /**
+     * Destinos de la barra.
+     *
+     * Orden convencional —el inicio primero— y no por frecuencia de uso: en una barra
+     * de navegación la previsibilidad vale más que el ahorro de un clic, porque se lee
+     * decenas de veces por jornada.
+     *
+     * Resultados entra acá por primera vez. Antes se llegaba por un botón dentro del
+     * padrón, lo que lo dejaba escondido detrás de otra pantalla siendo una sección
+     * hermana, no una subsección.
+     *
+     * Las etiquetas se acortaron ("Padrón Electoral" → "Padrón"): en una barra la
+     * palabra que distingue es la primera, y la segunda sólo gasta ancho. Ese ancho es
+     * el que va a necesitar la barra cuando entren los módulos nuevos.
+     */
     const NAV_ITEMS = [
-        { href: 'dashboard.html', icon: 'fa-tachometer-alt', label: 'Dashboard', key: 'dashboard' },
-        { href: 'index.html', icon: 'fa-users-cog', label: 'Padrón Electoral', key: 'padron' },
-        //{ href: 'fiscales.html', icon: 'fa-user-shield', label: 'Fiscales', key: 'fiscales' },
-        //{ href: 'comicio.html', icon: 'fa-building', label: 'Comicio', key: 'comicio' },
+        { href: 'dashboard.html', icon: 'fa-tachometer-alt', label: 'Inicio', key: 'dashboard' },
+        { href: 'index.html', icon: 'fa-list', label: 'Padrón', key: 'padron' },
+        { href: 'resultados.html', icon: 'fa-chart-bar', label: 'Resultados', key: 'resultados' },
         { href: 'usuarios.html', icon: 'fa-users-gear', label: 'Usuarios', key: 'usuarios', adminOnly: true },
-        { href: 'auditoria.html', icon: 'fa-clipboard-list', label: 'Auditoria', key: 'auditoria', adminOnly: true }
+        { href: 'auditoria.html', icon: 'fa-clipboard-list', label: 'Auditoría', key: 'auditoria', adminOnly: true }
     ];
 
     function renderNavbar(activeKey) {
@@ -46,13 +60,20 @@
                     </div>
 
                     <div class="navbar-user">
+                        <!-- El nombre es contexto, no una acción: va como texto y no como
+                             botón, y el rol debajo responde "por qué veo lo que veo". -->
                         <div class="user-info">
-                            <i class="fas fa-user-circle"></i>
                             <span class="username" id="username">${username}</span>
+                            <span class="user-role">${userRole}</span>
                         </div>
-                        <button class="logout-btn logout-btn-desktop" id="logout-btn" title="Cerrar Sesión">
+                        <!-- Tema y salir son iconos: dicen lo mismo con un tercio del ancho,
+                             y ese ancho es el que la barra va a necesitar al crecer. El texto
+                             sobrevive en el title y en aria-label. -->
+                        <button class="tema-btn" id="tema-btn" type="button" aria-label="Cambiar tema">
+                            <i class="fas" id="tema-icono"></i>
+                        </button>
+                        <button class="logout-btn logout-btn-desktop" id="logout-btn" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">
                             <i class="fas fa-sign-out-alt"></i>
-                            <span class="logout-text">Salir</span>
                         </button>
                     </div>
                 </div>
@@ -60,6 +81,51 @@
         </nav>
         <div class="navbar-overlay" id="navbar-overlay"></div>
         `;
+    }
+
+    /**
+     * Estado visible del botón de tema.
+     *
+     * El icono muestra lo que está viéndose; el texto, de dónde viene esa decisión. La
+     * distinción importa en "Automático": ahí el usuario no eligió nada y el tema puede
+     * cambiar solo cuando el sistema pasa a modo noche.
+     */
+    const TEMAS = {
+        sistema: { icono: 'fa-desktop', texto: 'Automático' },
+        light: { icono: 'fa-sun', texto: 'Claro' },
+        dark: { icono: 'fa-moon', texto: 'Oscuro' },
+    };
+
+    function pintarBotonTema() {
+        if (!global.tema) return;
+
+        const elegido = global.tema.elegido();
+        const estado = TEMAS[elegido] || TEMAS.sistema;
+        const icono = document.getElementById('tema-icono');
+        const boton = document.getElementById('tema-btn');
+
+        // En "Automático" el icono muestra el tema que se está viendo, no un monitor:
+        // lo que importa saber de un vistazo es si estás en claro o en oscuro.
+        if (icono) icono.className = `fas ${elegido === 'sistema' ? TEMAS[global.tema.efectivo()].icono : estado.icono}`;
+        if (boton) boton.title = `Tema: ${estado.texto}. Clic para cambiar.`;
+    }
+
+    function initTema() {
+        const boton = document.getElementById('tema-btn');
+        if (!boton || !global.tema) return;
+
+        pintarBotonTema();
+        boton.addEventListener('click', () => {
+            global.tema.cambiar();
+            pintarBotonTema();
+        });
+
+        // En "Automático" el tema efectivo cambia sin que nadie toque el botón: hay que
+        // repintar el icono cuando el sistema pasa de claro a oscuro.
+        if (global.matchMedia) {
+            global.matchMedia('(prefers-color-scheme: dark)')
+                .addEventListener('change', pintarBotonTema);
+        }
     }
 
     function handleLogout() {
@@ -93,6 +159,7 @@
         if (logoutBtnMobile) {
             logoutBtnMobile.addEventListener('click', handleLogout);
         }
+        initTema();
         // Mobile hamburger toggle
         const toggleBtn = document.getElementById('navbar-toggle');
         const collapseEl = document.getElementById('navbar-collapse');

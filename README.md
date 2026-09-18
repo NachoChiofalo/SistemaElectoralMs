@@ -54,10 +54,10 @@ src/
 │   └── padron/           /api/padron
 └── server.js
 
-public/     el web-admin, servido por el mismo proceso
-scripts/    migrate, seed de usuarios, snapshot de contrato
+public/     el web-admin, servido por el mismo proceso (ver docs/FRONTEND.md)
+scripts/    migrate, seed de usuarios, snapshot de contrato, build de assets
 test/       node:test, sin base de datos
-docs/       AGREGAR-MODULO.md
+docs/       AGREGAR-MODULO.md, FRONTEND.md
 ```
 
 ---
@@ -111,6 +111,7 @@ docker compose --profile local up     # con un PostgreSQL en contenedor
 | `npm run migrate:adopt` | Marca las migraciones como aplicadas **sin ejecutarlas** |
 | `npm run seed:usuarios` | Crea el administrador si no existe |
 | `npm run snapshot` | Releva el contrato de la API |
+| `npm run build:assets` | Regenera iconos, fuentes, `?v=` y precomprimidos de `public/` |
 
 ---
 
@@ -283,3 +284,20 @@ Ver [docs/AGREGAR-MODULO.md](docs/AGREGAR-MODULO.md).
 Resumido: crear la carpeta con `module.js`, `routes.js`, `service.js`, `repository.js`
 y `migrations/`, y sumar una línea en `src/modules/index.js`. Los tests de integración
 verifican el montaje solos.
+
+---
+
+## El frontend
+
+Ver [docs/FRONTEND.md](docs/FRONTEND.md).
+
+`public/` es JavaScript plano, sin framework ni bundler, y no le pide nada a ningún
+tercero: los iconos son máscaras CSS generadas desde Lucide, la tipografía se sirve desde
+el mismo origen y los gráficos son 5 KB propios en lugar de Chart.js. Una visita nueva a
+la pantalla más pesada transfiere **117 KB en Brotli** desde **un solo origen**; una
+visita repetida, un único request.
+
+Hay un paso de generación de assets —`npm run build:assets`— que **no compila nada**:
+emite los iconos, las fuentes, el `?v=<hash>` de cada referencia y los `.br`/`.gz`. Su
+salida se versiona, porque el Dockerfile copia `public/` tal cual. **Correlo después de
+tocar cualquier cosa en `public/`**: hay tests que fallan si la salida quedó vieja.

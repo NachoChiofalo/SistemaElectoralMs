@@ -1,8 +1,34 @@
 /**
- * Componente de Resultados Electorales
- * Muestra graficos y estadisticas detalladas de los relevamientos
- * con sistema de tabs seleccionables
+ * Componente de Resultados Electorales.
+ *
+ * Secciones apiladas, ordenadas por la pregunta que responden: cuanto se relevo, como
+ * se reparte, donde falta, a quien se relevo y que condiciones tiene. Antes eran cuatro
+ * pestañas, y esconder cuatro respuestas cortas detras de solapas obliga a recordar en
+ * cual estaba cada una.
  */
+
+/**
+ * Colores de los graficos, como tokens del design system y no como hex.
+ *
+ * microchart aplica `fill` por `style`, asi que un `var(--ds-party-pj)` resuelve igual
+ * que un `#1e3a8a`. La diferencia es que el color pasa a estar definido en un solo
+ * lugar: si cambia la identidad —o si el usuario esta en modo oscuro— los graficos
+ * acompañan sin tocar este archivo. Antes el mismo `#1e3a8a` estaba escrito cinco veces.
+ */
+const COLORES = {
+    politica: ['var(--ds-party-pj)', 'var(--ds-party-ucr)', 'var(--ds-party-indeciso)'],
+    pj: 'var(--ds-party-pj)',
+    ucr: 'var(--ds-party-ucr)',
+    indeciso: 'var(--ds-party-indeciso)',
+    // Las condiciones no son fuerzas politicas: se distinguen por rol semantico.
+    condiciones: [
+        'var(--ds-primary-500)',
+        'var(--ds-warning-500)',
+        'var(--ds-success-500)',
+        'var(--ds-danger-500)',
+    ],
+};
+
 class ResultadosComponent {
     constructor() {
         this.container = null;
@@ -13,7 +39,6 @@ class ResultadosComponent {
             condiciones: null
         };
         this.graficos = {};
-        this.tabActiva = 'general';
         this.ultimaActualizacion = null;
     }
 
@@ -87,103 +112,87 @@ class ResultadosComponent {
                 </section>
 
                 <!-- Tabs de navegacion -->
-                <div class="tabs-container">
-                    <div class="tabs-nav" id="tabs-nav">
-                        <button class="tab-btn active" data-tab="general">
-                            <i class="fas fa-chart-pie"></i>
-                            <span>Distribucion General</span>
-                        </button>
-                        <button class="tab-btn" data-tab="sexo">
-                            <i class="fas fa-venus-mars"></i>
-                            <span>Por Sexo</span>
-                        </button>
-                        <button class="tab-btn" data-tab="edad">
-                            <i class="fas fa-users"></i>
-                            <span>Por Edad</span>
-                        </button>
-                        <button class="tab-btn" data-tab="condiciones">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Condiciones Especiales</span>
-                        </button>
-                    </div>
+                <!-- Secciones apiladas, en el orden en que se hacen las preguntas.
+                     Antes eran cuatro pestañas: esconder cuatro respuestas cortas
+                     detrás de solapas obliga a recordar en cuál estaba cada una, y a
+                     hacer un clic para comparar dos cortes que entran juntos en
+                     pantalla. Apiladas se recorren con scroll y se comparan de un
+                     vistazo. -->
 
-                    <!-- Tab: Distribucion General -->
-                    <div class="tab-panel active" id="tab-general">
-                        <div class="tab-content-grid">
-                            <div class="chart-card">
-                                <h4>Distribucion de Preferencia Politica</h4>
-                                <div class="chart-container chart-medium">
-                                    <canvas id="chart-principal"></canvas>
-                                </div>
-                            </div>
-                            <div class="chart-card">
-                                <h4>Comparacion de Fuerzas</h4>
-                                <div id="comparador-barras"></div>
-                                <div class="resumen-tabla" id="resumen-general"></div>
+                <!-- 1. Fuerzas: el reparto, que es la pregunta principal -->
+                <section class="bloque">
+                    <h3 class="bloque-titulo">Distribución de preferencia política</h3>
+                    <div class="bloque-grid">
+                        <div class="chart-card">
+                            <div class="chart-container chart-medium">
+                                <canvas id="chart-principal"></canvas>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Tab: Por Sexo -->
-                    <div class="tab-panel" id="tab-sexo">
-                        <div class="tab-content-single">
-                            <div class="chart-card">
-                                <h4>Resultados por Sexo</h4>
-                                <div class="chart-container chart-medium">
-                                    <canvas id="chart-sexo"></canvas>
-                                </div>
-                            </div>
-                            <div class="chart-card">
-                                <h4>Detalle por Sexo</h4>
-                                <div class="tabla-container" id="stats-sexo"></div>
-                            </div>
+                        <div class="chart-card">
+                            <div id="comparador-barras"></div>
+                            <div class="resumen-tabla" id="resumen-general"></div>
                         </div>
                     </div>
+                </section>
 
-                    <!-- Tab: Por Edad -->
-                    <div class="tab-panel" id="tab-edad">
-                        <div class="tab-content-single">
-                            <div class="chart-card">
-                                <h4>Resultados por Rango Etario</h4>
-                                <div class="chart-container chart-medium">
-                                    <canvas id="chart-edad"></canvas>
-                                </div>
+                <!-- 2. Dónde falta: el corte territorial. Estaba en la API
+                     (/api/padron/resultados/por-circuito) y no se mostraba en ninguna
+                     pantalla, siendo el único que dice adónde ir a relevar. -->
+                <section class="bloque" id="bloque-circuito">
+                    <h3 class="bloque-titulo">Por circuito</h3>
+                    <p class="bloque-ayuda">Dónde se relevó y dónde falta.</p>
+                    <div class="tabla-container" id="stats-circuito"></div>
+                </section>
+
+                <!-- 3. Quién: los cortes demográficos, juntos porque se comparan -->
+                <section class="bloque">
+                    <h3 class="bloque-titulo">Por sexo y edad</h3>
+                    <div class="bloque-grid">
+                        <div class="chart-card">
+                            <h4>Sexo</h4>
+                            <div class="chart-container chart-medium">
+                                <canvas id="chart-sexo"></canvas>
                             </div>
-                            <div class="chart-card">
-                                <h4>Detalle por Edad</h4>
-                                <div class="tabla-container" id="stats-edad"></div>
+                            <div class="tabla-container" id="stats-sexo"></div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Rango etario</h4>
+                            <div class="chart-container chart-medium">
+                                <canvas id="chart-edad"></canvas>
                             </div>
+                            <div class="tabla-container" id="stats-edad"></div>
                         </div>
                     </div>
+                </section>
 
-                    <!-- Tab: Condiciones Especiales -->
-                    <div class="tab-panel" id="tab-condiciones">
-                        <div class="tab-content-grid">
-                            <div class="chart-card">
-                                <h4>Vista General de Condiciones</h4>
-                                <div class="chart-container chart-medium">
-                                    <canvas id="chart-condiciones-general"></canvas>
-                                </div>
-                            </div>
-                            <div class="chart-card">
-                                <h4>Empleados Municipales por Opcion Politica</h4>
-                                <div class="chart-container chart-small">
-                                    <canvas id="chart-empleados-politica"></canvas>
-                                </div>
-                            </div>
-                            <div class="chart-card">
-                                <h4>Ayuda Social por Opcion Politica</h4>
-                                <div class="chart-container chart-small">
-                                    <canvas id="chart-ayuda-politica"></canvas>
-                                </div>
-                            </div>
-                            <div class="chart-card full-width">
-                                <h4>Detalle de Condiciones Especiales</h4>
-                                <div class="tabla-container" id="stats-condiciones-tabla"></div>
+                <!-- 4. Condiciones: lo más específico va último -->
+                <section class="bloque">
+                    <h3 class="bloque-titulo">Condiciones especiales</h3>
+                    <div class="bloque-grid">
+                        <div class="chart-card">
+                            <h4>Vista general</h4>
+                            <div class="chart-container chart-medium">
+                                <canvas id="chart-condiciones-general"></canvas>
                             </div>
                         </div>
+                        <div class="chart-card">
+                            <h4>Empleados municipales por opción</h4>
+                            <div class="chart-container chart-small">
+                                <canvas id="chart-empleados-politica"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Ayuda social por opción</h4>
+                            <div class="chart-container chart-small">
+                                <canvas id="chart-ayuda-politica"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card full-width">
+                            <h4>Detalle</h4>
+                            <div class="tabla-container" id="stats-condiciones-tabla"></div>
+                        </div>
                     </div>
-                </div>
+                </section>
             </div>
 
             <div id="resultados-error" class="error-container" style="display: none;"></div>
@@ -230,66 +239,42 @@ class ResultadosComponent {
             if (menu) menu.classList.remove('show');
         });
 
-        // Tabs
-        const tabsNav = document.getElementById('tabs-nav');
-        if (tabsNav) {
-            tabsNav.addEventListener('click', (e) => {
-                const btn = e.target.closest('.tab-btn');
-                if (!btn) return;
-                this.cambiarTab(btn.dataset.tab);
-            });
-        }
     }
 
-    cambiarTab(tabId) {
-        this.tabActiva = tabId;
-
-        // Actualizar botones
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabId);
-        });
-
-        // Actualizar paneles
-        document.querySelectorAll('.tab-panel').forEach(panel => {
-            panel.classList.toggle('active', panel.id === 'tab-' + tabId);
-        });
-
-        // Recrear graficos de la tab activa (necesario para que Chart.js renderice bien)
-        setTimeout(() => this.renderizarGraficosTab(tabId), 50);
-    }
-
-    renderizarGraficosTab(tabId) {
-        switch (tabId) {
-            case 'general':
-                this.crearGraficoPrincipal();
-                break;
-            case 'sexo':
-                this.crearGraficoPorSexo();
-                break;
-            case 'edad':
-                this.crearGraficoPorEdad();
-                break;
-            case 'condiciones':
-                this.crearGraficosCondiciones();
-                break;
-        }
+    /**
+     * Dibuja todos los graficos.
+     *
+     * Antes se dibujaban de a uno, al abrir cada pestaña, porque un canvas oculto
+     * mide cero y Chart.js lo renderizaba mal. Con las secciones apiladas ya no hay
+     * nada oculto, asi que se dibujan juntos y desaparece el  que hacia
+     * falta para esperar a que el panel se mostrara.
+     */
+    renderizarGraficos() {
+        this.crearGraficoPrincipal();
+        this.crearGraficoPorSexo();
+        this.crearGraficoPorEdad();
+        this.crearGraficosCondiciones();
     }
 
     async cargarDatos() {
         this.mostrarCarga(true);
 
         try {
-            const [general, porSexo, porRangoEtario, condiciones] = await Promise.all([
+            // El corte por circuito se pide junto al resto: son cinco consultas que el
+            // backend ya cachea 60 s, y pedirlas en paralelo cuesta lo mismo que cuatro.
+            const [general, porSexo, porRangoEtario, condiciones, porCircuito] = await Promise.all([
                 window.apiService.obtenerEstadisticasAvanzadas(),
                 window.apiService.obtenerEstadisticasPorSexo(),
                 window.apiService.obtenerEstadisticasPorRangoEtario(),
-                window.apiService.obtenerEstadisticasCondicionesDetalladas()
+                window.apiService.obtenerEstadisticasCondicionesDetalladas(),
+                window.apiService.request('/api/padron/resultados/por-circuito'),
             ]);
 
             this.datos.general = general.data;
             this.datos.porSexo = porSexo.data;
             this.datos.porRangoEtario = porRangoEtario.data;
             this.datos.condiciones = condiciones.data;
+            this.datos.porCircuito = Array.isArray(porCircuito?.data) ? porCircuito.data : [];
 
             this.ultimaActualizacion = new Date();
             this.mostrarResultados();
@@ -305,12 +290,13 @@ class ResultadosComponent {
         this.mostrarHoraActualizacion();
         this.mostrarEstadisticasGenerales();
         this.mostrarEstadisticasCondiciones();
-        this.crearGraficoPrincipal();
         this.mostrarComparadorBarras();
         this.mostrarResumenGeneral();
+        this.mostrarTablaCircuito();
         this.mostrarTablaSexo();
         this.mostrarTablaEdad();
         this.mostrarTablaCondiciones();
+        this.renderizarGraficos();
 
         document.getElementById('resultados-content').style.display = 'block';
     }
@@ -378,7 +364,16 @@ class ResultadosComponent {
         const container = document.getElementById('stats-condiciones');
         if (!data) return;
 
-        const totalRelevados = parseInt(data.total_relevados) || 1;
+        // El denominador sale de `general`, no de `condiciones`: el endpoint
+        // condiciones-detalladas no devuelve `total_relevados`, asi que aca
+        // `parseInt(undefined) || 1` daba 1 y cada porcentaje quedaba multiplicado por
+        // cien — "340 empleados municipales" se mostraba como "34000.0% del
+        // relevamiento". El `|| 1` estaba para evitar una division por cero, y lo que
+        // hacia era tapar el dato faltante con un numero absurdo en vez de omitirlo.
+        const totalRelevados = parseInt(this.datos.general?.total_relevados) || 0;
+        const porcentaje = valor => (totalRelevados > 0
+            ? ((valor / totalRelevados) * 100).toFixed(1) + '% del relevamiento'
+            : '');
         const empleados = parseInt(data.total_empleados_municipales) || 0;
         const ayuda = parseInt(data.total_ayuda_social) || 0;
         const nuevos = parseInt(data.total_nuevos_votantes) || 0;
@@ -390,7 +385,7 @@ class ResultadosComponent {
                 <div class="stat-content">
                     <div class="stat-number">${this.formatNumber(empleados)}</div>
                     <div class="stat-label">Empleados Municipales</div>
-                    <div class="stat-percentage">${((empleados / totalRelevados) * 100).toFixed(1)}% del relevamiento</div>
+                    <div class="stat-percentage">${porcentaje(empleados)}</div>
                 </div>
             </div>
             <div class="stat-card condicion ayuda">
@@ -398,7 +393,7 @@ class ResultadosComponent {
                 <div class="stat-content">
                     <div class="stat-number">${this.formatNumber(ayuda)}</div>
                     <div class="stat-label">Ayuda Social</div>
-                    <div class="stat-percentage">${((ayuda / totalRelevados) * 100).toFixed(1)}% del relevamiento</div>
+                    <div class="stat-percentage">${porcentaje(ayuda)}</div>
                 </div>
             </div>
             <div class="stat-card condicion nuevos">
@@ -406,7 +401,7 @@ class ResultadosComponent {
                 <div class="stat-content">
                     <div class="stat-number">${this.formatNumber(nuevos)}</div>
                     <div class="stat-label">Nuevos Votantes</div>
-                    <div class="stat-percentage">${((nuevos / totalRelevados) * 100).toFixed(1)}% del relevamiento</div>
+                    <div class="stat-percentage">${porcentaje(nuevos)}</div>
                 </div>
             </div>
             <div class="stat-card condicion fallecidos">
@@ -414,7 +409,7 @@ class ResultadosComponent {
                 <div class="stat-content">
                     <div class="stat-number">${this.formatNumber(fallecidos)}</div>
                     <div class="stat-label">Fallecidos</div>
-                    <div class="stat-percentage">${((fallecidos / totalRelevados) * 100).toFixed(1)}% del relevamiento</div>
+                    <div class="stat-percentage">${porcentaje(fallecidos)}</div>
                 </div>
             </div>
         `;
@@ -543,9 +538,8 @@ class ResultadosComponent {
                 labels: ['PJ', 'UCR', 'Indecisos'],
                 datasets: [{
                     data: [data.votos_pj, data.votos_ucr, data.votos_indeciso],
-                    backgroundColor: ['#1e3a8a', '#dc2626', '#64748b'],
-                    borderWidth: 3,
-                    borderColor: '#fff'
+                    backgroundColor: COLORES.politica,
+                    borderWidth: 3
                 }]
             },
             options: {
@@ -586,9 +580,9 @@ class ResultadosComponent {
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'PJ', data: data.map(i => i.votos_pj || 0), backgroundColor: '#1e3a8a' },
-                    { label: 'UCR', data: data.map(i => i.votos_ucr || 0), backgroundColor: '#dc2626' },
-                    { label: 'Indecisos', data: data.map(i => i.votos_indeciso || 0), backgroundColor: '#64748b' }
+                    { label: 'PJ', data: data.map(i => i.votos_pj || 0), backgroundColor: COLORES.pj },
+                    { label: 'UCR', data: data.map(i => i.votos_ucr || 0), backgroundColor: COLORES.ucr },
+                    { label: 'Indecisos', data: data.map(i => i.votos_indeciso || 0), backgroundColor: COLORES.indeciso }
                 ]
             },
             options: {
@@ -613,9 +607,9 @@ class ResultadosComponent {
             data: {
                 labels: data.map(i => i.rango_etario),
                 datasets: [
-                    { label: 'PJ', data: data.map(i => i.votos_pj || 0), backgroundColor: '#1e3a8a' },
-                    { label: 'UCR', data: data.map(i => i.votos_ucr || 0), backgroundColor: '#dc2626' },
-                    { label: 'Indecisos', data: data.map(i => i.votos_indeciso || 0), backgroundColor: '#64748b' }
+                    { label: 'PJ', data: data.map(i => i.votos_pj || 0), backgroundColor: COLORES.pj },
+                    { label: 'UCR', data: data.map(i => i.votos_ucr || 0), backgroundColor: COLORES.ucr },
+                    { label: 'Indecisos', data: data.map(i => i.votos_indeciso || 0), backgroundColor: COLORES.indeciso }
                 ]
             },
             options: {
@@ -653,7 +647,7 @@ class ResultadosComponent {
                         parseInt(data.total_nuevos_votantes) || 0,
                         parseInt(data.total_fallecidos) || 0
                     ],
-                    backgroundColor: ['#6366f1', '#f59e0b', '#10b981', '#ef4444']
+                    backgroundColor: COLORES.condiciones
                 }]
             },
             options: {
@@ -689,9 +683,8 @@ class ResultadosComponent {
                 labels: ['PJ', 'UCR', 'Indecisos'],
                 datasets: [{
                     data: [pj, ucr, ind],
-                    backgroundColor: ['#1e3a8a', '#dc2626', '#64748b'],
-                    borderWidth: 2,
-                    borderColor: '#fff'
+                    backgroundColor: COLORES.politica,
+                    borderWidth: 2
                 }]
             },
             options: {
@@ -737,9 +730,8 @@ class ResultadosComponent {
                 labels: ['PJ', 'UCR', 'Indecisos'],
                 datasets: [{
                     data: [pj, ucr, ind],
-                    backgroundColor: ['#1e3a8a', '#dc2626', '#64748b'],
-                    borderWidth: 2,
-                    borderColor: '#fff'
+                    backgroundColor: COLORES.politica,
+                    borderWidth: 2
                 }]
             },
             options: {
@@ -763,6 +755,48 @@ class ResultadosComponent {
     }
 
     // ==================== TABLAS ====================
+
+    /**
+     * Avance por circuito, de menos a mas relevado.
+     *
+     * Es tabla y no grafico porque la pregunta que responde —cuantos faltan en tal
+     * circuito— es una cantidad exacta, no una proporcion, y una barra obliga a estimar
+     * a ojo lo que el numero dice directo.
+     */
+    mostrarTablaCircuito() {
+        const contenedor = document.getElementById('stats-circuito');
+        const bloque = document.getElementById('bloque-circuito');
+        const filas = this.datos.porCircuito || [];
+
+        // Con un solo circuito el corte no compara nada: la seccion se oculta entera en
+        // lugar de mostrar una fila que repite el total general.
+        if (!bloque) return;
+        if (filas.length < 2) { bloque.style.display = 'none'; return; }
+        bloque.style.display = '';
+
+        const conAvance = filas.map(f => {
+            const total = Number(f.total_votantes) || 0;
+            const relevados = Number(f.total_relevados) || 0;
+            return { ...f, total, relevados, pct: total > 0 ? Math.round((relevados / total) * 100) : 0 };
+        }).sort((a, b) => a.pct - b.pct);
+
+        contenedor.innerHTML = '<table class="tabla-datos"><thead><tr>' +
+            '<th>Circuito</th><th>Padron</th><th>Relevados</th><th>Avance</th>' +
+            '<th>PJ</th><th>UCR</th><th>Indecisos</th>' +
+            '</tr></thead><tbody>' +
+            conAvance.map(c =>
+                '<tr>' +
+                '<td>' + c.circuito + '</td>' +
+                '<td>' + this.formatNumber(c.total) + '</td>' +
+                '<td>' + this.formatNumber(c.relevados) + '</td>' +
+                '<td>' + c.pct + '%</td>' +
+                '<td>' + this.formatNumber(c.votos_pj) + '</td>' +
+                '<td>' + this.formatNumber(c.votos_ucr) + '</td>' +
+                '<td>' + this.formatNumber(c.votos_indeciso) + '</td>' +
+                '</tr>'
+            ).join('') +
+            '</tbody></table>';
+    }
 
     mostrarTablaSexo() {
         const container = document.getElementById('stats-sexo');

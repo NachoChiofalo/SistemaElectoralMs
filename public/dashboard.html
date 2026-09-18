@@ -5,327 +5,351 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistema Electoral</title>
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tipografia e iconos, servidos desde este mismo origen -->
+    <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
+    <!-- Antes del primer pintado: si se aplicara despues, el tema oscuro destellaria en blanco. -->
+    <script src="src/tema.js?v=2e769770"></script>
+    <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
+    <link rel="stylesheet" href="src/styles/icons.css?v=aabbf556">
     
     <!-- Design System -->
-    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
     
     <!-- Estilos -->
-    <link rel="stylesheet" href="src/styles/navbar-styles.css">
-    <link rel="stylesheet" href="src/styles/padron-styles.css">
+    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
+    <link rel="stylesheet" href="src/styles/padron-styles.css?v=d44e31d4">
     
     <style>
+        /* ==================================================================
+           INICIO
+
+           Tres bloques, en orden de respuesta: cuánto se lleva hecho, dónde
+           falta, y a dónde ir. Antes era un saludo y una grilla de tarjetas
+           grandes que sólo enlazaban a lo que ya estaba en la barra.
+           ================================================================== */
+
         body {
-            font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
-            background-color: var(--ds-bg-page, #f8fafc);
+            font-family: var(--ds-font-family);
+            background-color: var(--ds-bg-page);
+            color: var(--ds-text-primary);
+            font-size: var(--ds-font-base);
             margin: 0;
-            padding: 0;
-            line-height: 1.6;
+            line-height: 1.55;
         }
 
         .dashboard-container {
-            max-width: 1400px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 20px 48px;
         }
 
-        /* Header del Dashboard */
-        .dashboard-header {
-            background: white;
-            border-radius: var(--ds-radius-xl, 16px);
-            padding: 32px;
-            margin-bottom: 30px;
-            box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(0, 0, 0, 0.1));
-            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+        /* ==================== ENCABEZADO ==================== */
+        .inicio-header {
+            padding: 8px 0 20px;
         }
 
-        .dashboard-title {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
-        .dashboard-title h1 {
+        .inicio-header h1 {
             margin: 0;
-            font-size: 2.2rem;
-            background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 800;
-            letter-spacing: -0.03em;
+            font-size: var(--ds-font-2xl);
+            font-weight: var(--ds-weight-semibold);
+            letter-spacing: var(--ds-tracking-tight);
         }
 
-        .dashboard-title i {
-            font-size: 2rem;
-            color: var(--ds-primary-500, #6366f1);
-            filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
+        .inicio-fecha {
+            margin: 2px 0 0;
+            color: var(--ds-text-muted);
+            font-size: var(--ds-font-base);
+            text-transform: capitalize;
         }
 
-        .dashboard-subtitle {
-            color: #7f8c8d;
-            font-size: 1.1rem;
-            margin: 0;
-            opacity: 0.8;
-        }
-
-        .welcome-text {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e9ecef;
-            color: #495057;
-        }
-
-        .welcome-text strong {
-            color: #2c3e50;
-        }
-
-        /* Grid de Módulos */
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .module-card {
-            background: white;
-            border-radius: var(--ds-radius-xl, 16px);
-            padding: 25px;
-            box-shadow: var(--ds-shadow-sm, 0 4px 20px rgba(0, 0, 0, 0.1));
-            transition: all var(--ds-transition-smooth, 0.35s cubic-bezier(0.4, 0, 0.2, 1));
-            border: 1px solid var(--ds-border-light, transparent);
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .module-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--ds-shadow-xl, 0 8px 30px rgba(0, 0, 0, 0.15));
-            border-color: var(--ds-primary-200, rgba(99, 102, 241, 0.2));
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .module-card.disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        .module-card.disabled:hover {
-            transform: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .module-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: var(--ds-radius-lg, 12px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* ==================== SITUACIÓN ====================
+           El porcentaje es la respuesta; las tres cifras son el respaldo. La
+           jerarquía la da el tamaño (28px contra 13px), no el color: por eso
+           funciona igual con el acento en grafito. */
+        .situacion {
+            background: var(--ds-bg-card);
+            border: 1px solid var(--ds-border-light);
+            border-radius: var(--ds-radius-md);
+            padding: 20px 24px;
             margin-bottom: 20px;
-            font-size: 1.8rem;
-            color: white;
         }
 
-        .module-card.padron .module-icon {
-            background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
-        }
-
-        .module-card.fiscales .module-icon {
-            background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
-        }
-
-        .module-card.comicio .module-icon {
-            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-        }
-
-        .module-card.resultados .module-icon {
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-        }
-
-        .module-card.usuarios .module-icon {
-            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-        }
-
-        .module-content h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.4rem;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .module-content p {
-            margin: 0 0 15px 0;
-            color: #7f8c8d;
-            line-height: 1.5;
-        }
-
-        .module-features {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .module-features li {
+        .situacion-principal {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 5px 0;
-            color: #495057;
-            font-size: 0.9rem;
-        }
-
-        .module-features li i {
-            color: #28a745;
-            font-size: 0.8rem;
-            width: 12px;
-        }
-
-        .module-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            margin-top: 15px;
-        }
-
-        .module-status.available {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-        }
-
-        .module-status.coming-soon {
-            background-color: rgba(255, 193, 7, 0.1);
-            color: #ffc107;
-        }
-
-        /* Estadísticas rápidas */
-        .quick-stats {
-            background: white;
-            border-radius: var(--ds-radius-xl, 16px);
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(0, 0, 0, 0.1));
-            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
-            animation-delay: 100ms;
-        }
-
-        .quick-stats h3 {
-            margin: 0 0 20px 0;
-            color: var(--ds-text-primary, #0f172a);
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .quick-stats h3 i {
-            color: var(--ds-primary-500, #6366f1);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
         }
 
-        .stat-item {
-            text-align: center;
-            padding: 15px;
-            border-radius: var(--ds-radius-md, 8px);
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+        .situacion-porcentaje {
+            font-size: 2.75rem;
+            font-weight: var(--ds-weight-semibold);
+            letter-spacing: -0.03em;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
         }
 
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--ds-primary-600, #4f46e5);
-            margin-bottom: 5px;
+        .situacion-porcentaje span {
+            font-size: 1.25rem;
+            color: var(--ds-text-muted);
+            margin-left: 2px;
         }
 
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 0.9rem;
+        .situacion-detalle {
+            flex: 1;
+            min-width: 0;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .dashboard-container {
-                padding: 0 15px;
-            }
-
-            .dashboard-header {
-                padding: 20px;
-            }
-
-            .dashboard-title h1 {
-                font-size: 1.8rem;
-            }
-
-            .modules-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .module-card {
-                padding: 20px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .situacion-titulo {
+            margin: 0 0 8px;
+            color: var(--ds-text-secondary);
         }
 
-        @media (max-width: 480px) {
-            .dashboard-title {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .dashboard-title h1 {
-                font-size: 1.6rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .module-features {
-                display: none;
-            }
+        .situacion-barra {
+            height: 8px;
+            background: var(--ds-bg-muted);
+            border-radius: var(--ds-radius-full);
+            overflow: hidden;
         }
 
-        /* Animaciones */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .situacion-relleno {
+            height: 100%;
+            background: var(--ds-primary-600);
+            border-radius: inherit;
+        }
+
+        .situacion-cifras {
+            display: flex;
+            gap: 32px;
+            margin: 18px 0 0;
+            padding-top: 16px;
+            border-top: 1px solid var(--ds-border-light);
+        }
+
+        .situacion-cifras dt {
+            font-size: var(--ds-font-xs);
+            text-transform: uppercase;
+            letter-spacing: var(--ds-tracking-wide);
+            color: var(--ds-text-muted);
+        }
+
+        .situacion-cifras dd {
+            margin: 2px 0 0;
+            font-size: var(--ds-font-xl);
+            font-weight: var(--ds-weight-medium);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .situacion-cargando,
+        .situacion-error {
+            color: var(--ds-text-muted);
+            margin: 0;
+        }
+
+        /* ==================== TÍTULOS DE SECCIÓN ==================== */
+        .titulo-seccion {
+            margin: 0 0 2px;
+            font-size: var(--ds-font-lg);
+            font-weight: var(--ds-weight-semibold);
+            letter-spacing: var(--ds-tracking-tight);
+        }
+
+        .titulo-ayuda {
+            margin: 0 0 12px;
+            color: var(--ds-text-muted);
+            font-size: var(--ds-font-sm);
+        }
+
+        /* ==================== AVANCE POR CIRCUITO ====================
+           Una fila por circuito, ordenadas de menos a más relevado, para que
+           lo que falta quede arriba sin tener que buscarlo. Se eligió lista y
+           no gráfico de barras porque hay que leer el número exacto: "cuántos
+           faltan en el circuito 3" es una cantidad, no una proporción. */
+        .por-circuito {
+            background: var(--ds-bg-card);
+            border: 1px solid var(--ds-border-light);
+            border-radius: var(--ds-radius-md);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+
+        .por-circuito:empty {
+            display: none;
+        }
+
+        .circuitos {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .circuito {
+            display: grid;
+            grid-template-columns: 110px 1fr auto 44px;
+            align-items: center;
+            gap: 14px;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--ds-border-light);
+        }
+
+        .circuito:last-child {
+            border-bottom: none;
+        }
+
+        .circuito-nombre {
+            font-weight: var(--ds-weight-medium);
+        }
+
+        .circuito-barra {
+            height: 6px;
+            background: var(--ds-bg-muted);
+            border-radius: var(--ds-radius-full);
+            overflow: hidden;
+        }
+
+        .circuito-relleno {
+            display: block;
+            height: 100%;
+            background: var(--ds-primary-500);
+            border-radius: inherit;
+        }
+
+        .circuito-cifra {
+            color: var(--ds-text-muted);
+            font-size: var(--ds-font-sm);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .circuito-pct {
+            text-align: right;
+            font-weight: var(--ds-weight-medium);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ==================== MÓDULOS ====================
+           Dejaron de ser tarjetas de 320px con ícono de 60px, descripción y
+           lista de features: eso es una portada de producto, y acá es un
+           menú. Filas compactas que escalan cuando entren módulos nuevos, que
+           es la razón por la que esta pantalla se mantiene. */
+        .modulos {
+            margin-top: 28px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
         }
 
         .module-card {
-            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--ds-bg-card);
+            border: 1px solid var(--ds-border-light);
+            border-radius: var(--ds-radius-md);
+            text-decoration: none;
+            color: inherit;
+            transition: border-color var(--ds-transition-fast), background-color var(--ds-transition-fast);
         }
 
-        .module-card:nth-child(1) { animation-delay: 0.1s; }
-        .module-card:nth-child(2) { animation-delay: 0.2s; }
-        .module-card:nth-child(3) { animation-delay: 0.3s; }
-        .module-card:nth-child(4) { animation-delay: 0.4s; }
-        .module-card:nth-child(5) { animation-delay: 0.5s; }
+        .module-card:hover {
+            border-color: var(--ds-border-strong);
+            background: var(--ds-bg-subtle);
+        }
+
+        .module-card.disabled {
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .module-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            font-size: 1.05rem;
+            color: var(--ds-text-secondary);
+            background: var(--ds-bg-subtle);
+            border-radius: var(--ds-radius-sm);
+        }
+
+        .module-card:hover .module-icon {
+            background: var(--ds-bg-muted);
+            color: var(--ds-text-primary);
+        }
+
+        .module-content h3 {
+            margin: 0;
+            font-size: var(--ds-font-base);
+            font-weight: var(--ds-weight-medium);
+        }
+
+        .module-content p {
+            margin: 1px 0 0;
+            color: var(--ds-text-muted);
+            font-size: var(--ds-font-sm);
+            /* Dos lineas como maximo: es un menu, no una portada de producto. */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* La lista de funcionalidades de cada módulo se oculta: es texto de
+           folleto dentro de un menú de navegación. El markup se conserva para
+           no tocar renderModules(). */
+        .module-features {
+            display: none;
+        }
+
+        .module-status {
+            display: none;
+        }
+
+        /* El estado va debajo del titulo y no al margen derecho: .module-content no
+           es flex, asi que un margin-left:auto lo dejaba colgando bajo la descripcion. */
+        .module-card.disabled .module-status {
+            display: block;
+            margin: 5px 0 0;
+            font-size: var(--ds-font-xs);
+            text-transform: uppercase;
+            letter-spacing: var(--ds-tracking-wide);
+            color: var(--ds-text-muted);
+        }
+
+        .module-card.disabled .module-status i {
+            display: none;
+        }
+
+        @media (max-width: 640px) {
+            .situacion-principal {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .situacion-detalle {
+                width: 100%;
+            }
+
+            .situacion-cifras {
+                gap: 20px;
+            }
+
+            .circuito {
+                grid-template-columns: 90px 1fr 40px;
+            }
+
+            .circuito-cifra {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -333,54 +357,37 @@
     <div id="navbar-container"></div>
 
     <main class="dashboard-container">
-        <!-- Header del Dashboard -->
-        <header class="dashboard-header">
-            <div class="dashboard-title">
-                <i class="fas fa-tachometer-alt"></i>
-                <h1>Panel de Control Electoral</h1>
-            </div>
-            <div class="welcome-text">
-                Bienvenido/a <strong id="username">Usuario</strong> - 
-                <span id="user-role">Administrador</span>
-            </div>
+        <!-- El encabezado era un título de dos líneas más un "Bienvenido/a Fulano -
+             Administrador". El saludo no es información: el nombre y el rol ya están en
+             la barra, y ocupaban la franja más valiosa de la pantalla. Lo que va acá es
+             el estado del relevamiento, que es lo que alguien viene a mirar. -->
+        <header class="inicio-header">
+            <h1>Relevamiento</h1>
+            <p class="inicio-fecha" id="inicio-fecha"></p>
         </header>
 
-        <!-- Estadísticas rápidas -->
-        <!-- <section class="quick-stats" id="quick-stats" style="display: none;">
-            <h3>
-                <i class="fas fa-chart-line"></i>
-                Resumen del Sistema
-            </h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number" id="stat-total">0</div>
-                    <div class="stat-label">Total de Votantes</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="stat-relevados">0</div>
-                    <div class="stat-label">Relevamientos</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="stat-pendientes">0</div>
-                    <div class="stat-label">Pendientes</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="stat-progreso">0%</div>
-                    <div class="stat-label">Progreso</div>
-                </div>
-            </div>
-        </section> -->
+        <!-- Situación: una cifra grande y tres apoyos. La jerarquía es de tamaño, no de
+             color, y por eso el porcentaje domina sin necesidad de un azulejo. -->
+        <section class="situacion" id="situacion" aria-label="Estado del relevamiento">
+            <div class="situacion-cargando">Cargando…</div>
+        </section>
+
+        <!-- Dónde falta trabajo. Es el corte por circuito, que existía en la API
+             (`/api/padron/resultados/por-circuito`) y no se mostraba en ninguna
+             pantalla: es el único que dice en qué zona hay que ir a relevar. -->
+        <section class="por-circuito" id="por-circuito" aria-label="Avance por circuito"></section>
 
         <!-- Grid de Módulos del Sistema -->
-        <section class="modules-grid" id="modules-grid">
-            <!-- Los módulos se cargarán dinámicamente -->
+        <section class="modulos" aria-label="Módulos del sistema">
+            <h2 class="titulo-seccion">Módulos</h2>
+            <div class="modules-grid" id="modules-grid"></div>
         </section>
     </main>
 
     <!-- Scripts -->
-    <script src="src/components/NavbarComponent.js"></script>
-    <script src="src/services/ApiService.js"></script>
-    <script src="src/services/AuthService.js"></script>
+    <script src="src/components/NavbarComponent.js?v=ab118bd1"></script>
+    <script src="src/services/ApiService.js?v=e512aeca"></script>
+    <script src="src/services/AuthService.js?v=dbc5042e"></script>
     
     <script>
         // Configuración de módulos por rol
@@ -581,20 +588,15 @@
             }
         }
 
-        // Actualizar información del usuario
+        // El nombre y el rol del usuario ya los muestra la barra de navegación en todas
+        // las pantallas, así que el encabezado de esta dejó de repetirlos. Lo que sí
+        // aporta es la fecha: ubica el estado que se está mirando en el tiempo.
         function updateUserInfo() {
-            if (currentUser) {
-                const usernameEl = document.getElementById('username');
-                const userRoleEl = document.getElementById('user-role');
-                
-                if (usernameEl) {
-                    usernameEl.textContent = currentUser.nombre_completo || currentUser.username || 'Usuario';
-                }
-                
-                if (userRoleEl) {
-                    userRoleEl.textContent = getRoleDisplayName(currentUserRole);
-                }
-            }
+            const fecha = document.getElementById('inicio-fecha');
+            if (!fecha) return;
+            fecha.textContent = new Date().toLocaleDateString('es-AR', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+            });
         }
 
         // Obtener nombre de rol para mostrar
@@ -768,27 +770,92 @@
         }
 
         // Cargar estadísticas rápidas
+        /**
+         * Situación del relevamiento.
+         *
+         * Antes esta función devolvía datos inventados —1250 votantes, 890 relevados—
+         * con un TODO al lado, y la sección que los mostraba estaba comentada. Ahora
+         * consulta la misma API que el padrón.
+         */
         async function loadQuickStats() {
+            const contenedor = document.getElementById('situacion');
+            const numero = valor => Number(valor || 0).toLocaleString('es-AR');
+
             try {
-                // TODO: Hacer llamada real a la API para obtener estadísticas
-                // Por ahora usamos datos simulados
-                const stats = {
-                    total: 1250,
-                    relevados: 890,
-                    pendientes: 360,
-                    progreso: Math.round((890 / 1250) * 100)
-                };
+                const respuesta = await window.apiService.request('/api/padron/resultados/estadisticas-avanzadas');
+                const d = respuesta?.data || {};
 
-                document.getElementById('stat-total').textContent = stats.total.toLocaleString();
-                document.getElementById('stat-relevados').textContent = stats.relevados.toLocaleString();
-                document.getElementById('stat-pendientes').textContent = stats.pendientes.toLocaleString();
-                document.getElementById('stat-progreso').textContent = stats.progreso + '%';
+                const total = Number(d.total_votantes) || 0;
+                const relevados = Number(d.total_relevados) || 0;
+                const pendientes = Math.max(total - relevados, 0);
+                const porcentaje = total > 0 ? Math.round((relevados / total) * 100) : 0;
 
-                // Mostrar la sección de estadísticas
-                document.getElementById('quick-stats').style.display = 'block';
-                
+                contenedor.innerHTML = `
+                    <div class="situacion-principal">
+                        <div class="situacion-porcentaje">${porcentaje}<span>%</span></div>
+                        <div class="situacion-detalle">
+                            <p class="situacion-titulo">del padrón relevado</p>
+                            <div class="situacion-barra" role="progressbar" aria-valuenow="${porcentaje}"
+                                 aria-valuemin="0" aria-valuemax="100" aria-label="Avance del relevamiento">
+                                <div class="situacion-relleno" style="width: ${porcentaje}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <dl class="situacion-cifras">
+                        <div><dt>Relevados</dt><dd>${numero(relevados)}</dd></div>
+                        <div><dt>Pendientes</dt><dd>${numero(pendientes)}</dd></div>
+                        <div><dt>Padrón total</dt><dd>${numero(total)}</dd></div>
+                    </dl>
+                `;
+
+                await cargarPorCircuito();
             } catch (error) {
-                console.error('Error cargando estadísticas:', error);
+                console.error('Error cargando la situacion:', error);
+                contenedor.innerHTML = '<p class="situacion-error">No se pudo cargar el estado del relevamiento.</p>';
+            }
+        }
+
+        /**
+         * Avance por circuito, ordenado de menos a más relevado.
+         *
+         * Este corte ya existía en la API y no se mostraba en ninguna pantalla. Es el
+         * único que responde *dónde* falta trabajo, que es la pregunta que sigue a
+         * "cuánto falta": el resto de los cortes —sexo, edad, condiciones— describen a
+         * quién se relevó, pero no dicen adónde ir mañana.
+         */
+        async function cargarPorCircuito() {
+            const contenedor = document.getElementById('por-circuito');
+            if (!contenedor) return;
+
+            try {
+                const respuesta = await window.apiService.request('/api/padron/resultados/por-circuito');
+                const filas = Array.isArray(respuesta?.data) ? respuesta.data : [];
+                if (filas.length === 0) return;
+
+                const conAvance = filas.map(f => {
+                    const total = Number(f.total_votantes) || 0;
+                    const relevados = Number(f.total_relevados) || 0;
+                    return { circuito: f.circuito, total, relevados, pct: total > 0 ? Math.round((relevados / total) * 100) : 0 };
+                }).sort((a, b) => a.pct - b.pct);
+
+                contenedor.innerHTML = `
+                    <h2 class="titulo-seccion">Avance por circuito</h2>
+                    <p class="titulo-ayuda">Ordenado de menor a mayor avance: los primeros son los que faltan.</p>
+                    <ul class="circuitos">
+                        ${conAvance.map(c => `
+                            <li class="circuito">
+                                <span class="circuito-nombre">Circuito ${c.circuito}</span>
+                                <span class="circuito-barra">
+                                    <span class="circuito-relleno" style="width: ${c.pct}%"></span>
+                                </span>
+                                <span class="circuito-cifra">${c.relevados.toLocaleString('es-AR')} / ${c.total.toLocaleString('es-AR')}</span>
+                                <span class="circuito-pct">${c.pct}%</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                console.error('Error cargando el avance por circuito:', error);
             }
         }
 

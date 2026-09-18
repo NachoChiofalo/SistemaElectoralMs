@@ -5,21 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultados del Relevamiento - Sistema Electoral</title>
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tipografia e iconos, servidos desde este mismo origen -->
+    <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
+    <!-- Antes del primer pintado: si se aplicara despues, el tema oscuro destellaria en blanco. -->
+    <script src="src/tema.js?v=2e769770"></script>
+    <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
+    <link rel="stylesheet" href="src/styles/icons.css?v=aabbf556">
     
     <!-- Design System -->
-    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
     
     <!-- Estilos -->
-    <link rel="stylesheet" href="src/styles/navbar-styles.css">
-    <link rel="stylesheet" href="src/styles/padron-styles.css">
-    <link rel="stylesheet" href="src/styles/resultados-styles.css">
+    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
+    <link rel="stylesheet" href="src/styles/padron-styles.css?v=d44e31d4">
+    <link rel="stylesheet" href="src/styles/resultados-styles.css?v=c2e86182">
+    <link rel="stylesheet" href="src/styles/microchart.css?v=aadaea89">
     
     <style>
         body {
-            font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
-            background-color: var(--ds-bg-page, #f8fafc);
+            font-family: var(--ds-font-family);
+            background-color: var(--ds-bg-page);
             margin: 0;
             padding: 0;
             line-height: 1.6;
@@ -36,14 +42,14 @@
             align-items: center;
             gap: 8px;
             padding: 12px 20px;
-            background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1, #a855f7));
-            color: white;
+            background: var(--ds-gradient-primary);
+            color: var(--ds-text-inverse);
             text-decoration: none;
-            border-radius: var(--ds-radius-md, 8px);
+            border-radius: var(--ds-radius-md);
             font-weight: 600;
-            font-family: var(--ds-font-family, inherit);
+            font-family: var(--ds-font-family);
             margin-bottom: 20px;
-            transition: all var(--ds-transition-smooth, 0.35s ease);
+            transition: all var(--ds-transition-smooth);
             border: none;
             cursor: pointer;
             box-shadow: 0 2px 10px rgba(99, 102, 241, 0.25);
@@ -70,12 +76,12 @@
     
         
         .nav-link:hover {
-            background-color: #ecf0f1;
+            background-color: var(--ds-bg-subtle);
         }
         
         .nav-link.active {
-            background-color: #3498db;
-            color: white;
+            background-color: var(--ds-primary-500);
+            color: var(--ds-on-primary);
         }
         
         .btn {
@@ -96,21 +102,21 @@
         }
         
         .btn-primary {
-            background-color: #3498db;
-            color: white;
+            background-color: var(--ds-primary-500);
+            color: var(--ds-on-primary);
         }
         
         .btn-primary:hover {
-            background-color: #2980b9;
+            background-color: var(--ds-primary-600);
         }
         
         .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
+            background-color: var(--ds-secondary-400);
+            color: var(--ds-text-inverse);
         }
         
         .btn-secondary:hover {
-            background-color: #7f8c8d;
+            background-color: var(--ds-text-muted);
         }
         
         /* Mobile First Responsive Design */
@@ -193,14 +199,14 @@
         </div>
     </div>
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    
+    <!-- Graficos: reemplaza a Chart.js, misma API, solo doughnut y bar -->
+    <script src="src/lib/microchart.js?v=d26ab0a4"></script>
+
     <!-- Servicios y Componentes -->
-    <script src="src/components/NavbarComponent.js"></script>
-    <script src="src/services/ApiService.js"></script>
-    <script src="src/services/AuthService.js"></script>
-    <script src="src/components/ResultadosComponent.js"></script>
+    <script src="src/components/NavbarComponent.js?v=ab118bd1"></script>
+    <script src="src/services/ApiService.js?v=e512aeca"></script>
+    <script src="src/services/AuthService.js?v=dbc5042e"></script>
+    <script src="src/components/ResultadosComponent.js?v=e5f812e8"></script>
     
     <script>
         // Inicializar componente cuando la página esté lista
@@ -209,7 +215,7 @@
 
             // Inicializar navbar
             if (window.navbarComponent && typeof window.navbarComponent.init === 'function') {
-                window.navbarComponent.init('navbar-container', 'padron');
+                window.navbarComponent.init('navbar-container', 'resultados');
             }
             
             try {
@@ -237,12 +243,12 @@
                 if (!userPermissions.includes('resultados.view')) {
                     console.log('❌ Usuario sin permisos para ver resultados');
                     document.getElementById('resultados-container').innerHTML = `
-                        <div class="error-container" style="display: block; max-width: 600px; margin: 50px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
-                            <div class="error-message" style="color: var(--ds-danger-500, #ef4444);">
+                        <div class="error-container" style="display: block; max-width: 600px; margin: 50px auto; padding: 30px; background: var(--ds-bg-card); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
+                            <div class="error-message" style="color: var(--ds-danger-500);">
                                 <i class="fas fa-lock" style="font-size: 48px; margin-bottom: 20px;"></i>
                                 <h3 style="margin: 0 0 15px; font-size: 24px;">Acceso Denegado</h3>
-                                <p style="margin: 0 0 25px; font-size: 16px; color: var(--ds-text-secondary, #475569);">No tiene permisos para acceder a los resultados del relevamiento.</p>
-                                <button onclick="window.location.href='dashboard.html'" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-decoration: none;">
+                                <p style="margin: 0 0 25px; font-size: 16px; color: var(--ds-text-secondary);">No tiene permisos para acceder a los resultados del relevamiento.</p>
+                                <button onclick="window.location.href='dashboard.html'" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--ds-gradient-primary); color: var(--ds-text-inverse); border: none; border-radius: var(--ds-radius-md); font-weight: 600; cursor: pointer; text-decoration: none;">
                                     <i class="fas fa-arrow-left"></i> Volver al Dashboard
                                 </button>
                             </div>

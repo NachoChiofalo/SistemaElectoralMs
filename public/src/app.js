@@ -97,7 +97,7 @@ class App {
         this.configureUIBasedOnPermissions();
         
         // Agregar información del usuario autenticado
-        this.addUserInfo();
+        // La barra de navegacion ya muestra el usuario y maneja el logout.
         
         // Inicializar eventos de navegación
         this.initNavigation();
@@ -226,28 +226,10 @@ class App {
     /**
      * Agregar información del usuario en la interfaz
      */
-    addUserInfo() {
-        const usernameElement = document.getElementById('username');
-        const logoutBtn = document.getElementById('logout-btn');
-        
-        if (usernameElement && this.user) {
-            // Mostrar nombre completo y rol
-            const displayName = this.user.nombre_completo || this.user.username;
-            const role = this.user.rol || 'Usuario';
-            usernameElement.innerHTML = `
-                <div style="text-align: right;">
-                    <div style="font-weight: 500;">${displayName}</div>
-                    <div style="font-size: 0.8em; color: #666; text-transform: capitalize;">${role}</div>
-                </div>
-            `;
-        }
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                this.handleLogout();
-            });
-        }
-    }
+    // addUserInfo() se elimino. Pisaba el contenido de #username con su propio markup
+    // —que repetia el rol, ya mostrado por la barra— y enganchaba un SEGUNDO listener
+    // al boton de salir, con lo que la confirmacion aparecia dos veces. La barra de
+    // navegacion es la duena de esa zona desde que existe NavbarComponent.
 
     /**
      * Manejar cierre de sesión

@@ -13,6 +13,7 @@
     "migrate:status": "node scripts/migrate.js status",
     "migrate:adopt": "node scripts/migrate.js adopt",
     "snapshot": "node scripts/api-snapshot.js",
+    "build:assets": "node scripts/build-assets.js",
     "test": "node --test \"test/**/*.test.js\"",
     "seed:usuarios": "node scripts/seed-usuarios.js"
   },
@@ -39,5 +40,10 @@
   "license": "MIT",
   "overrides": {
     "qs": "^6.16.0"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "^5.0.20",
+    "@fortawesome/fontawesome-free": "^6.5.2",
+    "lucide-static": "^0.454.0"
   }
 }

@@ -3,44 +3,65 @@
    Guía de estilo y tokens de diseño para todo el ecosistema
    ========================================================================== */
 
-/* ==================== 1. TIPOGRAFÍA (Inter) ==================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* ==================== 1. TIPOGRAFÍA (Inter) ====================
+   Inter se sirve desde el mismo origen: las @font-face están en `fonts.css`, que
+   genera `scripts/build-assets.js` y que cada página carga antes que esta hoja.
+
+   Acá había un `@import` a Google Fonts. Un @import dentro de una hoja de estilo es
+   el peor caso de carga: el navegador no se entera de que la fuente existe hasta
+   haber bajado y parseado este archivo, y recién ahí encadena el pedido del CSS
+   remoto y después el de los woff2. Tres saltos bloqueando el primer render. */
 
 /* ==================== 2. PALETA DE COLORES & DESIGN TOKENS ==================== */
 :root {
-    /* —— Primarios (Navy — institucional, confianza, autoridad) —— */
-    --ds-primary-50:  #f0f4f8;
-    --ds-primary-100: #d9e2ec;
-    --ds-primary-200: #bcccdc;
-    --ds-primary-300: #9fb3c8;
-    --ds-primary-400: #7b96ad;
-    --ds-primary-500: #486581;
-    --ds-primary-600: #334e68;
-    --ds-primary-700: #243b53;
-    --ds-primary-800: #1a2e44;
-    --ds-primary-900: #102a43;
+    /* —— Acento (Grafito) ——
+       El acento de la aplicación —botones primarios, foco, estado activo, enlaces— no
+       es un color: es un valor de luminosidad.
 
-    /* —— Secundarios (Cool Gray) —— */
-    --ds-secondary-50:  #f7f9fb;
-    --ds-secondary-100: #edf1f5;
-    --ds-secondary-200: #dce3eb;
-    --ds-secondary-300: #c5ced8;
-    --ds-secondary-400: #8e9aab;
-    --ds-secondary-500: #5f6d7e;
-    --ds-secondary-600: #455468;
-    --ds-secondary-700: #324054;
-    --ds-secondary-800: #1f2d3d;
-    --ds-secondary-900: #0f1923;
+       En esta pantalla el color ya está ocupado y significa cosas: azul es PJ, rojo es
+       UCR, gris es indeciso, verde es éxito y ámbar es advertencia. Cualquier acento
+       cromático que se elija va a competir con alguno de esos, y en una tabla donde se
+       leen mil filas eso se paga caro. El grafito no puede confundirse con ningún dato
+       porque no tiene matiz, y deja que el único color fuerte de la pantalla sea el que
+       de verdad informa: el del partido. */
+    --ds-primary-50:  #f0f0f0;
+    --ds-primary-100: #e5e5e5;
+    --ds-primary-200: #d4d4d4;
+    --ds-primary-300: #a3a3a3;
+    --ds-primary-400: #737373;
+    --ds-primary-500: #404040;
+    --ds-primary-600: #262626;
+    --ds-primary-700: #171717;
+    --ds-primary-800: #0f0f0f;
+    --ds-primary-900: #000000;
 
-    /* —— Acento (Dorado sobrio — elegancia institucional) —— */
-    --ds-accent-50:  #fdf8f0;
-    --ds-accent-100: #f5ecda;
-    --ds-accent-200: #e8d5b0;
-    --ds-accent-300: #d4b97a;
-    --ds-accent-400: #c4a35a;
-    --ds-accent-500: #a8883d;
-    --ds-accent-600: #8c7033;
-    --ds-accent-700: #705829;
+    /* —— Neutros ——
+       Grises reales, sin tinte azul. Es lo que más hace que la interfaz se lea como un
+       panel moderno y no como un sistema institucional: el navy de antes teñía cada
+       borde y cada fondo, y eso le daba un peso que en una pantalla de trabajo cansa. */
+    --ds-secondary-50:  #fafafa;
+    --ds-secondary-100: #f5f5f5;
+    --ds-secondary-200: #ebebeb;
+    --ds-secondary-300: #e0e0e0;
+    --ds-secondary-400: #a1a1a1;
+    --ds-secondary-500: #737373;
+    --ds-secondary-600: #525252;
+    --ds-secondary-700: #404040;
+    --ds-secondary-800: #262626;
+    --ds-secondary-900: #171717;
+
+    /* —— Acento secundario ——
+       Era dorado. Hoy duplica la rampa de acento a propósito: mantener dos escalas
+       distintas fue lo que llevó al arcoíris que tenía el dashboard. Existe como alias
+       para no tener que reescribir los usos de `--ds-accent-*` repartidos por las hojas. */
+    --ds-accent-50:  #f0f0f0;
+    --ds-accent-100: #e5e5e5;
+    --ds-accent-200: #d4d4d4;
+    --ds-accent-300: #a3a3a3;
+    --ds-accent-400: #737373;
+    --ds-accent-500: #404040;
+    --ds-accent-600: #262626;
+    --ds-accent-700: #171717;
 
     /* —— Estados semánticos —— */
     --ds-success-50:  #ecfdf5;
@@ -70,39 +91,81 @@
     --ds-info-500: #3b82f6;
     --ds-info-600: #2563eb;
 
-    /* —— Colores de partidos políticos —— */
-    --ds-party-pj:       #1e3a8a;
+    /* —— Colores de partidos políticos ——
+       Azul y rojo siguen siendo PJ y UCR, pero un paso más claros: el #1e3a8a anterior
+       era casi negro y sobre las superficies planas nuevas se leía como tinta, no como
+       identidad. El indeciso pasa a gris neutro, acompañando la escala. */
+    --ds-party-pj:       #2563eb;
     --ds-party-pj-light: #dbeafe;
     --ds-party-ucr:       #dc2626;
     --ds-party-ucr-light: #fee2e2;
-    --ds-party-indeciso:       #64748b;
-    --ds-party-indeciso-light: #f1f5f9;
+    --ds-party-indeciso:       #737373;
+    --ds-party-indeciso-light: #f5f5f5;
 
-    /* —— Superficies y fondos —— */
-    --ds-bg-page:    #f5f7fa;
+    /* —— Texto sobre fondo teñido ——
+       Los badges y los íconos de estadística pintan un fondo tenue del color que
+       representan y escriben encima con ese mismo color, más oscuro. En claro eso sale
+       bien con los pasos -500/-600 de cada rampa, pero en oscuro el fondo se oscurece y
+       el texto sigue siendo oscuro: el badge desaparece. Estos tokens son ese texto, y
+       son lo único que se invierte entre un tema y el otro. */
+    /* Texto sobre una superficie pintada con el acento (botón primario, ítem activo).
+       No alcanza con `--ds-text-inverse`: ese es blanco siempre, porque también rotula
+       las píldoras de PJ y UCR, que son azul y rojo en los dos temas. El acento, en
+       cambio, es grafito oscuro en claro y gris claro en oscuro, así que su texto tiene
+       que darse vuelta. Son dos necesidades distintas y por eso son dos tokens. */
+    --ds-on-primary: #ffffff;
+
+    --ds-primary-on-tint: #171717;
+    --ds-success-on-tint: #059669;
+    --ds-warning-on-tint: #b37d1a;
+    --ds-danger-on-tint:  #dc2626;
+    --ds-info-on-tint:    #2563eb;
+    --ds-accent-on-tint:  #171717;
+
+    /* —— Superficies ——
+       Planas y muy cercanas entre sí: la jerarquía la dan los bordes y el espacio, no
+       la sombra ni el color. La página es apenas más oscura que la tarjeta, lo justo
+       para que la tarjeta se recorte. */
+    --ds-bg-page:    #fafafa;
     --ds-bg-card:    #ffffff;
     --ds-bg-elevated: #ffffff;
-    --ds-bg-subtle:  #edf1f5;
-    --ds-bg-muted:   #dce3eb;
+    --ds-bg-subtle:  #f5f5f5;
+    --ds-bg-muted:   #ebebeb;
 
-    /* —— Bordes —— */
-    --ds-border-light:  #dce3eb;
-    --ds-border-default: #c5ced8;
-    --ds-border-strong: #8e9aab;
+    /* —— Bordes ——
+       Son el recurso principal de separación, así que van finos y claros. Un borde de
+       1px a #ebebeb ordena tanto como una sombra y no ensucia el fondo. */
+    --ds-border-light:  #ebebeb;
+    --ds-border-default: #e0e0e0;
+    --ds-border-strong: #a1a1a1;
 
-    /* —— Texto —— */
-    --ds-text-primary:   #102a43;
-    --ds-text-secondary: #455468;
-    --ds-text-muted:     #8e9aab;
+    /* —— Texto ——
+       Casi negro para el contenido, no negro puro: sobre blanco el #171717 se lee igual
+       de nítido y vibra menos. */
+    --ds-text-primary:   #171717;
+    --ds-text-secondary: #525252;
+    --ds-text-muted:     #a1a1a1;
     --ds-text-inverse:   #ffffff;
 
-    /* —— Sombras —— */
-    --ds-shadow-xs:  0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --ds-shadow-sm:  0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-    --ds-shadow-md:  0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    --ds-shadow-lg:  0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    --ds-shadow-xl:  0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    --ds-shadow-focus: 0 0 0 3px rgba(72, 101, 129, 0.25);
+    /* Negro puro, sólo para `prefers-contrast: high`. Es un token y no un literal para
+       que se vea que el valor extremo es deliberado y no un color que quedó suelto. */
+    --ds-contrast-bg: #000000;
+
+    /* —— Sombras ——
+       Casi todas apagadas. En este estilo la elevación no se dibuja con sombra: las
+       tarjetas se apoyan en el fondo con un borde. Se dejan las dos más altas, y sólo
+       para lo que de verdad flota por encima de la página —modales y menús—, porque ahí
+       un borde solo no alcanza para despegar el elemento.
+
+       Se mantienen los nombres de los cinco tokens aunque tres estén en `none`: hay
+       decenas de usos repartidos, y vaciar el valor apaga la sombra en todos sin tener
+       que tocarlos uno por uno. */
+    --ds-shadow-xs:  none;
+    --ds-shadow-sm:  none;
+    --ds-shadow-md:  none;
+    --ds-shadow-lg:  0 8px 24px -8px rgba(0, 0, 0, 0.12);
+    --ds-shadow-xl:  0 16px 40px -12px rgba(0, 0, 0, 0.16);
+    --ds-shadow-focus: 0 0 0 3px rgba(23, 23, 23, 0.18);
 
     /* —— Radios —— */
     --ds-radius-sm:  6px;
@@ -122,16 +185,38 @@
     --ds-space-10: 40px;
     --ds-space-12: 48px;
 
-    /* —— Escala tipográfica —— */
+    /* —— Escala tipográfica ——
+       Misma familia que antes; lo que cambia es cómo se usa. La escala arranca más
+       abajo (13px de base en vez de 16) porque esto es una herramienta de trabajo con
+       mucho dato en pantalla, no una página para leer de corrido: con 16px las tablas
+       de once columnas no entran y todo obliga a hacer scroll.
+
+       El salto entre pasos es más marcado que antes, para que la jerarquía se note sin
+       depender del color. */
     --ds-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --ds-font-xs:   0.75rem;    /* 12px */
-    --ds-font-sm:   0.875rem;   /* 14px */
-    --ds-font-base: 1rem;       /* 16px */
-    --ds-font-lg:   1.125rem;   /* 18px */
-    --ds-font-xl:   1.25rem;    /* 20px */
-    --ds-font-2xl:  1.5rem;     /* 24px */
-    --ds-font-3xl:  1.875rem;   /* 30px */
+    --ds-font-xs:   0.6875rem;  /* 11px — etiquetas de columna, badges */
+    --ds-font-sm:   0.75rem;    /* 12px — texto auxiliar */
+    --ds-font-base: 0.8125rem;  /* 13px — cuerpo y celdas */
+    --ds-font-lg:   0.9375rem;  /* 15px — subtítulos */
+    --ds-font-xl:   1.125rem;   /* 18px — títulos de sección */
+    --ds-font-2xl:  1.375rem;   /* 22px — título de página */
+    --ds-font-3xl:  1.75rem;    /* 28px — cifras destacadas */
     --ds-font-4xl:  2.25rem;    /* 36px */
+
+    /* —— Interletrado ——
+       Inter se aprieta en los tamaños grandes y se abre en los chicos. Sin esto, un
+       título de 28px se ve suelto y una etiqueta de 11px en mayúsculas, apelmazada. */
+    --ds-tracking-tight:  -0.02em;
+    --ds-tracking-normal: 0;
+    --ds-tracking-wide:   0.04em;
+
+    /* —— Pesos ——
+       Nombrados para que la jerarquía sea una decisión y no un número al azar en cada
+       regla. Antes convivían 500, 600, 700, 800 y 900 sin criterio. */
+    --ds-weight-normal: 400;
+    --ds-weight-medium: 500;
+    --ds-weight-semibold: 600;
+    --ds-weight-bold: 700;
 
     /* —— Transiciones —— */
     --ds-transition-fast:   150ms ease;
@@ -139,11 +224,32 @@
     --ds-transition-smooth: 350ms cubic-bezier(0.4, 0, 0.2, 1);
     --ds-transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-    /* —— Gradientes reutilizables —— */
-    --ds-gradient-primary: linear-gradient(135deg, #334e68 0%, #243b53 50%, #102a43 100%);
-    --ds-gradient-navbar:  linear-gradient(135deg, #1a2e44 0%, #243b53 50%, #334e68 100%);
-    --ds-gradient-accent:  linear-gradient(135deg, #a8883d 0%, #c4a35a 100%);
-    --ds-gradient-subtle:  linear-gradient(135deg, #f5f7fa 0%, #edf1f5 100%);
+    /* —— Animaciones de entrada —— */
+    --ds-animation-fade-in: ds-fadeIn 0.3s ease-out;
+
+    /* —— "Gradientes" ——
+       Ya no son gradientes: son colores planos. El degradado diagonal es de las cosas
+       que más fechan una interfaz, y acá había uno en la barra, en cada botón primario
+       y en cada ícono del dashboard.
+
+       Los tokens conservan el nombre porque están referenciados en las seis hojas y en
+       varios `<style>` de página: cambiar el valor los aplana todos de una vez, sin
+       tener que perseguir cada uso. */
+    --ds-gradient-primary: var(--ds-primary-600);
+    --ds-gradient-navbar:  var(--ds-bg-card);
+    --ds-gradient-accent:  var(--ds-accent-500);
+    --ds-gradient-subtle:  var(--ds-bg-subtle);
+
+    /* —— Identidad por módulo ——
+       Cada módulo tenía un gradiente propio —rosa, cian, violeta— y se leían como cinco
+       productos distintos. Ahora son superficies planas dentro de la misma escala: el
+       módulo se distingue por su ícono y su nombre, no por un color inventado. Sólo
+       padrón, que es la pantalla principal, se lleva el acento. */
+    --ds-gradient-modulo-padron:     var(--ds-primary-600);
+    --ds-gradient-modulo-resultados: var(--ds-secondary-700);
+    --ds-gradient-modulo-usuarios:   var(--ds-secondary-600);
+    --ds-gradient-modulo-auditoria:  var(--ds-secondary-500);
+    --ds-gradient-modulo-pendiente:  var(--ds-secondary-300);
 }
 
 /* ==================== 3. RESET Y BASE GLOBAL ==================== */
@@ -230,7 +336,7 @@ p {
 
 .ds-btn--primary {
     background: var(--ds-primary-600);
-    color: var(--ds-text-inverse);
+    color: var(--ds-on-primary);
     border-color: var(--ds-primary-600);
 }
 
@@ -286,6 +392,26 @@ p {
 }
 
 /* —— Inputs —— */
+/* Base de los controles de formulario.
+   `.ds-input` existe desde siempre, pero las páginas estilan sus campos con sus propias
+   clases (`.form-group input`, `.filtro-group select`) y nunca declararon color ni
+   fondo: heredaban el del navegador, que en claro era blanco y coincidía de casualidad.
+   Con `color-scheme: dark` el navegador los pinta a su manera y dejan de pertenecer a
+   la paleta. Esta regla va sobre el elemento —la especificidad más baja que existe—
+   así que cualquier regla de página la sigue ganando. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+    color: var(--ds-text-primary);
+    background-color: var(--ds-bg-card);
+    border-color: var(--ds-border-default);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--ds-text-muted);
+}
+
 .ds-input {
     width: 100%;
     padding: var(--ds-space-3) var(--ds-space-4);
@@ -358,11 +484,11 @@ p {
     line-height: 1.5;
 }
 
-.ds-badge--success { background: var(--ds-success-100); color: var(--ds-success-700); }
-.ds-badge--warning { background: var(--ds-warning-100); color: var(--ds-warning-600); }
-.ds-badge--danger  { background: var(--ds-danger-100);  color: var(--ds-danger-700); }
-.ds-badge--info    { background: var(--ds-info-100);    color: var(--ds-info-600); }
-.ds-badge--neutral { background: var(--ds-secondary-100); color: var(--ds-secondary-600); }
+.ds-badge--success { background: var(--ds-success-100); color: var(--ds-success-on-tint); }
+.ds-badge--warning { background: var(--ds-warning-100); color: var(--ds-warning-on-tint); }
+.ds-badge--danger  { background: var(--ds-danger-100);  color: var(--ds-danger-on-tint); }
+.ds-badge--info    { background: var(--ds-info-100);    color: var(--ds-info-on-tint); }
+.ds-badge--neutral { background: var(--ds-secondary-100); color: var(--ds-text-secondary); }
 
 /* ==================== 6. ANIMACIONES Y MICRO-INTERACCIONES ==================== */
 
@@ -629,8 +755,10 @@ p {
 /* ==================== 14. SELECCIÓN DE TEXTO ==================== */
 
 ::selection {
+    /* text-primary y no primary-900: el paso de rampa no se invierte, y en modo oscuro
+       el texto seleccionado quedaba navy sobre navy. */
     background: var(--ds-primary-200);
-    color: var(--ds-primary-900);
+    color: var(--ds-text-primary);
 }
 
 /* ==================== 15. ACCESIBILIDAD ==================== */
@@ -653,4 +781,228 @@ p {
         --ds-shadow-sm: none;
         --ds-shadow-md: none;
     }
+}
+
+/* ==================== 16. MODO OSCURO ====================
+
+   Esto funciona porque los consumidores ya no llevan colores propios: todo pasa por
+   un token, así que redefinirlos acá alcanza para cambiar la aplicación entera.
+   Mientras las hojas tenían `var(--ds-x, #hexviejo)` por todos lados, un modo oscuro
+   habría dejado islas claras en cada lugar donde el fallback se hubiera usado.
+
+   No es una inversión: las superficies llevan el mismo navy de la identidad, y los
+   colores de partido se aclaran en vez de conservarse. `--ds-party-pj` es #1e3a8a,
+   que sobre un fondo oscuro queda prácticamente invisible; los gráficos son el lugar
+   donde ese detalle se nota más.
+
+   Los valores viven una sola vez, en `--modo-oscuro-*`, y se asignan dos veces: una
+   para quien tiene el sistema en oscuro y otra para quien lo eligió a mano. Sin esa
+   indirección habría que mantener la paleta sincronizada en dos lugares. */
+
+:root {
+    /* —— Superficies: neutras, no navy. La elevación es luminosidad, no sombra —— */
+    --modo-oscuro-bg-page:     #0a0a0a;
+    --modo-oscuro-bg-card:     #141414;
+    --modo-oscuro-bg-elevated: #1c1c1c;
+    --modo-oscuro-bg-subtle:   #1c1c1c;
+    --modo-oscuro-bg-muted:    #262626;
+
+    /* —— Bordes: sobre fondo oscuro separan mejor que cualquier sombra —— */
+    --modo-oscuro-border-light:   #262626;
+    --modo-oscuro-border-default: #333333;
+    --modo-oscuro-border-strong:  #525252;
+
+    /* —— Texto: blanco puro sobre negro vibra; #ededed descansa la vista —— */
+    --modo-oscuro-text-primary:   #ededed;
+    --modo-oscuro-text-secondary: #a1a1a1;
+    --modo-oscuro-text-muted:     #737373;
+
+    /* —— Partidos, aclarados para que se lean sobre fondo oscuro —— */
+    --modo-oscuro-party-pj:       #60a5fa;
+    --modo-oscuro-party-ucr:      #f87171;
+    --modo-oscuro-party-indeciso: #a1a1a1;
+
+    /* —— Texto sobre tinte: acá el par se da vuelta y el texto pasa a ser el claro —— */
+    --modo-oscuro-primary-on-tint: #ededed;
+    --modo-oscuro-success-on-tint: #6ee7b7;
+    --modo-oscuro-warning-on-tint: #fcd34d;
+    --modo-oscuro-danger-on-tint:  #fca5a5;
+    --modo-oscuro-info-on-tint:    #93c5fd;
+    --modo-oscuro-accent-on-tint:  #ededed;
+
+    /* —— Tintes: los -50/-100 se usan como fondo de badges y en claro son casi
+           blancos. Acá son navys apenas teñidos del color que representan. —— */
+    --modo-oscuro-primary-50:   #1f1f1f;
+    --modo-oscuro-primary-100:  #2b2b2b;
+    --modo-oscuro-primary-200:  #383838;
+    /* El acento se invierte: en claro va de claro a oscuro, en oscuro al reves. Un
+       boton primario grafito sobre un fondo #141414 seria invisible, y la barra de
+       avance tambien. */
+    --modo-oscuro-primary-500:  #8f8f8f;
+    --modo-oscuro-primary-600:  #d4d4d4;
+    --modo-oscuro-primary-700:  #ededed;
+    /* Y si el acento pasa a ser claro, su texto pasa a ser oscuro. */
+    --modo-oscuro-on-primary:   #141414;
+    --modo-oscuro-secondary-100: #1c1c1c;
+    --modo-oscuro-secondary-200: #262626;
+    --modo-oscuro-success-50:   #0f2820;
+    --modo-oscuro-success-100:  #14342a;
+    --modo-oscuro-success-200:  #1b4738;
+    --modo-oscuro-warning-100:  #3d2f14;
+    --modo-oscuro-danger-50:    #331717;
+    --modo-oscuro-danger-100:   #4a2222;
+    --modo-oscuro-info-50:      #152a42;
+    --modo-oscuro-info-100:     #1c3a5a;
+
+    /* —— Gradientes: los de claro se confunden con el fondo, van un tono arriba —— */
+    --modo-oscuro-gradient-primary: #525252;
+    --modo-oscuro-gradient-navbar:  #141414;
+    --modo-oscuro-gradient-subtle:  #1c1c1c;
+
+    --modo-oscuro-gradient-modulo-padron:     #525252;
+    --modo-oscuro-gradient-modulo-resultados: #404040;
+    --modo-oscuro-gradient-modulo-usuarios:   #333333;
+    --modo-oscuro-gradient-modulo-auditoria:  #2b2b2b;
+    --modo-oscuro-gradient-modulo-pendiente:  #262626;
+
+    /* —— Sombras: sobre oscuro casi no se ven; se compensan con más opacidad —— */
+    --modo-oscuro-shadow-xs: none;
+    --modo-oscuro-shadow-sm: none;
+    --modo-oscuro-shadow-md: none;
+    --modo-oscuro-shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+    --modo-oscuro-shadow-xl: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
+    --modo-oscuro-shadow-focus: 0 0 0 3px rgba(237, 237, 237, 0.25);
+}
+
+/* La lista de asignaciones se repite en los dos selectores porque uno vive dentro de
+   una media query y el otro no: CSS no permite combinarlos. Los valores, que son lo
+   que se mantiene, están una sola vez arriba. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+
+        --ds-bg-page:     var(--modo-oscuro-bg-page);
+        --ds-bg-card:     var(--modo-oscuro-bg-card);
+        --ds-bg-elevated: var(--modo-oscuro-bg-elevated);
+        --ds-bg-subtle:   var(--modo-oscuro-bg-subtle);
+        --ds-bg-muted:    var(--modo-oscuro-bg-muted);
+
+        --ds-border-light:   var(--modo-oscuro-border-light);
+        --ds-border-default: var(--modo-oscuro-border-default);
+        --ds-border-strong:  var(--modo-oscuro-border-strong);
+
+        --ds-text-primary:   var(--modo-oscuro-text-primary);
+        --ds-text-secondary: var(--modo-oscuro-text-secondary);
+        --ds-text-muted:     var(--modo-oscuro-text-muted);
+
+        --ds-party-pj:       var(--modo-oscuro-party-pj);
+        --ds-party-ucr:      var(--modo-oscuro-party-ucr);
+        --ds-party-indeciso: var(--modo-oscuro-party-indeciso);
+
+        --ds-primary-on-tint: var(--modo-oscuro-primary-on-tint);
+        --ds-success-on-tint: var(--modo-oscuro-success-on-tint);
+        --ds-warning-on-tint: var(--modo-oscuro-warning-on-tint);
+        --ds-danger-on-tint:  var(--modo-oscuro-danger-on-tint);
+        --ds-info-on-tint:    var(--modo-oscuro-info-on-tint);
+        --ds-accent-on-tint:  var(--modo-oscuro-accent-on-tint);
+
+        --ds-primary-500:  var(--modo-oscuro-primary-500);
+        --ds-primary-600:  var(--modo-oscuro-primary-600);
+        --ds-primary-700:  var(--modo-oscuro-primary-700);
+        --ds-on-primary:   var(--modo-oscuro-on-primary);
+        --ds-primary-50:   var(--modo-oscuro-primary-50);
+        --ds-primary-100:  var(--modo-oscuro-primary-100);
+        --ds-primary-200:  var(--modo-oscuro-primary-200);
+        --ds-secondary-100: var(--modo-oscuro-secondary-100);
+        --ds-secondary-200: var(--modo-oscuro-secondary-200);
+        --ds-success-50:   var(--modo-oscuro-success-50);
+        --ds-success-100:  var(--modo-oscuro-success-100);
+        --ds-success-200:  var(--modo-oscuro-success-200);
+        --ds-warning-100:  var(--modo-oscuro-warning-100);
+        --ds-danger-50:    var(--modo-oscuro-danger-50);
+        --ds-danger-100:   var(--modo-oscuro-danger-100);
+        --ds-info-50:      var(--modo-oscuro-info-50);
+        --ds-info-100:     var(--modo-oscuro-info-100);
+
+        --ds-gradient-primary: var(--modo-oscuro-gradient-primary);
+        --ds-gradient-navbar:  var(--modo-oscuro-gradient-navbar);
+        --ds-gradient-subtle:  var(--modo-oscuro-gradient-subtle);
+
+        --ds-gradient-modulo-padron:     var(--modo-oscuro-gradient-modulo-padron);
+        --ds-gradient-modulo-resultados: var(--modo-oscuro-gradient-modulo-resultados);
+        --ds-gradient-modulo-usuarios:   var(--modo-oscuro-gradient-modulo-usuarios);
+        --ds-gradient-modulo-auditoria:  var(--modo-oscuro-gradient-modulo-auditoria);
+        --ds-gradient-modulo-pendiente:  var(--modo-oscuro-gradient-modulo-pendiente);
+
+        --ds-shadow-xs: var(--modo-oscuro-shadow-xs);
+        --ds-shadow-sm: var(--modo-oscuro-shadow-sm);
+        --ds-shadow-md: var(--modo-oscuro-shadow-md);
+        --ds-shadow-lg: var(--modo-oscuro-shadow-lg);
+        --ds-shadow-xl: var(--modo-oscuro-shadow-xl);
+        --ds-shadow-focus: var(--modo-oscuro-shadow-focus);
+    }
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --ds-bg-page:     var(--modo-oscuro-bg-page);
+    --ds-bg-card:     var(--modo-oscuro-bg-card);
+    --ds-bg-elevated: var(--modo-oscuro-bg-elevated);
+    --ds-bg-subtle:   var(--modo-oscuro-bg-subtle);
+    --ds-bg-muted:    var(--modo-oscuro-bg-muted);
+
+    --ds-border-light:   var(--modo-oscuro-border-light);
+    --ds-border-default: var(--modo-oscuro-border-default);
+    --ds-border-strong:  var(--modo-oscuro-border-strong);
+
+    --ds-text-primary:   var(--modo-oscuro-text-primary);
+    --ds-text-secondary: var(--modo-oscuro-text-secondary);
+    --ds-text-muted:     var(--modo-oscuro-text-muted);
+
+    --ds-party-pj:       var(--modo-oscuro-party-pj);
+    --ds-party-ucr:      var(--modo-oscuro-party-ucr);
+    --ds-party-indeciso: var(--modo-oscuro-party-indeciso);
+
+    --ds-primary-on-tint: var(--modo-oscuro-primary-on-tint);
+    --ds-success-on-tint: var(--modo-oscuro-success-on-tint);
+    --ds-warning-on-tint: var(--modo-oscuro-warning-on-tint);
+    --ds-danger-on-tint:  var(--modo-oscuro-danger-on-tint);
+    --ds-info-on-tint:    var(--modo-oscuro-info-on-tint);
+    --ds-accent-on-tint:  var(--modo-oscuro-accent-on-tint);
+
+    --ds-primary-500:  var(--modo-oscuro-primary-500);
+    --ds-primary-600:  var(--modo-oscuro-primary-600);
+    --ds-primary-700:  var(--modo-oscuro-primary-700);
+    --ds-on-primary:   var(--modo-oscuro-on-primary);
+    --ds-primary-50:   var(--modo-oscuro-primary-50);
+    --ds-primary-100:  var(--modo-oscuro-primary-100);
+    --ds-primary-200:  var(--modo-oscuro-primary-200);
+    --ds-secondary-100: var(--modo-oscuro-secondary-100);
+    --ds-secondary-200: var(--modo-oscuro-secondary-200);
+    --ds-success-50:   var(--modo-oscuro-success-50);
+    --ds-success-100:  var(--modo-oscuro-success-100);
+    --ds-success-200:  var(--modo-oscuro-success-200);
+    --ds-warning-100:  var(--modo-oscuro-warning-100);
+    --ds-danger-50:    var(--modo-oscuro-danger-50);
+    --ds-danger-100:   var(--modo-oscuro-danger-100);
+    --ds-info-50:      var(--modo-oscuro-info-50);
+    --ds-info-100:     var(--modo-oscuro-info-100);
+
+    --ds-gradient-primary: var(--modo-oscuro-gradient-primary);
+    --ds-gradient-navbar:  var(--modo-oscuro-gradient-navbar);
+    --ds-gradient-subtle:  var(--modo-oscuro-gradient-subtle);
+
+    --ds-gradient-modulo-padron:     var(--modo-oscuro-gradient-modulo-padron);
+    --ds-gradient-modulo-resultados: var(--modo-oscuro-gradient-modulo-resultados);
+    --ds-gradient-modulo-usuarios:   var(--modo-oscuro-gradient-modulo-usuarios);
+    --ds-gradient-modulo-auditoria:  var(--modo-oscuro-gradient-modulo-auditoria);
+    --ds-gradient-modulo-pendiente:  var(--modo-oscuro-gradient-modulo-pendiente);
+
+    --ds-shadow-xs: var(--modo-oscuro-shadow-xs);
+    --ds-shadow-sm: var(--modo-oscuro-shadow-sm);
+    --ds-shadow-md: var(--modo-oscuro-shadow-md);
+    --ds-shadow-lg: var(--modo-oscuro-shadow-lg);
+    --ds-shadow-xl: var(--modo-oscuro-shadow-xl);
+    --ds-shadow-focus: var(--modo-oscuro-shadow-focus);
 }

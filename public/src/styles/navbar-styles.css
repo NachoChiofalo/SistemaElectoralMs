@@ -1,10 +1,9 @@
 /* ==================== NAVBAR UNIFICADA ==================== */
 
 .navbar-unified {
-    background: var(--ds-gradient-navbar, linear-gradient(135deg, #1a2e44 0%, #243b53 50%, #334e68 100%));
-    box-shadow: var(--ds-shadow-lg, 0 4px 20px rgba(0, 0, 0, 0.1));
-    border-radius: 0 0 var(--ds-radius-xl, 16px) var(--ds-radius-xl, 16px);
-    margin-bottom: 24px;
+    background: var(--ds-bg-card);
+    border-bottom: 1px solid var(--ds-border-light);
+    margin-bottom: 20px;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -14,7 +13,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 30px;
+    padding: 10px 24px;
     max-width: 1400px;
     margin: 0 auto;
     gap: 20px;
@@ -24,17 +23,20 @@
 .navbar-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 1.1rem;
+    gap: 8px;
+    color: var(--ds-text-primary);
+    font-weight: var(--ds-weight-semibold);
+    font-size: var(--ds-font-base);
+    letter-spacing: var(--ds-tracking-tight);
     flex-shrink: 0;
+    padding-right: 20px;
+    margin-right: 4px;
+    border-right: 1px solid var(--ds-border-light);
 }
 
 .navbar-brand i {
-    font-size: 1.3rem;
-    color: var(--ds-accent-400, #c4a35a);
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    font-size: 1.15rem;
+    color: var(--ds-primary-600);
 }
 
 .brand-text {
@@ -53,99 +55,103 @@
 .navbar-nav {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 2px;
     flex: 1;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 20px;
-    color: rgba(255, 255, 255, 0.9);
+    padding: 7px 12px;
+    color: var(--ds-text-secondary);
     text-decoration: none;
-    border-radius: var(--ds-radius-md, 8px);
-    font-weight: 500;
-    font-size: 0.9rem;
-    transition: all var(--ds-transition-smooth, 0.35s cubic-bezier(0.4, 0, 0.2, 1));
+    border-radius: var(--ds-radius-sm);
+    font-weight: var(--ds-weight-medium);
+    font-size: var(--ds-font-base);
+    transition: all var(--ds-transition-smooth);
     position: relative;
     white-space: nowrap;
 }
 
 .nav-item:hover {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: var(--ds-text-primary);
+    background-color: var(--ds-bg-subtle);
 }
 
 .nav-item.active {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.22);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    color: var(--ds-primary-700);
+    background-color: var(--ds-primary-50);
 }
 
-.nav-item.active::before {
-    content: '';
-    position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 3px;
-    background: var(--ds-accent-400, #c4a35a);
-    border-radius: 2px;
-}
+/* El indicador colgante bajo la barra se eliminó: con la barra clara, el fondo del
+   ítem activo ya lo señala sin agregar un elemento flotando fuera del contenedor. */
 
 .nav-item i {
-    font-size: 1.1rem;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    font-size: 1rem;
 }
 
 /* User Area */
 .navbar-user {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 8px;
     flex-shrink: 0;
+    padding-left: 16px;
+    border-left: 1px solid var(--ds-border-light);
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.9rem;
-    font-weight: 500;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+    line-height: 1.25;
+    margin-right: 4px;
+}
+
+.user-info .username {
+    color: var(--ds-text-primary);
+    font-size: var(--ds-font-sm);
+    font-weight: var(--ds-weight-medium);
+}
+
+.user-info .user-role {
+    color: var(--ds-text-muted);
+    font-size: var(--ds-font-xs);
+    text-transform: capitalize;
 }
 
 .user-info i {
-    font-size: 1.2rem;
-    color: var(--ds-accent-400, #c4a35a);
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    font-size: 1rem;
+    color: var(--ds-text-muted);
 }
 
+/* Tema y salir son cuadrados del mismo tamaño y sin texto: dicen lo mismo en un tercio
+   del ancho, y ese ancho es el que la barra va a necesitar cuando entren los módulos
+   nuevos. El texto sobrevive en `title` y en `aria-label`, así que no se pierde para
+   quien navega con teclado o lector de pantalla. */
 .logout-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: rgba(239, 68, 68, 0.15);
-    color: #ffffff;
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: var(--ds-radius-md, 8px);
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: transparent;
+    color: var(--ds-text-muted);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-sm);
     cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: all var(--ds-transition-smooth, 0.35s ease);
+    transition: color var(--ds-transition-fast), background-color var(--ds-transition-fast), border-color var(--ds-transition-fast);
 }
 
 .logout-btn:hover {
-    background: rgba(239, 68, 68, 0.25);
-    border-color: rgba(239, 68, 68, 0.5);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    background: var(--ds-danger-50);
+    border-color: var(--ds-danger-400);
+    color: var(--ds-danger-600);
 }
 
 .logout-btn:active {
@@ -154,7 +160,48 @@
 
 .logout-btn i {
     font-size: 1rem;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* ==================== SELECTOR DE TEMA ====================
+   Neutro y translúcido: comparte fila con "Salir", que es rojo y destructivo, y no
+   tiene que competirle la atención. La barra es oscura en los dos temas, así que
+   estos valores son fijos a propósito y no siguen a los tokens de superficie. */
+.tema-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: transparent;
+    color: var(--ds-text-muted);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-sm);
+    cursor: pointer;
+    font-family: var(--ds-font-family);
+    transition: color var(--ds-transition-fast), background-color var(--ds-transition-fast), border-color var(--ds-transition-fast);
+}
+
+.tema-btn:hover {
+    background: var(--ds-bg-subtle);
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text-primary);
+}
+
+.tema-btn:active {
+    transform: translateY(0);
+}
+
+.tema-btn i {
+    font-size: 1rem;
+}
+
+/* En pantallas chicas el menú se abre en vertical y el ancho sobra; el texto se queda.
+   Lo que se achica es el padding, para que la fila entre sin apretarse. */
+@media (max-width: 1024px) {
+    .tema-btn {
+        padding: 8px 10px;
+    }
 }
 
 /* Mobile actions container - hidden on desktop */
@@ -186,7 +233,9 @@
     display: block;
     width: 24px;
     height: 2px;
-    background: #ffffff;
+    /* Tinta sobre la barra oscura, no una superficie: con --ds-bg-card las tres rayas
+       desaparecerían en modo oscuro, porque ahí esa superficie es casi negra. */
+    background: var(--ds-text-primary);
     border-radius: 2px;
     transition: all 0.3s ease;
 }
@@ -277,7 +326,8 @@
         right: 0;
         width: 280px;
         height: 100vh;
-        background: linear-gradient(180deg, #1a2e44 0%, #243b53 100%);
+        background: var(--ds-bg-card);
+        border-left: 1px solid var(--ds-border-light);
         flex-direction: column;
         padding: 70px 20px 20px;
         gap: 8px;
@@ -414,7 +464,7 @@
 .logout-btn:hover i,
 .user-info i:hover {
     transform: scale(1.1);
-    transition: transform var(--ds-transition-base, 0.25s ease);
+    transition: transform var(--ds-transition-base);
 }
 
 /* Efectos de glassmorphism sutil */
@@ -427,7 +477,7 @@
     bottom: 0;
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(10px);
-    border-radius: 0 0 var(--ds-radius-xl, 16px) var(--ds-radius-xl, 16px);
+    border-radius: 0 0 var(--ds-radius-xl) var(--ds-radius-xl);
     z-index: -1;
 }
 
@@ -445,17 +495,19 @@
 /* Modo de alto contraste */
 @media (prefers-contrast: high) {
     .navbar-unified {
-        background: #000000;
-        border: 2px solid #ffffff;
+        background: var(--ds-contrast-bg);
+        border: 2px solid var(--ds-text-inverse);
     }
     
     .nav-item,
     .logout-btn {
-        border: 1px solid #ffffff;
+        border: 1px solid var(--ds-text-inverse);
     }
     
+    /* Ítem activo invertido contra la barra oscura. Va con text-inverse y no con una
+       superficie, por lo mismo que las rayas del menú. */
     .nav-item.active {
-        background: #ffffff;
-        color: #000000;
+        background: var(--ds-text-inverse);
+        color: var(--ds-primary-900);
     }
 }

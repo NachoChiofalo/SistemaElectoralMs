@@ -20,6 +20,7 @@ const { logger, middlewareAcceso } = require('./logger');
 const sesiones = require('./security/sessions');
 const { requireAuth } = require('./security/authorize');
 const { manejadorErrores, manejadorNoEncontrado } = require('./errors');
+const { montarEstaticos } = require('./estaticos');
 
 const DIR_PUBLICO = path.join(__dirname, '..', '..', 'public');
 
@@ -67,8 +68,37 @@ function crearApp(modulos) {
   app.set('trust proxy', config.http.trustProxy);
 
   app.use(helmet({
-    // El web-admin usa scripts y estilos inline; una CSP estricta lo romperia.
-    contentSecurityPolicy: false,
+    // Esta CSP es la que se puede sostener hoy, no la que uno querria.
+    //
+    // Lo que si corta: desde que `public/` no depende de ningun CDN, `default-src
+    // 'self'` es cumplible, y con eso un `<script src="...">` o un `<link>` inyectado
+    // hacia afuera no carga. Sumado a `object-src 'none'`, `base-uri` y
+    // `frame-ancestors`, cierra la inyeccion de recursos externos, el secuestro de
+    // rutas relativas via <base> y el clickjacking.
+    //
+    // Lo que no corta: `'unsafe-inline'` en scripts. Cada pagina tiene su bloque
+    // <script> y sus `onclick=`, y los componentes generan mas dentro de sus
+    // plantillas. Sacarlos es lo que falta para que la CSP frene XSS de verdad, y es
+    // un trabajo que toca todo el frontend. Mientras tanto esto no es teatro: reduce
+    // superficie real, pero no da por cubierto el XSS inline.
+    //
+    // `img-src data:` no es opcional: los iconos son mascaras CSS con el SVG embebido
+    // en un data URI, y el navegador los pide bajo img-src. Sin eso no se ve ninguno.
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: {
+        'default-src': ["'self'"],
+        'script-src': ["'self'", "'unsafe-inline'"],
+        'style-src': ["'self'", "'unsafe-inline'"],
+        'img-src': ["'self'", 'data:'],
+        'font-src': ["'self'"],
+        'connect-src': ["'self'"],
+        'object-src': ["'none'"],
+        'base-uri': ["'self'"],
+        'form-action': ["'self'"],
+        'frame-ancestors': ["'none'"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
   }));
   app.use(compression());
@@ -118,15 +148,7 @@ function crearApp(modulos) {
   // El mismo proceso sirve el web-admin. Antes era un contenedor aparte corriendo
   // `serve`, con su propio runtime de Node para entregar archivos que no cambian.
   if (fs.existsSync(DIR_PUBLICO)) {
-    app.use(express.static(DIR_PUBLICO, {
-      etag: true,
-      lastModified: true,
-      maxAge: config.esProduccion ? config.http.cacheEstaticosMs : 0,
-      // El HTML se revalida siempre; si se cacheara, un deploy no llegaria al navegador.
-      setHeaders: (res, ruta) => {
-        if (ruta.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
-      },
-    }));
+    montarEstaticos(app, { dir: DIR_PUBLICO, config, logger });
 
     // Fallback del cliente: cualquier ruta que no sea /api ni un archivo devuelve el
     // index. Se excluye /api explicitamente para que un endpoint mal escrito devuelva

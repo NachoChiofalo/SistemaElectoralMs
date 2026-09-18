@@ -5,20 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auditoria - Sistema Electoral</title>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tipografia e iconos, servidos desde este mismo origen -->
+    <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
+    <!-- Antes del primer pintado: si se aplicara despues, el tema oscuro destellaria en blanco. -->
+    <script src="src/tema.js?v=2e769770"></script>
+    <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
+    <link rel="stylesheet" href="src/styles/icons.css?v=aabbf556">
 
     <!-- Design System -->
-    <link rel="stylesheet" href="src/styles/design-system.css">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
 
     <!-- Estilos -->
-    <link rel="stylesheet" href="src/styles/navbar-styles.css">
-    <link rel="stylesheet" href="src/styles/auditoria-styles.css">
+    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
+    <link rel="stylesheet" href="src/styles/auditoria-styles.css?v=fa022422">
 
     <style>
         body {
-            font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
-            background-color: var(--ds-bg-page, #f8fafc);
+            font-family: var(--ds-font-family);
+            background-color: var(--ds-bg-page);
             margin: 0;
             padding: 0;
             line-height: 1.6;
@@ -42,10 +47,10 @@
     </main>
 
     <!-- Scripts -->
-    <script src="src/components/NavbarComponent.js"></script>
-    <script src="src/services/ApiService.js"></script>
-    <script src="src/services/AuthService.js"></script>
-    <script src="src/components/AuditoriaComponent.js"></script>
+    <script src="src/components/NavbarComponent.js?v=ab118bd1"></script>
+    <script src="src/services/ApiService.js?v=e512aeca"></script>
+    <script src="src/services/AuthService.js?v=dbc5042e"></script>
+    <script src="src/components/AuditoriaComponent.js?v=e6607a8b"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {

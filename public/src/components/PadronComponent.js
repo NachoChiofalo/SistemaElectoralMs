@@ -101,9 +101,6 @@ class PadronComponent {
                     <button id="btn-exportar-padron" class="btn btn-secondary" data-requires-permission="padron.export" title="Exportar padron completo CSV">
                         <i class="fas fa-file-csv"></i> <span class="btn-text">Exportar Padron</span>
                     </button>
-                    <button id="btn-estadisticas" class="btn btn-info" data-requires-permission="resultados.view" title="Ver estadísticas detalladas">
-                        <i class="fas fa-chart-pie"></i> <span class="btn-text">Estadísticas</span>
-                    </button>
                     <button id="btn-filtros-mobile" class="btn btn-outline mobile-only" title="Mostrar/ocultar filtros">
                         <i class="fas fa-filter"></i>
                     </button>
@@ -132,13 +129,13 @@ class PadronComponent {
                 <div class="filtros-row">
                     <div class="filtro-item">
                         <label for="filtro-busqueda">
-                            <i class="fas fa-search"></i> Buscar
+                            Buscar
                         </label>
                         <input type="text" id="filtro-busqueda" placeholder="DNI, nombre, apellido..." aria-label="Buscar por DNI, nombre o apellido">
                     </div>
                     <div class="filtro-item">
                         <label for="filtro-circuito">
-                            <i class="fas fa-map-marker-alt"></i> Circuito
+                            Circuito
                         </label>
                         <select id="filtro-circuito" aria-label="Filtrar por circuito">
                             <option value="">Todos los circuitos</option>
@@ -146,7 +143,7 @@ class PadronComponent {
                     </div>
                     <div class="filtro-item">
                         <label for="filtro-sexo">
-                            <i class="fas fa-venus-mars"></i> Sexo
+                            Sexo
                         </label>
                         <select id="filtro-sexo" aria-label="Filtrar por sexo">
                             <option value="">Todos</option>
@@ -156,7 +153,7 @@ class PadronComponent {
                     </div>
                     <div class="filtro-item">
                         <label for="filtro-opcion-politica">
-                            <i class="fas fa-poll"></i> Opción Política
+                            Opción política
                         </label>
                         <select id="filtro-opcion-politica" aria-label="Filtrar por opción política">
                             <option value="">Todas</option>
@@ -165,11 +162,14 @@ class PadronComponent {
                             <option value="Indeciso">Indeciso</option>
                         </select>
                     </div>
+                    <!-- Sin <span class="checkmark">: era el resto de un patrón de casilla
+                         personalizada que acá nunca se conectó. La casilla nativa no
+                         estaba oculta, así que se dibujaban las dos —la real y el cuadro
+                         vacío del span— una al lado de la otra. -->
                     <div class="filtro-item filtro-checkbox">
                         <label for="filtro-sin-relevamiento">
-                            <input type="checkbox" id="filtro-sin-relevamiento" aria-label="Mostrar solo registros sin relevamiento">
-                            <span class="checkmark"></span>
-                            Sin Relevamiento
+                            <input type="checkbox" id="filtro-sin-relevamiento">
+                            Sin relevar
                         </label>
                     </div>
                     <div class="filtro-acciones">
@@ -220,10 +220,13 @@ class PadronComponent {
                                     Sexo <i class="fas fa-sort"></i>
                                 </th>
                                 <th>Opción Política</th>
-                                <th>Observación</th>
-                                <th>Teléfono</th>
-                                <th>Condiciones</th>
-                                <th>Acciones</th>
+                                <!-- Observación, Teléfono y Condiciones dejaron de ser
+                                     columnas: eran seis controles por fila que sólo se
+                                     usan en una minoría de los registros. Ahora se
+                                     cargan en el panel lateral, y acá queda una marca
+                                     de sólo lectura con lo que ya está cargado. -->
+                                <th>Datos</th>
+                                <th><span class="sr-only">Abrir</span></th>
                             </tr>
                         </thead>
                         <tbody id="tabla-body">
@@ -263,20 +266,6 @@ class PadronComponent {
                 </div>
             </div>
 
-            <!-- Modal para estadísticas -->
-            <div id="modal-estadisticas" class="modal-overlay" style="display: none;">
-                <div class="modal-content modal-large">
-                    <div class="modal-header">
-                        <h3>Estadísticas del Padrón Electoral</h3>
-                        <button class="modal-close" onclick="padronComponent.cerrarModalEstadisticas()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="modal-body" id="estadisticas-completas">
-                        <!-- Estadísticas se cargan dinámicamente -->
-                    </div>
-                </div>
-            </div>
 
             <!-- Modal para nuevo votante -->
             <div id="modal-nuevo-votante" class="modal-overlay" style="display: none;" onclick="padronComponent.cerrarModalNuevoVotanteOverlay(event)">
@@ -430,7 +419,6 @@ class PadronComponent {
         on('btn-importar',      'click', () => this.abrirModalImportar());
         on('btn-exportar',      'click', () => this.exportarDatos());
         on('btn-exportar-padron', 'click', () => this.exportarPadron());
-        on('btn-estadisticas',  'click', () => this.mostrarEstadisticas());
         on('padron-rate-banner-retry', 'click', () => this.reintentarRateLimit());
 
         // Botones móviles
@@ -580,6 +568,10 @@ class PadronComponent {
             return;
         }
 
+        // Se guarda lo que hay en pantalla para que el panel lateral no tenga que volver
+        // a pedir el votante a la API: los datos ya viajaron con el listado.
+        this.estado.votantesEnPantalla = votantes;
+
         this.elementos.tbody.innerHTML = votantes.map(item => {
             const { votante, relevamiento, detalle } = item;
             const opcionPolitica = relevamiento?.opcionPolitica || '';
@@ -599,33 +591,182 @@ class PadronComponent {
                             ${this.renderizarRadioButtons(votante.dni, opcionPolitica)}
                         </div>
                     </td>
-                    <td data-label="Observación">
-                        <textarea class="observacion-input"
-                               placeholder="Observación..."
-                               rows="2"
-                               onchange="padronComponent.actualizarObservacion('${votante.dni}', this.value)">${observacion}</textarea>
+                    <td data-label="Datos" class="marcas-cell">
+                        ${this.renderizarMarcas(item)}
                     </td>
-                    <td data-label="Teléfono">
-                        <input type="tel"
-                               class="telefono-input"
-                               placeholder="Teléfono..."
-                               value="${telefono}"
-                               onchange="padronComponent.actualizarTelefono('${votante.dni}', this.value)">
-                    </td>
-                    <td data-label="Condiciones" class="condiciones-cell">
-                        ${this.renderizarCondicionesInline(votante.dni, detalle)}
-                    </td>
-                    <td class="acciones" data-label="Acciones">
-                        <button class="btn-icon btn-sm btn-guardar-inline" data-requires-permission="padron.edit" onclick="padronComponent.guardarCondicionesInline('${votante.dni}')" title="Guardar condiciones especiales">
-                            <i class="fas fa-save"></i> <span class="desktop-only">Guardar</span>
+                    <td class="acciones" data-label="Abrir">
+                        <button class="btn-abrir-panel"
+                                onclick="padronComponent.abrirPanel('${votante.dni}')"
+                                title="Abrir ficha de ${votante.apellido}, ${votante.nombre}"
+                                aria-label="Abrir ficha de ${votante.apellido}, ${votante.nombre}">
+                            <i class="fas fa-chevron-right"></i>
                         </button>
-                        ${detalle && detalle.observaciones ? `<button class="btn-icon btn-sm btn-gestionar" onclick="padronComponent.verDetalles('${votante.dni}')" title="Ver observaciones detalladas">
-                            <i class="fas fa-eye"></i>
-                        </button>` : ''}
                     </td>
                 </tr>
             `;
         }).join('');
+    }
+
+    /**
+     * Marcas de sólo lectura de la fila: qué hay cargado, sin poder editarlo.
+     *
+     * Reemplaza a las tres columnas de carga. La diferencia no es sólo de espacio: una
+     * columna de checkboxes obliga a leer cuatro casillas para saber si alguna está
+     * marcada, mientras que acá sólo aparece lo que efectivamente aplica. Una fila sin
+     * nada cargado no muestra nada, que es la información correcta.
+     */
+    renderizarMarcas(item) {
+        const { relevamiento, detalle } = item;
+        const marcas = [];
+
+        if (relevamiento?.telefono) marcas.push({ icono: 'fa-id-card', texto: 'Tiene teléfono' });
+        if (relevamiento?.observacion) marcas.push({ icono: 'fa-comment', texto: 'Tiene observación' });
+
+        const condiciones = [
+            ['esNuevoVotante', 'fa-user-plus', 'Nuevo votante', 'nuevo'],
+            ['estaFallecido', 'fa-cross', 'Fallecido', 'fallecido'],
+            ['esEmpleadoMunicipal', 'fa-building', 'Empleado municipal', 'empleado'],
+            ['recibeAyudaSocial', 'fa-hands-helping', 'Recibe ayuda social', 'ayuda'],
+        ];
+
+        for (const [clave, icono, texto, variante] of condiciones) {
+            if (detalle?.[clave]) marcas.push({ icono, texto, variante });
+        }
+
+        if (marcas.length === 0) return '<span class="sin-marcas">—</span>';
+
+        return `<div class="marcas">${marcas.map(m =>
+            `<i class="fas ${m.icono} marca${m.variante ? ' marca-' + m.variante : ''}" title="${m.texto}" aria-label="${m.texto}"></i>`
+        ).join('')}</div>`;
+    }
+
+    /**
+     * Abre la ficha del votante en el panel lateral.
+     *
+     * Acá va todo lo que antes vivía repetido en cada fila: teléfono, observación y las
+     * cuatro condiciones. El cambio de fondo es que la carga deja de competir con la
+     * lectura — la tabla sirve para encontrar a alguien, el panel para cargarle datos—,
+     * y de paso la página pasa de unos 350 controles de formulario a unos 45.
+     */
+    abrirPanel(dni) {
+        const item = (this.estado.votantesEnPantalla || []).find(v => String(v.votante.dni) === String(dni));
+        if (!item) return;
+
+        const { votante, relevamiento, detalle } = item;
+        const cond = detalle || {};
+        const marcado = valor => (valor ? 'checked' : '');
+
+        this.cerrarPanel();
+
+        const panel = document.createElement('aside');
+        panel.className = 'panel-votante';
+        panel.id = 'panel-votante';
+        panel.setAttribute('role', 'dialog');
+        panel.setAttribute('aria-modal', 'false');
+        panel.setAttribute('aria-label', `Ficha de ${votante.apellido}, ${votante.nombre}`);
+        panel.dataset.dni = votante.dni;
+
+        panel.innerHTML = `
+            <header class="panel-header">
+                <div>
+                    <h3>${votante.apellido}, ${votante.nombre}</h3>
+                    <p class="panel-dni">DNI ${votante.dni}</p>
+                </div>
+                <button class="panel-cerrar" onclick="padronComponent.cerrarPanel()" title="Cerrar" aria-label="Cerrar ficha">
+                    <i class="fas fa-times"></i>
+                </button>
+            </header>
+
+            <dl class="panel-datos">
+                <div><dt>Edad</dt><dd>${votante.edad}</dd></div>
+                <div><dt>Circuito</dt><dd>${votante.circuito}</dd></div>
+                <div><dt>Sexo</dt><dd>${votante.sexo === 'F' ? 'Femenino' : 'Masculino'}</dd></div>
+            </dl>
+
+            <div class="panel-campo">
+                <label for="panel-telefono">Teléfono</label>
+                <input type="tel" id="panel-telefono" value="${relevamiento?.telefono || ''}"
+                       placeholder="Sin teléfono cargado">
+            </div>
+
+            <div class="panel-campo">
+                <label for="panel-observacion">Observación</label>
+                <textarea id="panel-observacion" rows="4"
+                          placeholder="Sin observaciones">${relevamiento?.observacion || ''}</textarea>
+            </div>
+
+            <fieldset class="panel-condiciones">
+                <legend>Condiciones</legend>
+                <label><input type="checkbox" name="esNuevoVotante" ${marcado(cond.esNuevoVotante)}> Nuevo votante</label>
+                <label><input type="checkbox" name="estaFallecido" ${marcado(cond.estaFallecido)}> Fallecido</label>
+                <label><input type="checkbox" name="esEmpleadoMunicipal" ${marcado(cond.esEmpleadoMunicipal)}> Empleado municipal</label>
+                <label><input type="checkbox" name="recibeAyudaSocial" ${marcado(cond.recibeAyudaSocial)}> Recibe ayuda social</label>
+            </fieldset>
+
+            <footer class="panel-acciones">
+                <button class="btn btn-secondary" onclick="padronComponent.cerrarPanel()">Cancelar</button>
+                <button class="btn btn-primary" id="panel-guardar" data-requires-permission="padron.edit"
+                        onclick="padronComponent.guardarPanel()">Guardar</button>
+            </footer>
+        `;
+
+        document.body.appendChild(panel);
+        document.querySelector(`tr[data-dni="${dni}"]`)?.classList.add('fila-abierta');
+
+        // El foco entra al panel para que se pueda cargar sin tocar el mouse, y Escape
+        // lo cierra, que es lo que espera cualquiera frente a algo que se abre encima.
+        panel.querySelector('#panel-telefono')?.focus();
+        this._cerrarConEscape = (evento) => { if (evento.key === 'Escape') this.cerrarPanel(); };
+        document.addEventListener('keydown', this._cerrarConEscape);
+    }
+
+    cerrarPanel() {
+        document.getElementById('panel-votante')?.remove();
+        document.querySelector('tr.fila-abierta')?.classList.remove('fila-abierta');
+        if (this._cerrarConEscape) {
+            document.removeEventListener('keydown', this._cerrarConEscape);
+            this._cerrarConEscape = null;
+        }
+    }
+
+    /**
+     * Guarda la ficha completa: teléfono y observación van al relevamiento; las cuatro
+     * casillas, al detalle. Son dos endpoints distintos, y por eso dos llamadas.
+     */
+    async guardarPanel() {
+        const panel = document.getElementById('panel-votante');
+        if (!panel) return;
+
+        const dni = panel.dataset.dni;
+        const boton = panel.querySelector('#panel-guardar');
+        const textoOriginal = boton.textContent;
+
+        boton.disabled = true;
+        boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando…';
+
+        try {
+            const condiciones = {};
+            for (const casilla of panel.querySelectorAll('.panel-condiciones input[type="checkbox"]')) {
+                condiciones[casilla.name] = casilla.checked;
+            }
+
+            await Promise.all([
+                this.actualizarTelefono(dni, panel.querySelector('#panel-telefono').value),
+                this.actualizarObservacion(dni, panel.querySelector('#panel-observacion').value),
+                window.apiService.request('/api/padron/detalle-votante', {
+                    method: 'POST',
+                    body: JSON.stringify({ dni, condiciones }),
+                }),
+            ]);
+
+            this.mostrarNotificacion('Ficha guardada', 'success');
+            this.cerrarPanel();
+            await this.actualizarTabla();
+        } catch (error) {
+            this.mostrarError(`No se pudo guardar: ${error.message}`);
+            boton.disabled = false;
+            boton.textContent = textoOriginal;
+        }
     }
 
     /**
@@ -724,65 +865,33 @@ class PadronComponent {
             const estadisticasPoliticas = stats.estadisticasPoliticas || {};
             const totalVotantes = typeof stats.totalVotantes === 'number' ? stats.totalVotantes : 0;
             const totalRelevamientos = typeof stats.totalRelevamientos === 'number' ? stats.totalRelevamientos : 0;
-            const porcentajeCompletado = typeof stats.porcentajeCompletado === 'number' ? stats.porcentajeCompletado : 0;
+            // `/api/padron/estadisticas` devuelve `porcentajeRelevados`, no
+            // `porcentajeCompletado`: el nombre viejo nunca existio en la respuesta, asi
+            // que este valor era siempre 0 y la barra de avance se veia vacia aunque
+            // hubiera mil relevamientos cargados. Si el campo faltara, se calcula.
+            const porcentajeCompletado = typeof stats.porcentajeRelevados === 'number'
+                ? Math.round(stats.porcentajeRelevados)
+                : (totalVotantes > 0 ? Math.round((totalRelevamientos / totalVotantes) * 100) : 0);
 
+            // Franja de avance en lugar de cinco tarjetas.
+            //
+            // Mientras se releva, la unica pregunta que la pantalla tiene que responder
+            // es cuanto falta. El reparto entre fuerzas es una pregunta de analisis y no
+            // de carga: su lugar es Resultados. Tenerlo aca obligaba a elegir cual de las
+            // tres pantallas que mostraban lo mismo era la buena.
             this.elementos.estadisticasRapidas.innerHTML = `
-                <div class="estadisticas-grid">
-                    <div class="stat-card total">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number">${totalVotantes.toLocaleString()}</div>
-                            <div class="stat-label">Total Votantes</div>
-                        </div>
+                <div class="avance">
+                    <div class="avance-cifras">
+                        <strong>${totalRelevamientos.toLocaleString('es-AR')}</strong>
+                        <span>de ${totalVotantes.toLocaleString('es-AR')} relevados</span>
                     </div>
-                    
-                    <div class="stat-card completados">
-                        <div class="stat-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number">${totalRelevamientos.toLocaleString()}</div>
-                            <div class="stat-label">Relevamientos</div>
-                            <div class="stat-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${porcentajeCompletado}%"></div>
-                                </div>
-                                <span class="progress-text">${porcentajeCompletado}%</span>
-                            </div>
-                        </div>
+                    <div class="avance-barra" role="progressbar"
+                         aria-valuenow="${porcentajeCompletado}" aria-valuemin="0" aria-valuemax="100"
+                         aria-label="Avance del relevamiento">
+                        <div class="avance-relleno" style="width: ${porcentajeCompletado}%"></div>
                     </div>
-                    
-                    <div class="stat-card pj">
-                        <div class="stat-icon">
-                            <i class="fas fa-flag"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number">${estadisticasPoliticas.PJ || 0}</div>
-                            <div class="stat-label">PJ</div>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card ucr">
-                        <div class="stat-icon">
-                            <i class="fas fa-flag"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number">${estadisticasPoliticas.UCR || 0}</div>
-                            <div class="stat-label">UCR</div>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card indeciso">
-                        <div class="stat-icon">
-                            <i class="fas fa-question-circle"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number">${estadisticasPoliticas.Indeciso || 0}</div>
-                            <div class="stat-label">Indecisos</div>
-                        </div>
-                    </div>
+                    <div class="avance-porcentaje">${porcentajeCompletado}%</div>
+                    <a class="avance-enlace" href="resultados.html">Ver resultados</a>
                 </div>
             `;
             return true;
@@ -995,43 +1104,10 @@ class PadronComponent {
         }
     }
 
-    async mostrarEstadisticas() {
-        try {
-            const respuesta = await window.apiService.obtenerEstadisticas();
-            const stats = respuesta.data;
-
-            // Renderizar estadísticas completas (implementación básica)
-            document.getElementById('estadisticas-completas').innerHTML = `
-                <div class="stats-row">
-                    <div class="stats-col">
-                        <h4>Resumen General</h4>
-                        <div class="resumen-general">
-                            <div class="resumen-item">
-                                <label>Total de Votantes:</label>
-                                <span>${stats.totalVotantes.toLocaleString()}</span>
-                            </div>
-                            <div class="resumen-item">
-                                <label>Relevamientos Completados:</label>
-                                <span>${stats.totalRelevamientos.toLocaleString()}</span>
-                            </div>
-                            <div class="resumen-item">
-                                <label>Porcentaje de Avance:</label>
-                                <span>${stats.porcentajeCompletado}%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('modal-estadisticas').style.display = 'flex';
-        } catch (error) {
-            this.mostrarError(`Error al cargar estadísticas: ${error.message}`);
-        }
-    }
-
-    cerrarModalEstadisticas() {
-        document.getElementById('modal-estadisticas').style.display = 'none';
-    }
+    // Acá vivían mostrarEstadisticas() y cerrarModalEstadisticas(). El modal repetía
+    // total de votantes, relevamientos y porcentaje: los mismos tres datos que la
+    // franja de avance muestra sin abrir nada, y el análisis completo está en
+    // Resultados, que ahora es un destino de la barra de navegación.
 
     abrirModalNuevoVotante() {
         // Poblar circuitos en el select del modal

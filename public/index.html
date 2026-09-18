@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Sistema Electoral - Administración</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="src/styles/design-system.css">
-    <link rel="stylesheet" href="src/styles/navbar-styles.css">
-    <link rel="stylesheet" href="src/styles/padron-styles.css">
-    <link rel="stylesheet" href="src/styles/detalle-votante-styles.css">
-    <link rel="stylesheet" href="src/styles/login-styles.css">
+    <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
+    <!-- Antes del primer pintado: si se aplicara despues, el tema oscuro destellaria en blanco. -->
+    <script src="src/tema.js?v=2e769770"></script>
+    <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
+    <link rel="stylesheet" href="src/styles/icons.css?v=aabbf556">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
+    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
+    <link rel="stylesheet" href="src/styles/padron-styles.css?v=d44e31d4">
+    <link rel="stylesheet" href="src/styles/detalle-votante-styles.css?v=388ab44b">
+    <link rel="stylesheet" href="src/styles/login-styles.css?v=5343e6d7">
     <style>
         /* Touch-friendly improvements */
         .nav-btn, .logout-btn {
@@ -34,8 +39,8 @@
         }
 
         body {
-            font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
-            background-color: var(--ds-bg-page, #f8fafc);
+            font-family: var(--ds-font-family);
+            background-color: var(--ds-bg-page);
             margin: 0;
             padding: 0;
             line-height: 1.6;
@@ -64,27 +69,27 @@
             border-radius: 8px;
             font-weight: 500;
             cursor: pointer;
-            font-family: var(--ds-font-family, inherit);
+            font-family: var(--ds-font-family);
             transition: all 0.3s ease;
             font-size: 14px;
             border: none;
         }
 
         .padron-nav-btn-back {
-            background: var(--ds-bg-subtle, #f1f5f9);
-            color: var(--ds-text-secondary, #475569);
-            border: 1px solid var(--ds-border-default, #cbd5e1);
+            background: var(--ds-bg-subtle);
+            color: var(--ds-text-secondary);
+            border: 1px solid var(--ds-border-default);
         }
 
         .padron-nav-btn-back:hover {
-            background: var(--ds-secondary-200, #e2e8f0);
-            border-color: var(--ds-border-strong, #94a3b8);
+            background: var(--ds-secondary-200);
+            border-color: var(--ds-border-strong);
             transform: translateY(-1px);
         }
 
         .padron-nav-btn-results {
-            background: var(--ds-gradient-primary, linear-gradient(135deg, #6366f1, #a855f7));
-            color: white;
+            background: var(--ds-gradient-primary);
+            color: var(--ds-text-inverse);
             box-shadow: 0 2px 10px rgba(99, 102, 241, 0.25);
         }
 
@@ -115,19 +120,9 @@
     <main class="app-main" role="main">
         <!-- Sección de Padrón Electoral -->
         <section id="padron" class="section active" role="region" aria-label="Gestión de Padrón Electoral">
-            <!-- Botón de acceso a Resultados -->
-            <div class="padron-nav-buttons">
-                <button onclick="window.location.href='dashboard.html'" class="padron-nav-btn padron-nav-btn-back">
-                    <i class="fas fa-arrow-left"></i>
-                    <span class="btn-text">Volver al Dashboard</span>
-                </button>
-
-                <button onclick="window.location.href='resultados.html'" class="padron-nav-btn padron-nav-btn-results">
-                    <i class="fas fa-chart-pie"></i>
-                    <span class="btn-text">Ver Resultados</span>
-                </button>
-            </div>
-            
+            <!-- Acá había dos botones, "Volver al Dashboard" y "Ver Resultados". Los dos
+                 son destinos de la barra de navegación desde el rediseño, así que
+                 duplicaban un enlace que ya está tres centímetros más arriba. -->
             <div id="padron-container" class="padron-electoral-container">
                 <!-- El contenido será generado por JavaScript -->
             </div>
@@ -152,13 +147,13 @@
     </main>
 
     <!-- Scripts -->
-    <script src="src/components/NavbarComponent.js"></script>
-    <script src="src/services/ApiService.js"></script>
-    <script src="src/services/AuthService.js"></script>
-    <script src="src/components/LoginComponent.js"></script>
-    <script src="src/components/DetalleVotanteComponent.js"></script>
-    <script src="src/components/PadronComponent.js"></script>
-    <script src="src/app.js"></script>
+    <script src="src/components/NavbarComponent.js?v=ab118bd1"></script>
+    <script src="src/services/ApiService.js?v=e512aeca"></script>
+    <script src="src/services/AuthService.js?v=dbc5042e"></script>
+    <script src="src/components/LoginComponent.js?v=4dd0f130"></script>
+    <script src="src/components/DetalleVotanteComponent.js?v=94f459cf"></script>
+    <script src="src/components/PadronComponent.js?v=2bfd09e7"></script>
+    <script src="src/app.js?v=73e4e7eb"></script>
     <script>
         // Inicializar barra de navegación unificada
         document.addEventListener('DOMContentLoaded', function() {

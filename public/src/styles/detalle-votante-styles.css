@@ -6,16 +6,16 @@
 #modal-detalle-votante .modal-content {
     max-width: 600px;
     width: 90%;
-    border-radius: var(--ds-radius-xl, 16px);
+    border-radius: var(--ds-radius-xl);
 }
 
 /* Información del votante */
 .votante-info {
-    background: var(--ds-bg-subtle, #edf1f5);
-    border-radius: var(--ds-radius-md, 8px);
+    background: var(--ds-bg-subtle);
+    border-radius: var(--ds-radius-md);
     padding: 1.5rem;
     margin-bottom: 2rem;
-    border-left: 4px solid var(--ds-primary-500, #486581);
+    border-left: 4px solid var(--ds-primary-500);
     animation: ds-fadeIn 300ms ease both;
 }
 
@@ -31,7 +31,7 @@
 
 .info-item label {
     font-weight: 600;
-    color: #5f6d7e;
+    color: var(--ds-secondary-500);
     display: block;
     margin-bottom: 0.25rem;
     font-size: 0.9rem;
@@ -40,7 +40,7 @@
 .info-item .value {
     font-size: 1.1rem;
     font-weight: 500;
-    color: #102a43;
+    color: var(--ds-text-primary);
 }
 
 /* Grid de condiciones */
@@ -52,16 +52,16 @@
 }
 
 .condicion-item {
-    background: white;
-    border: 1px solid var(--ds-border-light, #dce3eb);
-    border-radius: var(--ds-radius-md, 8px);
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-md);
     padding: 1.5rem;
-    transition: all var(--ds-transition-smooth, 0.35s ease);
+    transition: all var(--ds-transition-smooth);
 }
 
 .condicion-item:hover {
-    border-color: var(--ds-primary-300, #9fb3c8);
-    box-shadow: var(--ds-shadow-md, 0 2px 8px rgba(0,123,255,0.15));
+    border-color: var(--ds-primary-300);
+    box-shadow: var(--ds-shadow-md);
     transform: translateY(-2px);
 }
 
@@ -82,8 +82,8 @@
 .checkmark {
     width: 20px;
     height: 20px;
-    background: white;
-    border: 2px solid #c5ced8;
+    background: var(--ds-bg-card);
+    border: 2px solid var(--ds-border-default);
     border-radius: 4px;
     position: relative;
     transition: all 0.3s ease;
@@ -91,12 +91,12 @@
 }
 
 .checkbox-container:hover .checkmark {
-    border-color: var(--ds-primary-500, #486581);
+    border-color: var(--ds-primary-500);
 }
 
 .checkbox-container input[type="checkbox"]:checked + .checkmark {
-    background: var(--ds-primary-500, #486581);
-    border-color: var(--ds-primary-500, #486581);
+    background: var(--ds-primary-500);
+    border-color: var(--ds-primary-500);
 }
 
 .checkmark:after {
@@ -107,7 +107,7 @@
     top: 2px;
     width: 6px;
     height: 12px;
-    border: solid white;
+    border: solid var(--ds-text-inverse);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
@@ -125,14 +125,14 @@
 }
 
 /* Iconos de condiciones */
-.icon-nuevo { color: #059669; }
-.icon-fallecido { color: #dc2626; }
-.icon-empleado { color: #486581; }
-.icon-ayuda { color: #d49726; }
+.icon-nuevo { color: var(--ds-success-600); }
+.icon-fallecido { color: var(--ds-danger-600); }
+.icon-empleado { color: var(--ds-primary-500); }
+.icon-ayuda { color: var(--ds-warning-500); }
 
 .description {
     display: block;
-    color: #5f6d7e;
+    color: var(--ds-secondary-500);
     font-style: italic;
     margin-top: 0.5rem;
     line-height: 1.3;
@@ -147,13 +147,13 @@
     display: block;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: #102a43;
+    color: var(--ds-text-primary);
 }
 
 .observaciones-section textarea {
     width: 100%;
     min-height: 80px;
-    border: 1px solid #c5ced8;
+    border: 1px solid var(--ds-border-default);
     border-radius: 4px;
     padding: 0.75rem;
     font-family: inherit;
@@ -163,7 +163,7 @@
 
 .observaciones-section textarea:focus {
     outline: none;
-    border-color: var(--ds-primary-500, #486581);
+    border-color: var(--ds-primary-500);
     box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.1);
 }
 
@@ -171,14 +171,14 @@
 .fecha-info {
     text-align: center;
     padding: 1rem;
-    background: #f5f7fa;
+    background: var(--ds-bg-page);
     border-radius: 4px;
-    border: 1px solid #dce3eb;
+    border: 1px solid var(--ds-border-light);
 }
 
 .fecha-info i {
     margin-right: 0.5rem;
-    color: #5f6d7e;
+    color: var(--ds-secondary-500);
 }
 
 /* Iconos en tabla de padron */
@@ -203,7 +203,7 @@
 }
 
 .sin-condiciones {
-    color: #8e9aab;
+    color: var(--ds-text-muted);
     font-style: italic;
 }
 
@@ -291,26 +291,30 @@
     vertical-align: middle;
 }
 
+/* "Ver observaciones" es una acción de lectura, no un éxito ni una confirmación: iba en
+   el mismo verde sólido que Guardar y las dos se leían como la misma cosa. */
 .tabla-padron .acciones .btn-gestionar {
-    background: linear-gradient(135deg, #059669, #10b981);
-    color: white;
-    border: none;
-    transition: all 0.3s ease;
+    padding: 0.3rem 0.55rem;
+    background: transparent;
+    color: var(--ds-text-muted);
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-sm);
+    transition: all var(--ds-transition-base);
 }
 
 .tabla-padron .acciones .btn-gestionar:hover {
-    background: linear-gradient(135deg, #047857, #059669);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    background: var(--ds-bg-subtle);
+    color: var(--ds-primary-500);
+    border-color: var(--ds-border-strong);
 }
 
 /* Toast/Notificación personalizada para detalles */
 .notificacion.detalle-guardado {
-    border-left-color: #059669;
+    border-left-color: var(--ds-success-600);
 }
 
 .notificacion.detalle-eliminado {
-    border-left-color: #d49726;
+    border-left-color: var(--ds-warning-500);
 }
 
 /* Tooltips mejorados para iconos */
@@ -376,35 +380,42 @@
 }
 
 /* Colores específicos para cada condición */
-.checkbox-inline input[type="checkbox"]:checked + .icon-nuevo { color: #059669; }
-.checkbox-inline input[type="checkbox"]:checked + .icon-fallecido { color: #dc2626; }
-.checkbox-inline input[type="checkbox"]:checked + .icon-empleado { color: #486581; }
-.checkbox-inline input[type="checkbox"]:checked + .icon-ayuda { color: #d49726; }
+.checkbox-inline input[type="checkbox"]:checked + .icon-nuevo { color: var(--ds-success-600); }
+.checkbox-inline input[type="checkbox"]:checked + .icon-fallecido { color: var(--ds-danger-600); }
+.checkbox-inline input[type="checkbox"]:checked + .icon-empleado { color: var(--ds-primary-600); }
+.checkbox-inline input[type="checkbox"]:checked + .icon-ayuda { color: var(--ds-warning-600); }
+
+/* Sin marcar, las cuatro condiciones van en gris. Antes cada una mostraba su color
+   apenas atenuado, así que una fila sin ninguna condición igual traía cuatro colores
+   y la que sí tenía una no se distinguía. */
+.checkbox-inline i {
+    color: var(--ds-border-default);
+}
 
 .observaciones-preview {
     display: flex;
     align-items: center;
     gap: 4px;
     font-size: 11px;
-    color: #5f6d7e;
+    color: var(--ds-secondary-500);
     font-style: italic;
     cursor: help;
 }
 
 .observaciones-preview i {
     font-size: 12px;
-    color: #486581;
+    color: var(--ds-primary-500);
 }
 
 /* Fila con condiciones modificadas */
 .fila-votante.condiciones-modificadas {
     background-color: rgba(212, 151, 38, 0.1);
-    border-left: 4px solid #d49726;
+    border-left: 4px solid var(--ds-warning-500);
 }
 
-.fila-votante.condiciones-modificadas .btn-guardar-inline {
-    animation: pulse 2s infinite;
-}
+/* Acá el botón parpadeaba con `animation: pulse`. Ahora que en reposo es neutro y sólo
+   se pone verde cuando hay cambios sin guardar, el color ya avisa; el parpadeo encima
+   era ruido en una pantalla donde se trabaja durante horas. */
 
 @keyframes pulse {
     0% { opacity: 0.5; }
@@ -412,18 +423,39 @@
     100% { opacity: 0.5; }
 }
 
-/* Botón guardar inline */
+/* Botón guardar inline.
+
+   Estaba en verde sólido siempre, bajado a `opacity: 0.5`. Con cincuenta filas en
+   pantalla eso son cincuenta botones verdes, y el verde deja de querer decir algo. En
+   reposo ahora es un botón neutro; el verde aparece recién cuando hay cambios sin
+   guardar en esa fila, que es cuando el color informa. */
 .btn-guardar-inline {
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
-    background: linear-gradient(135deg, #059669, #10b981);
-    color: white;
-    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.3rem 0.55rem;
+    background: transparent;
+    color: var(--ds-text-muted);
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-sm);
+    transition: all var(--ds-transition-base);
 }
 
 .btn-guardar-inline:hover {
-    opacity: 1 !important;
-    background: linear-gradient(135deg, #047857, #059669);
+    background: var(--ds-bg-subtle);
+    color: var(--ds-text-secondary);
+    border-color: var(--ds-border-strong);
+}
+
+.fila-votante.condiciones-modificadas .btn-guardar-inline {
+    background: var(--ds-success-600);
+    color: var(--ds-text-inverse);
+    border-color: var(--ds-success-600);
+}
+
+.fila-votante.condiciones-modificadas .btn-guardar-inline:hover {
+    background: var(--ds-success-700);
+    border-color: var(--ds-success-700);
 }
 
 /* Responsive para móviles - controles inline */

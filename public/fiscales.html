@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Fiscales - Sistema Electoral</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="src/styles/design-system.css">
-    <link rel="stylesheet" href="src/styles/navbar-styles.css">
-    <link rel="stylesheet" href="src/styles/padron-styles.css">
+    <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
+    <!-- Antes del primer pintado: si se aplicara despues, el tema oscuro destellaria en blanco. -->
+    <script src="src/tema.js?v=2e769770"></script>
+    <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
+    <link rel="stylesheet" href="src/styles/icons.css?v=aabbf556">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
+    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
+    <link rel="stylesheet" href="src/styles/padron-styles.css?v=d44e31d4">
     <style>
         body {
-            font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
-            background-color: var(--ds-bg-page, #f8fafc);
+            font-family: var(--ds-font-family);
+            background-color: var(--ds-bg-page);
             margin: 0;
             padding: 0;
             line-height: 1.6;
@@ -29,20 +34,20 @@
             align-items: center;
             justify-content: center;
             height: 60vh;
-            color: #7f8c8d;
+            color: var(--ds-text-muted);
         }
         
         .coming-soon i {
             font-size: 4rem;
             margin-bottom: 20px;
-            color: var(--ds-primary-500, #6366f1);
+            color: var(--ds-primary-500);
             filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.3));
         }
         
         .coming-soon h2 {
             margin: 0 0 15px 0;
             font-size: 2rem;
-            color: var(--ds-text-primary, #0f172a);
+            color: var(--ds-text-primary);
         }
         
         .coming-soon p {
@@ -62,7 +67,7 @@
             <p>Próximamente</p>
         </div>
     </div>
-    <script src="src/components/NavbarComponent.js"></script>
+    <script src="src/components/NavbarComponent.js?v=ab118bd1"></script>
     <script>
         // Inicializar barra de navegación unificada
         document.addEventListener('DOMContentLoaded', function() {

@@ -2,22 +2,27 @@
 
 /* Variables CSS — mapped to Design System tokens */
 :root {
-    --primary: var(--ds-secondary-800, #1f2d3d);
-    --secondary: var(--ds-primary-500, #486581);
-    --secondary-light: var(--ds-primary-100, #d9e2ec);
-    --success: var(--ds-success-500, #10b981);
-    --warning: var(--ds-warning-500, #d49726);
-    --danger: var(--ds-danger-500, #ef4444);
-    --pj: var(--ds-party-pj, #1e3a8a);
-    --ucr: var(--ds-party-ucr, #dc2626);
-    --indeciso: var(--ds-party-indeciso, #64748b);
-    --bg: var(--ds-bg-page, #f5f7fa);
-    --card: var(--ds-bg-card, #ffffff);
-    --border: var(--ds-border-light, #dce3eb);
-    --text: var(--ds-text-primary, #102a43);
-    --text-light: var(--ds-text-secondary, #455468);
-    --shadow: var(--ds-shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1));
-    --shadow-lg: var(--ds-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1));
+    /* `--primary` acá no es un color de marca: sus diez usos son todos `color:`, para
+       títulos y números destacados. Apuntaba a --ds-secondary-800, que es un paso fijo
+       de la rampa y no se invierte, así que en modo oscuro el título del padrón y las
+       cifras de las tarjetas quedaban navy sobre navy. --ds-text-primary sí acompaña
+       al tema, que es lo que un color de texto tiene que hacer. */
+    --primary: var(--ds-text-primary);
+    --secondary: var(--ds-primary-500);
+    --secondary-light: var(--ds-primary-100);
+    --success: var(--ds-success-500);
+    --warning: var(--ds-warning-500);
+    --danger: var(--ds-danger-500);
+    --pj: var(--ds-party-pj);
+    --ucr: var(--ds-party-ucr);
+    --indeciso: var(--ds-party-indeciso);
+    --bg: var(--ds-bg-page);
+    --card: var(--ds-bg-card);
+    --border: var(--ds-border-light);
+    --text: var(--ds-text-primary);
+    --text-light: var(--ds-text-secondary);
+    --shadow: var(--ds-shadow-sm);
+    --shadow-lg: var(--ds-shadow-lg);
 }
 
 /* ==================== RESET Y BASE ==================== */
@@ -29,7 +34,7 @@
 }
 
 body {
-    font-family: var(--ds-font-family, 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+    font-family: var(--ds-font-family);
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
@@ -41,164 +46,11 @@ body {
     flex-direction: column;
 }
 
-/* ==================== HEADER ==================== */
-
-.app-header {
-    background: var(--card);
-    box-shadow: var(--shadow);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 1px solid var(--border);
-}
-
-.header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* Información del usuario */
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-left: auto;
-    margin-right: 1rem;
-}
-
-.user-details {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.25rem;
-}
-
-.user-name {
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 0.9rem;
-}
-
-.user-role {
-    font-size: 0.8rem;
-    color: var(--text-light);
-    text-transform: capitalize;
-}
-
-.user-name i, .user-role i {
-    margin-right: 0.5rem;
-    width: 14px;
-    text-align: center;
-}
-
-.logout-btn {
-    background: var(--danger);
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-}
-
-.logout-btn:hover {
-    background: #b91c1c;
-    transform: translateY(-1px);
-}
-
-.logout-btn i {
-    font-size: 0.8rem;
-}
-
-/* Toast de error */
-.error-toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--danger);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    box-shadow: var(--shadow-lg);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    z-index: 9999;
-    animation: slideInRight 0.3s ease-out;
-}
-
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.app-header h1 {
-    color: var(--primary);
-    font-size: 1.5rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.app-header h1 i {
-    color: var(--secondary);
-}
-
-.app-nav {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.nav-btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    font-weight: 500;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-}
-
-.nav-btn:hover {
-    background: var(--bg);
-    border-color: var(--border);
-}
-
-.nav-btn.active {
-    background: var(--secondary);
-    color: white;
-}
-
-.nav-btn.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.nav-btn.disabled:hover {
-    background: transparent;
-    border-color: transparent;
-}
+/* La cabecera propia de esta pantalla (.app-header, .app-nav, .nav-btn, .logout-btn,
+   .user-details, .error-toast) se elimino: ese markup ya no existe en ninguna pagina
+   desde que la navegacion es NavbarComponent. Eran ~150 lineas de CSS muerto, y no
+   era inocuo: .logout-btn pintaba de rojo solido el boton de la barra, porque esta
+   hoja carga despues que navbar-styles.css y le ganaba. */
 
 /* ==================== MAIN ==================== */
 
@@ -262,7 +114,7 @@ body {
     max-width: 100%;
     margin: 0 auto;
     background: var(--padron-bg);
-    border-radius: var(--ds-radius-lg, 12px);
+    border-radius: var(--ds-radius-lg);
     box-shadow: var(--padron-shadow);
     animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
@@ -276,7 +128,7 @@ body {
     margin-bottom: 2rem;
     padding: 1.5rem;
     background: var(--padron-card);
-    border-radius: var(--ds-radius-lg, 12px);
+    border-radius: var(--ds-radius-lg);
     box-shadow: var(--padron-shadow);
     border-left: 4px solid var(--padron-secondary);
     animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -312,124 +164,218 @@ body {
 .padron-actions .btn {
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: var(--ds-radius-md, 8px);
+    border-radius: var(--ds-radius-md);
     cursor: pointer;
     font-weight: 500;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    transition: all var(--ds-transition-smooth, 0.3s ease);
+    transition: all var(--ds-transition-smooth);
     font-size: 0.875rem;
 }
 
 .padron-actions .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--padron-shadow-lg);
+    filter: brightness(0.94);
 }
 
 .btn-primary {
     background: var(--padron-secondary);
-    color: white;
+    color: var(--ds-text-inverse);
 }
 
 .btn-primary:hover {
-    background: #334e68;
+    background: var(--ds-primary-600);
 }
 
 .btn-success {
-    background: var(--padron-success);
-    color: white;
+    background: var(--ds-primary-600);
+    color: var(--ds-on-primary);
 }
 
 .btn-success:hover {
-    background: #219a52;
+    background: var(--ds-primary-700);
 }
 
+/* "Estadísticas" venía en dorado, y con "Nuevo Votante" en verde el encabezado tenía
+   cuatro botones de cuatro colores sin ninguna jerarquía entre ellos. Navegar a otra
+   pantalla no es una acción destacada: va en el tono secundario, y el verde queda para
+   la única acción que crea algo. */
 .btn-info {
-    background: var(--padron-warning);
-    color: white;
+    background: var(--padron-secondary);
+    color: var(--ds-text-inverse);
 }
 
 .btn-info:hover {
-    background: #e67e22;
+    background: var(--ds-primary-600);
 }
 
 .btn-secondary {
     background: var(--padron-text-light);
-    color: white;
+    color: var(--ds-text-inverse);
 }
 
 .btn-secondary:hover {
-    background: #324054;
+    background: var(--ds-secondary-700);
 }
 
 /* ==================== FILTROS ==================== */
 
+/* ==================== BARRA DE FILTROS ====================
+   Una sola fila, con todos los controles de la misma altura y alineados por
+   abajo. Antes cada campo tenía su propio alto —el buscador, los tres selects,
+   la casilla y los dos botones— y como la fila alinea por la base, cualquier
+   diferencia de altura desalineaba las etiquetas de arriba.
+
+   Las etiquetas van en mayúscula chica, como las de la tabla y las del panel:
+   son rótulos de campo, no contenido, y con ese tratamiento dejan de competir
+   con el valor que tienen debajo. Se les quitaron los íconos: sobre una
+   etiqueta de una palabra no agregan nada que la palabra no diga. */
 .padron-filtros {
     background: var(--padron-card);
-    padding: 1.5rem;
-    border-radius: var(--ds-radius-lg, 12px);
-    margin-bottom: 1.5rem;
-    box-shadow: var(--padron-shadow);
-    animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
-    animation-delay: 150ms;
+    border: 1px solid var(--ds-border-light);
+    padding: 14px 16px;
+    border-radius: var(--ds-radius-md);
+    margin-bottom: 16px;
 }
 
 .filtros-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
-    align-items: end;
+    align-items: flex-end;
+    gap: 12px;
 }
 
 .filtro-item {
     display: flex;
     flex-direction: column;
-    min-width: 150px;
+    gap: 4px;
+    min-width: 0;
+}
+
+/* El buscador es el filtro que más se usa, así que se lleva el ancho sobrante;
+   los selects se quedan con el que necesita su contenido. */
+.filtro-item:first-child {
+    flex: 1 1 200px;
 }
 
 .filtro-item label {
-    font-weight: 500;
-    color: var(--padron-text);
-    margin-bottom: 0.25rem;
-    font-size: 0.875rem;
+    font-size: var(--ds-font-xs);
+    font-weight: var(--ds-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: var(--ds-tracking-wide);
+    color: var(--ds-text-muted);
+    white-space: nowrap;
 }
 
 .filtro-item input,
 .filtro-item select {
-    padding: 0.5rem;
-    border: 1.5px solid var(--padron-border);
-    border-radius: var(--ds-radius-md, 8px);
-    font-size: 0.875rem;
-    font-family: var(--ds-font-family, inherit);
-    transition: border-color var(--ds-transition-base, 0.25s ease), box-shadow var(--ds-transition-base, 0.25s ease);
+    height: 32px;
+    padding: 0 9px;
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-sm);
+    font-size: var(--ds-font-base);
+    font-family: var(--ds-font-family);
+    transition: border-color var(--ds-transition-fast), box-shadow var(--ds-transition-fast);
+}
+
+.filtro-item select {
+    min-width: 130px;
 }
 
 .filtro-item input:focus,
 .filtro-item select:focus {
     outline: none;
-    border-color: var(--padron-secondary);
-    box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.15);
+    border-color: var(--ds-primary-500);
+    box-shadow: var(--ds-shadow-focus);
+}
+
+/* La casilla no tiene etiqueta arriba, así que se alinea a mano con la altura
+   de los campos para que su texto quede a la misma línea que los valores. */
+.filtro-checkbox {
+    justify-content: flex-end;
+    height: 32px;
+}
+
+.filtro-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    margin: 0;
+    font-size: var(--ds-font-base);
+    font-weight: var(--ds-weight-normal);
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--ds-text-secondary);
+    white-space: nowrap;
+    cursor: pointer;
 }
 
 .filtro-item input[type="checkbox"] {
-    width: auto;
-    margin-right: 0.5rem;
+    width: 15px;
+    height: 15px;
+    padding: 0;
+    margin: 0;
+    accent-color: var(--ds-primary-600);
+    cursor: pointer;
 }
 
 .filtro-acciones {
     display: flex;
-    gap: 0.5rem;
+    gap: 6px;
     align-items: flex-end;
     margin-left: auto;
 }
 
 .filtro-acciones .btn-sm {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.8rem;
-    border-radius: var(--ds-radius-md, 8px);
+    height: 32px;
+    padding: 0 14px;
+    font-size: var(--ds-font-base);
+    font-weight: var(--ds-weight-medium);
+    border: 1px solid transparent;
+    border-radius: var(--ds-radius-sm);
     white-space: nowrap;
+    cursor: pointer;
+}
+
+/* Filtrar es la acción; Limpiar la deshace. Una va en el acento y la otra en
+   contorno: antes las dos eran bloques sólidos y competían. */
+.filtro-acciones .btn-primary {
+    background: var(--ds-primary-600);
+    color: var(--ds-on-primary);
+}
+
+.filtro-acciones .btn-primary:hover {
+    background: var(--ds-primary-700);
+}
+
+.filtro-acciones .btn-secondary {
+    background: transparent;
+    color: var(--ds-text-secondary);
+    border-color: var(--ds-border-default);
+}
+
+.filtro-acciones .btn-secondary:hover {
+    background: var(--ds-bg-subtle);
+    color: var(--ds-text-primary);
+}
+
+/* En pantallas chicas los filtros se apilan y los botones ocupan el ancho. */
+@media (max-width: 768px) {
+    .filtro-item,
+    .filtro-item:first-child {
+        flex: 1 1 100%;
+    }
+
+    .filtro-acciones {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .filtro-acciones .btn-sm {
+        flex: 1;
+    }
 }
 
 /* ==================== ESTADÍSTICAS RÁPIDAS ==================== */
@@ -444,68 +390,61 @@ body {
     gap: 1rem;
 }
 
+/* La cifra es el dato; la tarjeta sólo la contiene. Antes cada una levitaba al pasar
+   el mouse y tenía sombra propia, lo que hacía que cinco números compitieran entre sí
+   y con la tabla. Ahora se apoyan en un borde y no se mueven. */
 .stat-card {
     background: var(--padron-card);
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: var(--padron-shadow);
+    padding: 1.125rem 1.25rem;
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-md);
     display: flex;
     align-items: center;
-    gap: 1rem;
-    transition: transform var(--ds-transition-smooth, 0.3s ease), box-shadow var(--ds-transition-smooth, 0.3s ease);
+    gap: 0.875rem;
+    transition: border-color var(--ds-transition-base);
 }
 
 .stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--padron-shadow-lg);
+    border-color: var(--ds-border-default);
 }
 
 .stat-icon {
-    width: 48px;
-    height: 48px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
-    font-size: 1.5rem;
-    color: white;
+    font-size: 1.25rem;
+    color: var(--ds-text-muted);
+    flex-shrink: 0;
 }
 
-.stat-card.total .stat-icon {
-    background: var(--padron-secondary);
-}
-
-.stat-card.completados .stat-icon {
-    background: var(--padron-success);
-}
-
-.stat-card.pj .stat-icon {
-    background: var(--padron-pj);
-}
-
-.stat-card.ucr .stat-icon {
-    background: var(--padron-ucr);
-}
-
-.stat-card.indeciso .stat-icon {
-    background: var(--padron-indeciso);
-}
+/* Sólo las tres fuerzas conservan color: ahí el color es dato. */
+.stat-card.pj .stat-icon { color: var(--padron-pj); }
+.stat-card.ucr .stat-icon { color: var(--padron-ucr); }
+.stat-card.indeciso .stat-icon { color: var(--padron-indeciso); }
+.stat-card.completados .stat-icon { color: var(--ds-primary-600); }
 
 .stat-content {
     flex: 1;
 }
 
 .stat-number {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--padron-primary);
-    line-height: 1;
+    font-size: var(--ds-font-3xl);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text-primary);
+    line-height: 1.1;
+    letter-spacing: var(--ds-tracking-tight);
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
-    font-size: 0.875rem;
-    color: var(--padron-text-light);
+    font-size: var(--ds-font-xs);
+    color: var(--ds-text-muted);
     margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: var(--ds-tracking-wide);
+    font-weight: var(--ds-weight-medium);
 }
 
 .stat-progress {
@@ -539,7 +478,7 @@ body {
 
 .padron-tabla-container {
     background: var(--padron-card);
-    border-radius: var(--ds-radius-lg, 12px);
+    border-radius: var(--ds-radius-lg);
     box-shadow: var(--padron-shadow);
     overflow: hidden;
     animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -579,11 +518,20 @@ body {
 .tabla-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    background: white;
+    background: var(--ds-bg-card);
     border-radius: 8px;
     box-shadow: var(--shadow);
     margin-bottom: 20px;
 }
+
+/* Acá se probó un encabezado fijo (`max-height` + `position: sticky` en el thead) y se
+   revirtió. Para que sticky tenga contra qué pegarse, el contenedor tiene que ser un
+   scroll container vertical, y eso le suma una barra que angosta el área útil: con once
+   columnas alcanzó para empujar la última fuera de la vista. Además cambia el modelo de
+   scroll —la rueda del mouse pasa a mover la tabla y no la página—, que es algo que hay
+   que probar usándolo, no mirando una captura.
+
+   Vale la pena, pero como cambio propio y verificado a mano. */
 
 .tabla-padron {
     width: 100%;
@@ -592,14 +540,21 @@ body {
     font-size: 14px;
 }
 
+/* El encabezado es señalización, no contenido: en mayúsculas chicas y en gris se lee
+   como etiqueta de columna y deja de competir con los datos. Antes venía al mismo
+   tamaño y color que las celdas, y en una tabla de once columnas eso hace que la
+   primera fila de datos se confunda con el encabezado. */
 .tabla-padron th {
     background: var(--padron-bg);
-    padding: 1rem 0.75rem;
+    padding: 0.625rem 0.75rem;
     text-align: left;
     font-weight: 600;
-    color: var(--padron-text);
+    color: var(--ds-text-muted);
     border-bottom: 1px solid var(--padron-border);
-    font-size: 0.875rem;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
 }
 
 .tabla-padron th.sortable {
@@ -608,7 +563,7 @@ body {
 }
 
 .tabla-padron th.sortable:hover {
-    background: #edf1f5;
+    background: var(--ds-bg-subtle);
 }
 
 .tabla-padron th.sortable.active {
@@ -621,8 +576,37 @@ body {
 }
 
 .tabla-padron td {
-    padding: 0.75rem;
+    padding: 0.5rem 0.75rem;
     border-bottom: 1px solid var(--padron-border);
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+/* Rayado cebra. Con once columnas, seguir una fila de punta a punta sin una guía es
+   incómodo; el tono es apenas perceptible para no pelearse con el borde izquierdo que
+   marca si la persona fue relevada.
+
+   Sólo de escritorio: abajo de 768px cada fila se dibuja como tarjeta con su propia
+   superficie, y el cebrado le pintaría una de cada dos de otro color. Va en media query
+   y no suelto porque `:nth-child` le gana en especificidad a la regla de la tarjeta. */
+@media (min-width: 769px) {
+    .tabla-padron tbody tr:nth-child(even) {
+        background: var(--ds-bg-subtle);
+    }
+}
+
+/* Los dos botones de la fila, uno al lado del otro. Apilados estiraban justo las filas
+   que tienen observaciones cargadas, que son las que más se miran.
+
+   Sin `display: flex`: un <td> con flex deja de ser table-cell, sale del modelo de
+   columnas y la fila pierde su ancho —la tabla se angosta y deja una franja vacía a la
+   derecha—. Los botones ya son inline-flex, así que alcanza con no dejar que corte. */
+.tabla-padron .acciones {
+    white-space: nowrap;
+}
+
+.tabla-padron .acciones > * + * {
+    margin-left: 0.25rem;
 }
 
 .fila-votante {
@@ -635,11 +619,11 @@ body {
 
 .fila-votante.actualizado {
     animation: highlight 1s ease-out;
-    background: #ecfdf5;
+    background: var(--ds-success-50);
 }
 
 @keyframes highlight {
-    0% { background: #bbf7d0; }
+    0% { background: var(--ds-success-200); }
     100% { background: transparent; }
 }
 
@@ -651,25 +635,48 @@ body {
     border-left: 3px solid var(--padron-border);
 }
 
+/* ==================== JERARQUÍA DE LA FILA ====================
+   Las once columnas estaban casi todas al mismo peso, así que la fila no tenía un punto
+   de entrada: el ojo tenía que leerla entera para ubicar a la persona. Ahora manda el
+   apellido —que es como se busca a alguien—, el nombre lo acompaña, y el resto de los
+   datos de identificación bajan a secundario. El DNI deja de ser lo más marcado: es una
+   clave de búsqueda, no el título de la fila. */
+
 .dni {
-    font-weight: 600;
-    color: var(--padron-primary);
+    font-weight: 500;
+    color: var(--ds-text-secondary);
+    /* Cifras de ancho fijo: los DNI se comparan en vertical y con ancho variable las
+       columnas de dígitos no alinean. */
+    font-variant-numeric: tabular-nums;
 }
 
 .apellido {
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--ds-text-primary);
 }
 
 .edad {
     text-align: center;
+    color: var(--ds-text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Se apunta por data-label y no por posición: las celdas ya lo traen para la vista
+   móvil, y un nth-child se rompería solo con agregar una columna. */
+.tabla-padron td[data-label="Circuito"],
+.tabla-padron td[data-label="Sexo"] {
+    color: var(--ds-text-secondary);
+    font-variant-numeric: tabular-nums;
 }
 
 /* ==================== OPCIONES POLÍTICAS (TABLA) ==================== */
 
+/* En una sola línea. Con `flex-wrap: wrap` la columna era angosta y "Indeciso" bajaba
+   a un segundo renglón, lo que estiraba todas las filas de la tabla. */
 .radio-group {
     display: flex;
     gap: 0.25rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .radio-label {
@@ -684,78 +691,114 @@ body {
     opacity: 0;
 }
 
+/* Sin elegir: contorno neutro. Elegida: el color del partido, sólido.
+
+   Antes las tres opciones se pintaban con el color de su partido y las no elegidas se
+   bajaban a `opacity: 0.3`. El resultado era una píldora roja pálida y una azul pálida
+   en cada fila: a la distancia parecían valores cargados, y había que mirar cuál estaba
+   más saturada para saber qué votaba la persona. Un contorno neutro no dice nada, que
+   es exactamente lo que tiene que decir una opción que no fue elegida. */
 .radio-custom {
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: white;
-    transition: all 0.2s ease;
-}
-
-.radio-custom.pj {
-    background: var(--padron-pj);
-    opacity: 0.3;
-}
-
-.radio-custom.ucr {
-    background: var(--padron-ucr);
-    opacity: 0.3;
-}
-
-.radio-custom.indeciso {
-    background: var(--padron-indeciso);
-    opacity: 0.3;
-}
-
-.radio-label.selected .radio-custom.pj {
-    opacity: 1;
-    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.3);
-}
-
-.radio-label.selected .radio-custom.ucr {
-    opacity: 1;
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3);
-}
-
-.radio-label.selected .radio-custom.indeciso {
-    opacity: 1;
-    box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.3);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--ds-radius-full);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    background: transparent;
+    color: var(--ds-text-muted);
+    border: 1px solid var(--ds-border-default);
+    transition: all 0.15s ease;
 }
 
 .radio-label:hover .radio-custom {
-    opacity: 0.7;
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text-secondary);
+}
+
+.radio-label.selected .radio-custom {
+    color: var(--ds-text-inverse);
+}
+
+.radio-label.selected .radio-custom.pj {
+    background: var(--padron-pj);
+    border-color: var(--padron-pj);
+}
+
+.radio-label.selected .radio-custom.ucr {
+    background: var(--padron-ucr);
+    border-color: var(--padron-ucr);
+}
+
+.radio-label.selected .radio-custom.indeciso {
+    background: var(--padron-indeciso);
+    border-color: var(--padron-indeciso);
+}
+
+/* El teclado tiene que ver dónde está parado: el input real está oculto, así que el
+   foco se dibuja sobre la píldora. */
+.radio-label input:focus-visible + .radio-custom {
+    outline: 2px solid var(--ds-primary-500);
+    outline-offset: 2px;
 }
 
 /* ==================== OBSERVACIÓN ==================== */
 
+/* Colapsada a un renglón, expandida al escribir.
+
+   El `rows="2"` del markup hacía que cada fila de la tabla arrastrara dos renglones de
+   alto aunque la observación estuviera vacía, y la mayoría lo está. Alto fijo de un
+   renglón mientras no se la usa, y al enfocar crece: la altura se paga sólo en la fila
+   en la que se está trabajando, no en las cincuenta de la página. */
 .observacion-input {
     width: 100%;
-    padding: 0.25rem 0.5rem;
+    padding: 0.3rem 0.5rem;
     border: 1px solid var(--padron-border);
-    border-radius: 4px;
-    font-size: 0.875rem;
+    border-radius: var(--ds-radius-sm);
+    font-size: 0.8125rem;
     resize: vertical;
-    min-height: 2.2rem;
+    height: 1.9rem;
+    min-height: 1.9rem;
     max-height: 8rem;
     font-family: inherit;
     line-height: 1.4;
+    /* Sin envolver mientras está colapsada: así no hay un segundo renglón que pueda
+       asomar por abajo. Calcular el alto para que entre justo un renglón dependía de
+       la aritmética exacta de fuente, interlínea, padding y borde, y cualquier
+       desajuste deja la observación cortada por la mitad, que se ve peor que truncada. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: height var(--ds-transition-base), border-color var(--ds-transition-base);
 }
 
+/* Al enfocar se despliega: vuelve el envolvido, crece el alto y aparece el scroll, que
+   es lo que permite leer y editar una observación larga completa. */
 .observacion-input:focus {
     outline: none;
+    height: 4.5rem;
+    white-space: pre-wrap;
+    overflow: auto;
+    text-overflow: clip;
     border-color: var(--padron-secondary);
-    box-shadow: 0 0 0 2px rgba(72, 101, 129, 0.1);
+    box-shadow: var(--ds-shadow-focus);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .observacion-input {
+        transition: none;
+    }
 }
 
 /* ==================== TELÉFONO ==================== */
 
 .telefono-input {
     width: 100%;
-    padding: 0.25rem 0.5rem;
+    padding: 0.3rem 0.5rem;
     border: 1px solid var(--padron-border);
-    border-radius: 4px;
-    font-size: 0.875rem;
+    border-radius: var(--ds-radius-sm);
+    font-size: 0.8125rem;
+    height: 2rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .telefono-input:focus {
@@ -804,7 +847,7 @@ body {
     min-width: 40px;
     height: 40px;
     border: 1px solid var(--padron-border);
-    background: white;
+    background: var(--ds-bg-card);
     color: var(--padron-text);
     cursor: pointer;
     border-radius: 6px;
@@ -824,7 +867,7 @@ body {
 .btn-paginacion.active {
     background: var(--padron-secondary);
     border-color: var(--padron-secondary);
-    color: white;
+    color: var(--ds-text-inverse);
 }
 
 .paginacion-dots {
@@ -850,9 +893,9 @@ body {
 }
 
 .modal-content {
-    background: white;
-    border-radius: var(--ds-radius-xl, 16px);
-    box-shadow: var(--ds-shadow-xl, var(--padron-shadow-lg));
+    background: var(--ds-bg-card);
+    border-radius: var(--ds-radius-xl);
+    box-shadow: var(--ds-shadow-xl);
     max-width: 500px;
     width: 90%;
     max-height: 90vh;
@@ -918,7 +961,7 @@ body {
     justify-content: flex-end;
     gap: 10px;
     padding-top: 16px;
-    border-top: 1px solid var(--ds-border-light, #e2e8f0);
+    border-top: 1px solid var(--ds-border-light);
     margin-top: 8px;
 }
 
@@ -942,28 +985,28 @@ body {
     margin-bottom: 6px;
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--ds-text-secondary, #455468);
+    color: var(--ds-text-secondary);
 }
 
 .required {
-    color: var(--ds-danger-500, #ef4444);
+    color: var(--ds-danger-500);
 }
 
 .form-input {
     width: 100%;
     padding: 10px 14px;
-    border: 1px solid var(--ds-border-default, #c5ced8);
-    border-radius: var(--ds-radius-md, 8px);
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-md);
     font-size: 0.9rem;
-    color: var(--ds-text-primary, #102a43);
-    background: white;
+    color: var(--ds-text-primary);
+    background: var(--ds-bg-card);
     transition: border-color 150ms ease;
     box-sizing: border-box;
 }
 
 .form-input:focus {
     outline: none;
-    border-color: var(--ds-primary-500, #486581);
+    border-color: var(--ds-primary-500);
     box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.1);
 }
 
@@ -974,9 +1017,9 @@ select.form-input {
 .form-error {
     background-color: rgba(239, 68, 68, 0.08);
     border: 1px solid rgba(239, 68, 68, 0.2);
-    color: var(--ds-danger-600, #dc2626);
+    color: var(--ds-danger-on-tint);
     padding: 10px 14px;
-    border-radius: var(--ds-radius-md, 8px);
+    border-radius: var(--ds-radius-md);
     font-size: 0.85rem;
     margin-top: 8px;
 }
@@ -987,7 +1030,7 @@ select.form-input {
     gap: 6px;
     padding: 10px 20px;
     border: none;
-    border-radius: var(--ds-radius-md, 8px);
+    border-radius: var(--ds-radius-md);
     font-size: 0.88rem;
     font-weight: 600;
     cursor: pointer;
@@ -995,8 +1038,8 @@ select.form-input {
 }
 
 .modal-footer .btn-primary {
-    background: var(--ds-gradient-primary, linear-gradient(135deg, #334e68 0%, #102a43 100%));
-    color: white;
+    background: var(--ds-gradient-primary);
+    color: var(--ds-text-inverse);
 }
 
 .modal-footer .btn-primary:hover {
@@ -1009,14 +1052,14 @@ select.form-input {
 }
 
 .modal-footer .btn-secondary {
-    background: var(--ds-bg-page, #f5f7fa);
-    color: var(--ds-text-secondary, #455468);
-    border: 1px solid var(--ds-border-default, #c5ced8);
+    background: var(--ds-bg-page);
+    color: var(--ds-text-secondary);
+    border: 1px solid var(--ds-border-default);
 }
 
 .modal-footer .btn-secondary:hover {
-    background: var(--ds-secondary-100, #edf1f5);
-    border-color: var(--ds-border-strong, #8e9aab);
+    background: var(--ds-secondary-100);
+    border-color: var(--ds-border-strong);
 }
 
 /* ==================== MODAL NUEVO VOTANTE — UX MEJORADA ==================== */
@@ -1034,28 +1077,28 @@ select.form-input {
 .modal-header-icon {
     width: 44px;
     height: 44px;
-    border-radius: var(--ds-radius-lg, 12px);
-    background: var(--ds-gradient-primary, linear-gradient(135deg, #334e68 0%, #102a43 100%));
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-gradient-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--ds-text-inverse);
     font-size: 1.1rem;
     flex-shrink: 0;
 }
 
 .modal-subtitle {
     margin: 2px 0 0;
-    font-size: var(--ds-font-xs, 0.75rem);
-    color: var(--ds-text-muted, #8e9aab);
+    font-size: var(--ds-font-xs);
+    color: var(--ds-text-muted);
     font-weight: 400;
 }
 
 /* — Secciones del formulario — */
 
 .form-section {
-    background: var(--ds-bg-subtle, #edf1f5);
-    border-radius: var(--ds-radius-lg, 12px);
+    background: var(--ds-bg-subtle);
+    border-radius: var(--ds-radius-lg);
     padding: 16px;
     margin-bottom: 16px;
 }
@@ -1070,14 +1113,14 @@ select.form-input {
     gap: 8px;
     margin-bottom: 14px;
     padding-bottom: 10px;
-    border-bottom: 1px solid var(--ds-border-light, #dce3eb);
-    font-size: var(--ds-font-sm, 0.875rem);
+    border-bottom: 1px solid var(--ds-border-light);
+    font-size: var(--ds-font-sm);
     font-weight: 600;
-    color: var(--ds-text-primary, #102a43);
+    color: var(--ds-text-primary);
 }
 
 .form-section-header > i {
-    color: var(--ds-primary-500, #486581);
+    color: var(--ds-primary-500);
     font-size: 0.9rem;
     width: 18px;
     text-align: center;
@@ -1088,21 +1131,21 @@ select.form-input {
     font-size: 0.7rem;
     font-weight: 600;
     padding: 2px 8px;
-    border-radius: var(--ds-radius-full, 9999px);
+    border-radius: var(--ds-radius-full);
     letter-spacing: 0.02em;
     text-transform: uppercase;
 }
 
 .required-badge {
-    background: var(--ds-danger-50, #fef2f2);
-    color: var(--ds-danger-600, #dc2626);
-    border: 1px solid var(--ds-danger-100, #fee2e2);
+    background: var(--ds-danger-50);
+    color: var(--ds-danger-on-tint);
+    border: 1px solid var(--ds-danger-100);
 }
 
 .optional-badge {
-    background: var(--ds-info-50, #eff6ff);
-    color: var(--ds-info-600, #2563eb);
-    border: 1px solid var(--ds-info-100, #dbeafe);
+    background: var(--ds-info-50);
+    color: var(--ds-info-on-tint);
+    border: 1px solid var(--ds-info-100);
 }
 
 /* — Input con ícono — */
@@ -1116,10 +1159,10 @@ select.form-input {
 .input-icon {
     position: absolute;
     left: 12px;
-    color: var(--ds-text-muted, #8e9aab);
+    color: var(--ds-text-muted);
     font-size: 0.85rem;
     pointer-events: none;
-    transition: color var(--ds-transition-fast, 150ms ease);
+    transition: color var(--ds-transition-fast);
     z-index: 1;
 }
 
@@ -1128,7 +1171,7 @@ select.form-input {
 }
 
 .input-wrapper:focus-within .input-icon {
-    color: var(--ds-primary-500, #486581);
+    color: var(--ds-primary-500);
 }
 
 /* — Inline validation icon — */
@@ -1138,21 +1181,21 @@ select.form-input {
     right: 12px;
     font-size: 0.85rem;
     opacity: 0;
-    transition: opacity var(--ds-transition-fast, 150ms ease);
+    transition: opacity var(--ds-transition-fast);
 }
 
 .input-validation-icon.is-valid::before {
     content: '\f00c';
     font-family: 'Font Awesome 5 Free';
     font-weight: 900;
-    color: var(--ds-success-500, #10b981);
+    color: var(--ds-success-500);
 }
 
 .input-validation-icon.is-invalid::before {
     content: '\f00d';
     font-family: 'Font Awesome 5 Free';
     font-weight: 900;
-    color: var(--ds-danger-500, #ef4444);
+    color: var(--ds-danger-500);
 }
 
 .input-validation-icon.is-valid,
@@ -1163,7 +1206,7 @@ select.form-input {
 /* — States on input — */
 
 .form-input.input-valid {
-    border-color: var(--ds-success-500, #10b981);
+    border-color: var(--ds-success-500);
 }
 
 .form-input.input-valid:focus {
@@ -1171,7 +1214,7 @@ select.form-input {
 }
 
 .form-input.input-invalid {
-    border-color: var(--ds-danger-500, #ef4444);
+    border-color: var(--ds-danger-500);
 }
 
 .form-input.input-invalid:focus {
@@ -1184,17 +1227,17 @@ select.form-input {
     display: block;
     margin-top: 5px;
     font-size: 0.75rem;
-    color: var(--ds-text-muted, #8e9aab);
+    color: var(--ds-text-muted);
     padding-left: 2px;
-    transition: color var(--ds-transition-fast, 150ms ease);
+    transition: color var(--ds-transition-fast);
 }
 
 .form-helper.helper-error {
-    color: var(--ds-danger-500, #ef4444);
+    color: var(--ds-danger-500);
 }
 
 .form-helper.helper-success {
-    color: var(--ds-success-600, #059669);
+    color: var(--ds-success-600);
 }
 
 /* — Error message box improved — */
@@ -1210,10 +1253,10 @@ select.form-input {
     font-size: 1rem;
 }
 
-/* — Section inside form-section: inputs get white bg — */
+/* — Section inside form-section: inputs get var(--ds-text-inverse) bg — */
 
 .form-section .form-input {
-    background: white;
+    background: var(--ds-bg-card);
 }
 
 .form-section .form-group {
@@ -1265,7 +1308,7 @@ select.form-input {
     margin-bottom: 1.5rem;
     background: rgba(212, 151, 38, 0.12);
     border: 1px solid var(--padron-warning);
-    border-radius: var(--ds-radius-md, 8px);
+    border-radius: var(--ds-radius-md);
     color: var(--padron-primary);
     box-shadow: var(--padron-shadow);
 }
@@ -1309,7 +1352,7 @@ select.form-input {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: white;
+    background: var(--ds-bg-card);
     padding: 1rem 1.5rem;
     border-radius: 8px;
     box-shadow: var(--padron-shadow-lg);
@@ -1475,7 +1518,7 @@ select.form-input {
         left: 0;
         right: 0;
         bottom: 0;
-        background: white;
+        background: var(--ds-bg-card);
         z-index: 1000;
         padding: 20px;
         transform: translateX(-100%);
@@ -1564,7 +1607,7 @@ select.form-input {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        color: white;
+        color: var(--ds-text-inverse);
         font-size: 12px;
         font-weight: bold;
     }
@@ -1629,7 +1672,7 @@ select.form-input {
 
     .tabla-padron tbody tr {
         display: block;
-        background: white;
+        background: var(--ds-bg-card);
         border: 1px solid var(--border);
         border-radius: 12px;
         margin-bottom: 12px;
@@ -1706,7 +1749,7 @@ select.form-input {
         gap: 6px;
         border-radius: 8px;
         background: var(--padron-secondary);
-        color: white;
+        color: var(--ds-text-inverse);
         border: none;
         cursor: pointer;
     }
@@ -1802,7 +1845,7 @@ select.form-input {
     .modal-header {
         position: sticky;
         top: 0;
-        background: white;
+        background: var(--ds-bg-card);
         z-index: 1;
     }
 }
@@ -2010,4 +2053,361 @@ select.form-input {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+/* ==========================================================================
+   REDISEÑO: FRANJA DE AVANCE, MARCAS DE FILA Y PANEL LATERAL
+   ========================================================================== */
+
+/* ==================== AVANCE ====================
+   Sustituye a las cinco tarjetas de estadística. Una sola línea con lo único
+   accionable mientras se releva: cuánto se lleva hecho. El reparto entre
+   fuerzas se movió a Resultados, que ahora es un destino de la barra y no un
+   botón escondido dentro de esta pantalla. */
+.avance {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-md);
+    margin-bottom: 16px;
+}
+
+.avance-cifras {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.avance-cifras strong {
+    font-size: var(--ds-font-xl);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text-primary);
+    letter-spacing: var(--ds-tracking-tight);
+    font-variant-numeric: tabular-nums;
+}
+
+.avance-cifras span {
+    font-size: var(--ds-font-base);
+    color: var(--ds-text-muted);
+}
+
+.avance-barra {
+    flex: 1;
+    height: 6px;
+    min-width: 80px;
+    background: var(--ds-bg-muted);
+    border-radius: var(--ds-radius-full);
+    overflow: hidden;
+}
+
+.avance-relleno {
+    height: 100%;
+    background: var(--ds-primary-500);
+    border-radius: inherit;
+}
+
+.avance-porcentaje {
+    font-size: var(--ds-font-base);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.avance-enlace {
+    font-size: var(--ds-font-base);
+    color: var(--ds-primary-600);
+    text-decoration: none;
+    white-space: nowrap;
+    padding-left: 16px;
+    border-left: 1px solid var(--ds-border-light);
+}
+
+.avance-enlace:hover {
+    text-decoration: underline;
+}
+
+/* ==================== MARCAS DE FILA ====================
+   Sólo aparece lo que está cargado. Una fila sin nada no muestra nada, que es
+   la lectura correcta: antes cuatro casillas vacías ocupaban el mismo lugar
+   visual que cuatro casillas marcadas. */
+.marcas-cell {
+    white-space: nowrap;
+}
+
+.marcas {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+}
+
+.marca {
+    font-size: 0.9rem;
+    color: var(--ds-text-muted);
+}
+
+.marca-nuevo     { color: var(--ds-success-600); }
+.marca-fallecido { color: var(--ds-danger-600); }
+.marca-empleado  { color: var(--ds-primary-600); }
+.marca-ayuda     { color: var(--ds-warning-600); }
+
+.sin-marcas {
+    color: var(--ds-border-default);
+}
+
+/* Abre la ficha. Es una señal discreta y no una fila entera clicable, porque
+   los radios de opción política ya capturan el clic dentro de la fila. */
+.btn-abrir-panel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    background: transparent;
+    color: var(--ds-text-muted);
+    border: 1px solid transparent;
+    border-radius: var(--ds-radius-sm);
+    cursor: pointer;
+    transition: color var(--ds-transition-fast), background-color var(--ds-transition-fast);
+}
+
+.btn-abrir-panel:hover {
+    background: var(--ds-bg-muted);
+    color: var(--ds-text-primary);
+}
+
+.fila-abierta {
+    background: var(--ds-primary-50) !important;
+    box-shadow: inset 2px 0 0 var(--ds-primary-500);
+}
+
+/* ==================== PANEL LATERAL ====================
+   Acá se carga. Es un panel y no un modal a propósito: la tabla queda visible
+   al lado, así no se pierde el contexto de en qué parte de la lista se estaba.
+
+   Sin animación de entrada: se abre decenas de veces por jornada, y una
+   transición de 200ms repetida tantas veces deja de ser un detalle y pasa a
+   ser una demora. */
+.panel-votante {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 340px;
+    max-width: 100vw;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    overflow-y: auto;
+    background: var(--ds-bg-card);
+    border-left: 1px solid var(--ds-border-light);
+    box-shadow: var(--ds-shadow-lg);
+}
+
+.panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--ds-border-light);
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: var(--ds-font-xl);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text-primary);
+    letter-spacing: var(--ds-tracking-tight);
+    line-height: 1.25;
+}
+
+.panel-dni {
+    margin: 2px 0 0;
+    font-size: var(--ds-font-sm);
+    color: var(--ds-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.panel-cerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    background: transparent;
+    color: var(--ds-text-muted);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-sm);
+    cursor: pointer;
+}
+
+.panel-cerrar:hover {
+    background: var(--ds-bg-subtle);
+    color: var(--ds-text-primary);
+}
+
+/* Los datos de identidad no se editan acá: son de sólo lectura y por eso van
+   como lista de definiciones y no como campos deshabilitados, que invitarían
+   a intentar escribirlos. */
+.panel-datos {
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--ds-border-light);
+}
+
+.panel-datos dt {
+    font-size: var(--ds-font-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ds-tracking-wide);
+    color: var(--ds-text-muted);
+    margin-bottom: 2px;
+}
+
+.panel-datos dd {
+    margin: 0;
+    font-size: var(--ds-font-base);
+    color: var(--ds-text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.panel-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.panel-campo label {
+    font-size: var(--ds-font-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ds-tracking-wide);
+    font-weight: var(--ds-weight-medium);
+    color: var(--ds-text-muted);
+}
+
+.panel-campo input,
+.panel-campo textarea {
+    width: 100%;
+    padding: 7px 10px;
+    font-family: inherit;
+    font-size: var(--ds-font-base);
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-sm);
+    resize: vertical;
+}
+
+.panel-campo input:focus,
+.panel-campo textarea:focus {
+    outline: none;
+    border-color: var(--ds-primary-500);
+    box-shadow: var(--ds-shadow-focus);
+}
+
+/* Con espacio real, las condiciones vuelven a tener texto. En la tabla eran
+   cuatro iconos sin etiqueta y saber cuál era cuál dependía del atributo
+   title, que no existe para quien usa el teclado. */
+.panel-condiciones {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin: 0;
+    padding: 14px 0 0;
+    border: none;
+    border-top: 1px solid var(--ds-border-light);
+}
+
+.panel-condiciones legend {
+    padding: 0;
+    margin-bottom: 4px;
+    font-size: var(--ds-font-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ds-tracking-wide);
+    font-weight: var(--ds-weight-medium);
+    color: var(--ds-text-muted);
+}
+
+.panel-condiciones label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: var(--ds-font-base);
+    color: var(--ds-text-primary);
+    cursor: pointer;
+}
+
+.panel-condiciones input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--ds-primary-600);
+    cursor: pointer;
+}
+
+.panel-acciones {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--ds-border-light);
+}
+
+.panel-acciones .btn {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 14px;
+    font-size: var(--ds-font-base);
+    font-weight: var(--ds-weight-medium);
+    border: 1px solid transparent;
+    border-radius: var(--ds-radius-sm);
+    cursor: pointer;
+}
+
+.panel-acciones .btn-primary {
+    background: var(--ds-primary-600);
+    color: var(--ds-on-primary);
+}
+
+.panel-acciones .btn-primary:hover {
+    background: var(--ds-primary-700);
+}
+
+.panel-acciones .btn-secondary {
+    background: transparent;
+    color: var(--ds-text-secondary);
+    border-color: var(--ds-border-default);
+}
+
+.panel-acciones .btn-secondary:hover {
+    background: var(--ds-bg-subtle);
+}
+
+/* En pantallas chicas ocupa todo el ancho: 340px sobre 400 de viewport dejaría
+   al costado una franja de tabla inservible. */
+@media (max-width: 640px) {
+    .panel-votante {
+        width: 100%;
+        border-left: none;
+    }
+}
+
+/* Texto sólo para lectores de pantalla: la columna que abre la ficha no
+   necesita un encabezado visible, pero sí necesita tener uno. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
