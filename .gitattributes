@@ -1,0 +1,15 @@
+# Los assets precomprimidos y las fuentes tienen que viajar byte a byte.
+#
+# Git hoy los detecta como binarios solo, porque encuentra bytes nulos, pero esa
+# deteccion es una heuristica: un archivo comprimido que por casualidad no tenga NUL se
+# trataria como texto, y con core.autocrlf=true —que es lo que hay en la maquina donde se
+# desarrolla— le aplicaria conversion de fin de linea. Eso rompe el Brotli y el gzip de
+# forma silenciosa: el archivo sigue existiendo, pesa parecido y el navegador falla al
+# descomprimirlo.
+#
+# Declararlo explicito cuesta nada y saca la heuristica del medio.
+
+*.br    binary
+*.gz    binary
+*.woff2 binary
+*.woff  binary
