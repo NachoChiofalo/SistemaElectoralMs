@@ -258,13 +258,25 @@ está en cada mesa en un horario dado.
 
 ---
 
-### 🔴 017 — Módulo de armado de listas (borradores) · **M**
+### ⬛ 017 — Módulo de armado de listas (borradores) · **M**
 
 No existe forma de armar un borrador de lista antes de presentarla: cantidad de lugares,
 tipo de elección, candidatos. Hoy esto se arma fuera del sistema.
 
 Es insumo directo de 015 (qué listas participan en el comicio) y hoy no queda registrado
 en ningún lado del sistema.
+
+**Hecho.** Módulo `listas` (`/api/listas`), schema propio `elecciones` — separado de
+`padron` porque una lista de candidatos no es un dato del votante, y deja lugar a que 015
+sume `elecciones.comicios`/`elecciones.mesas` sin decisiones de esquema pendientes. CRUD
+completo de listas y candidatos (reemplazo transaccional en el `PUT`, no PATCH parcial),
+validado contra Postgres real: alta con candidatos ordenados, edición, baja, y los 400 de
+validación (tipo de elección fuera de lista blanca, orden duplicado o con huecos, tope de
+60 candidatos). Auditado. Spec y plan en
+[specs/017-armado-listas/](../specs/017-armado-listas/spec.md).
+
+Pendiente: el snapshot de contrato antes/después contra producción, que necesita
+credenciales de esta sesión (mismo bloqueo que dejó pendiente 002).
 
 ---
 

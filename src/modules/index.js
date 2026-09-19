@@ -17,4 +17,5 @@ module.exports = [
   require('./auditoria/module'),
   require('./auth/module'),
   require('./padron/module'),
+  require('./listas/module'),
 ];

@@ -91,6 +91,7 @@ significando algo con más de un usuario activo, que es exactamente el escenario
 | Registro de auditoría | `src/modules/auditoria/` |
 | Usuarios, roles, permisos | `src/modules/auth/` |
 | Votantes, relevamientos, resultados | `src/modules/padron/` |
+| Listas electorales (borradores) y candidatos | `src/modules/listas/` (schema propio `elecciones`, no `padron` — una lista de candidatos no es un dato del votante) |
 | Importación por COPY | `src/modules/padron/importer.js` |
 | Exportación en streaming | `src/modules/padron/exporter.js` |
 | Iconos y tipografía del frontend | `scripts/build-assets.js` |

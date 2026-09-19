@@ -35,8 +35,8 @@ test.after(() => new Promise((resolve) => servidor.close(resolve)));
 
 const pedir = (ruta, opciones) => fetch(`${base}${ruta}`, opciones);
 
-test('los tres modulos se registran en el orden declarado', () => {
-  assert.deepEqual(modulos.map((m) => m.name), ['auditoria', 'auth', 'padron']);
+test('los modulos se registran en el orden declarado', () => {
+  assert.deepEqual(modulos.map((m) => m.name), ['auditoria', 'auth', 'padron', 'listas']);
 });
 
 test('auditoria se monta antes que padron para capturar su prefijo', () => {
@@ -62,15 +62,20 @@ test('cada modulo declara migraciones que existen en disco', () => {
   }
 });
 
-test('los permisos que declaran los modulos existen en la migracion de permisos', () => {
-  const sql = fs.readFileSync(
-    path.join(__dirname, '..', 'src', 'modules', 'auth', 'migrations', '002_roles_y_permisos.sql'),
-    'utf8',
-  );
+test('los permisos que declaran los modulos existen en alguna de sus migraciones', () => {
+  // Los modulos originales (auditoria, auth, padron) tienen sus permisos en la
+  // migracion de auth. Un modulo nuevo los declara en una migracion propia (ver
+  // docs/AGREGAR-MODULO.md) — por eso se busca en TODAS las migraciones del sistema,
+  // no en un archivo fijo.
+  const sqlCompleto = modulos
+    .map((m) => m.migrations)
+    .flatMap((carpeta) => fs.readdirSync(carpeta).filter((f) => f.endsWith('.sql')).map((f) => path.join(carpeta, f)))
+    .map((archivo) => fs.readFileSync(archivo, 'utf8'))
+    .join('\n');
 
   for (const modulo of modulos) {
     for (const permiso of modulo.permissions || []) {
-      assert.ok(sql.includes(`'${permiso}'`), `el permiso ${permiso} (${modulo.name}) no esta en la migracion`);
+      assert.ok(sqlCompleto.includes(`'${permiso}'`), `el permiso ${permiso} (${modulo.name}) no esta en ninguna migracion`);
     }
   }
 });
@@ -101,6 +106,8 @@ test('todas las rutas de datos exigen token', async () => {
     ['POST', '/api/auth/verify'],
     ['POST', '/api/padron/detalle-votante'],
     ['DELETE', '/api/padron/detalle-votante/123'],
+    ['GET', '/api/listas'],
+    ['POST', '/api/listas'],
   ];
 
   for (const [method, ruta] of protegidas) {
