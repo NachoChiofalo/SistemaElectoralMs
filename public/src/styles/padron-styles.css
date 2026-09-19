@@ -2263,17 +2263,28 @@ select.form-input {
 }
 
 /* Firma de la última edición. Va arriba, pegada al encabezado: sirve para decidir si
-   cargar encima de lo de otro, y eso se decide antes de escribir. */
+   cargar encima de lo de otro, y eso se decide antes de escribir.
+
+   Es neutra a propósito, no ámbar: en esta interfaz el ámbar ya significa advertencia
+   (.panel-conflicto lo usa para eso), y esta línea aparece en CADA ficha que alguien ya
+   editó, aunque no haya ningún problema. Con color de alerta, abrir una ficha cualquiera
+   se veía como si algo estuviera mal. El acento neutro es la misma decisión que ya rige
+   el resto del sistema: el color se reserva para lo que dice algo (PJ, UCR, éxito,
+   advertencia), no para metadata de rutina. */
 .panel-firma {
     display: flex;
     align-items: center;
     gap: 6px;
     margin: 10px 0 0;
     font-size: var(--ds-font-sm);
-    color: var(--ds-warning-on-tint);
-    background: var(--ds-warning-100);
+    color: var(--ds-text-secondary);
+    background: var(--ds-bg-subtle);
     border-radius: var(--ds-radius-sm);
     padding: 6px 10px;
+}
+
+.panel-firma i {
+    color: var(--ds-text-muted);
 }
 
 /* Conflicto de edición: alguien más guardó esta ficha mientras ésta la editaba.
@@ -2319,10 +2330,34 @@ select.form-input {
     word-break: break-word;
 }
 
+/* Los botones de acá NO heredan forma de ningún lado: .btn-primary/.btn-secondary sólo
+   ponen color, y el padding/borde/radio salen de selectores acotados a otro contenedor
+   (.padron-actions .btn, .panel-acciones .btn) que .conflicto-acciones no matchea. Sin
+   esto, los botones se veían como texto de color plano al lado de los botones normales
+   del panel, que sí tienen forma.
+
+   En columna y no en fila: a 340px de panel, "Quedarme con lo del servidor" no entra al
+   lado de otro botón sin partirse a la mitad de una palabra. */
 .conflicto-acciones {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 8px;
+    margin-top: 4px;
+}
+
+.conflicto-acciones .btn {
+    width: 100%;
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: var(--ds-font-base);
+    font-weight: var(--ds-weight-medium);
+    border: 1px solid transparent;
+    border-radius: var(--ds-radius-sm);
+    cursor: pointer;
+}
+
+.conflicto-acciones .btn-secondary {
+    border-color: var(--ds-border-default);
 }
 
 .panel-cerrar {
