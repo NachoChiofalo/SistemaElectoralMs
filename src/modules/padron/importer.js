@@ -25,6 +25,15 @@ const csv = require('csv-parser');
 const copyFrom = require('pg-copy-streams').from;
 const { errores } = require('../../core/errors');
 
+/**
+ * Clave del advisory lock que serializa las importaciones.
+ *
+ * Es un numero arbitrario pero fijo: los advisory locks de Postgres son un espacio de
+ * nombres global de la base, asi que lo unico que importa es que nadie mas use el mismo.
+ * Si algun dia otro proceso necesita uno, que elija otro numero y lo anote aca al lado.
+ */
+const LOCK_IMPORTACION = 20260918;
+
 /** Columnas del CSV, en el orden en que las escribe la Junta Electoral. */
 const COLUMNAS = ['dni', 'anio_nac', 'apellido', 'nombre', 'domicilio', 'tipo_ejemplar', 'circuito', 'sexo', 'edad'];
 
@@ -121,6 +130,30 @@ async function importarCsv(db, rutaArchivo) {
   try {
     await cliente.query('BEGIN');
 
+    /**
+     * Una sola importacion a la vez.
+     *
+     * Dos importaciones simultaneas corren dos COPY mas dos INSERT ... ON CONFLICT sobre
+     * padron.votantes en paralelo. No corrompe —el upsert es por DNI y no toca
+     * relevamientos—, pero duplica el trabajo y compite por el pool contra la gente que
+     * esta relevando, que es lo que importa ahora que el padron lo usan varias personas.
+     *
+     * `try_advisory_xact_lock` y no `advisory_xact_lock`: el que espera dejaria el
+     * request colgado hasta que termine la otra importacion, sin decir nada. Este
+     * responde que ya hay una en curso, que es informacion.
+     *
+     * El lock se suelta solo al terminar la transaccion, incluido el ROLLBACK y la caida
+     * del proceso. No hay nada que liberar a mano.
+     */
+    const { rows: [{ obtenido }] } = await cliente.query(
+      'SELECT pg_try_advisory_xact_lock($1) AS obtenido',
+      [LOCK_IMPORTACION],
+    );
+
+    if (!obtenido) {
+      throw errores.conflicto('Ya hay una importacion de padron en curso. Esperá a que termine.');
+    }
+
     // La temporal muere con la transaccion; no deja rastro aunque el proceso falle.
     await cliente.query(`
       CREATE TEMP TABLE tmp_import_votantes (
@@ -187,4 +220,4 @@ async function importarCsv(db, rutaArchivo) {
   }
 }
 
-module.exports = { importarCsv, filaATsv, escaparCopy };
+module.exports = { importarCsv, filaATsv, escaparCopy, LOCK_IMPORTACION };

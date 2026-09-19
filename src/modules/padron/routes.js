@@ -48,6 +48,34 @@ function construirRutas(padron, db) {
     return undefined;
   };
 
+  /**
+   * La version que el cliente dice haber leido. **Es obligatoria.**
+   *
+   * Tratar la ausencia como "escribi sin chequear" seria dejar abierta, para siempre y
+   * por olvido, la misma puerta que la version viene a cerrar: bastaria con que alguien
+   * escriba un cliente nuevo y no la mande. Que falte es un 400, que es visible y se
+   * arregla recargando; una escritura a ciegas es invisible y pierde datos.
+   *
+   * Version 0 significa "lei que este votante no tenia relevamiento". Si en el medio
+   * otra persona lo creo, la fila real esta en 1, el 0 no coincide y sale el 409.
+   */
+  const versionEsperada = (cuerpo) => {
+    const valor = (cuerpo || {}).version;
+
+    if (valor === undefined || valor === null) {
+      throw errores.solicitudInvalida(
+        'Falta version: toda escritura de relevamiento tiene que decir que version leyo',
+      );
+    }
+
+    const n = Number(valor);
+    if (!Number.isInteger(n) || n < 0) {
+      throw errores.solicitudInvalida('version tiene que ser un entero no negativo');
+    }
+
+    return n;
+  };
+
   const entero = (valor, porDefecto) => {
     const n = Number.parseInt(valor, 10);
     return Number.isFinite(n) && n > 0 ? n : porDefecto;
@@ -105,18 +133,42 @@ function construirRutas(padron, db) {
     res.json({ success: true, data: await padron.relevamientoPorDni(req.params.dni) });
   }));
 
+  /**
+   * Escritura parcial: solo se tocan los campos que vienen en el cuerpo. La clave
+   * ausente deja el campo como esta; la cadena vacia lo vacia.
+   *
+   * Por eso el cuerpo se pasa tal cual y no se desestructura con defaults: un default
+   * aca convertiria "no me lo mandaron" en un valor, y se perderia la distincion.
+   * Que haya al menos un campo util lo valida el service.
+   *
+   * `version` es la que el cliente leyo. Si no coincide con la de la base, otra persona
+   * escribio en el medio y la respuesta es 409. Un cliente que no la manda escribe sin
+   * chequear: es la compatibilidad que permite desplegar backend y frontend por separado,
+   * y **se saca cuando el frontend la mande siempre** (tarea 2.8 de la spec 012).
+   */
   router.put('/relevamientos/:dni', relevarPadron, asyncHandler(async (req, res) => {
     const { opcionPolitica, observacion, telefono } = req.body || {};
 
-    if (!opcionPolitica) throw errores.solicitudInvalida('El campo opcionPolitica es requerido');
-
     const relevamiento = await padron.actualizarRelevamiento(
       req.params.dni,
-      { opcionPolitica, observacion, telefono },
+      { opcionPolitica, observacion, telefono, version: versionEsperada(req.body) },
       req,
     );
 
     res.json({ success: true, relevamiento });
+  }));
+
+  /**
+   * Que fichas cambiaron desde un momento dado.
+   *
+   * La tabla del padron lo consulta cada tanto con la hora de su ultima carga y marca
+   * las filas que otra persona movio. Es un GET barato contra un indice: la alternativa
+   * era una conexion persistente por usuario, y este servidor es chico.
+   */
+  router.get('/cambios', verPadron, asyncHandler(async (req, res) => {
+    if (!req.query.desde) throw errores.solicitudInvalida('Falta el parametro desde');
+
+    res.json({ success: true, data: await padron.cambiosDesde(req.query.desde) });
   }));
 
   // ==================== estado y configuracion ====================
@@ -272,6 +324,9 @@ function formatearFila(fila, incluirDetalles) {
       observacion: fila.observacion || '',
       telefono: fila.telefono || '',
       fechaRelevamiento: fila.fecha_relevamiento,
+      // Viaja con el listado para que cambiar la opcion politica desde la tabla —que no
+      // abre la ficha ni relee nada— tambien pueda mandar version y no escribir a ciegas.
+      version: fila.version ?? 0,
     }
     : null;
 

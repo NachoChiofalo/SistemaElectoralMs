@@ -409,11 +409,16 @@
             return texto.length > max ? texto.substring(0, max) + '...' : texto;
         }
 
-        escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = String(text);
-            return div.innerHTML;
+        /**
+         * Escapa un dato antes de interpolarlo en HTML.
+         *
+         * Delega en el helper compartido (`src/lib/escapar.js`). Antes era
+         * `div.textContent = x; return div.innerHTML`, que escapa `&`, `<` y `>` pero **no
+         * las comillas** — y acá se usa dentro de atributos (`data-username="${...}"`), donde
+         * eso no alcanza: un valor que empiece con comilla se sale del atributo.
+         */
+        escapeHtml(texto) {
+            return escaparHtml(texto);
         }
     }
 

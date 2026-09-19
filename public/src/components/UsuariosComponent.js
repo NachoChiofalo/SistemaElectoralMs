@@ -261,7 +261,7 @@ class UsuariosComponent {
         const currentFiltroValue = filtroRol.value;
         filtroRol.innerHTML = '<option value="">Todos los roles</option>';
         this.roles.forEach(rol => {
-            filtroRol.innerHTML += `<option value="${rol.nombre}">${this.formatearRol(rol.nombre)}</option>`;
+            filtroRol.innerHTML += `<option value="${escaparHtml(rol.nombre)}">${escaparHtml(this.formatearRol(rol.nombre))}</option>`;
         });
         filtroRol.value = currentFiltroValue;
 
@@ -269,7 +269,7 @@ class UsuariosComponent {
         const formRol = document.getElementById('form-rol');
         formRol.innerHTML = '<option value="">Seleccionar rol...</option>';
         this.roles.forEach(rol => {
-            formRol.innerHTML += `<option value="${rol.nombre}">${this.formatearRol(rol.nombre)}</option>`;
+            formRol.innerHTML += `<option value="${escaparHtml(rol.nombre)}">${escaparHtml(this.formatearRol(rol.nombre))}</option>`;
         });
     }
 
@@ -325,13 +325,13 @@ class UsuariosComponent {
             <tr class="${!usuario.activo ? 'usuario-inactivo' : ''}">
                 <td>
                     <div class="usuario-cell">
-                        <div class="usuario-avatar">${this.getInitials(usuario.nombre_completo || usuario.username)}</div>
+                        <div class="usuario-avatar">${escaparHtml(this.getInitials(usuario.nombre_completo || usuario.username))}</div>
                         <span class="usuario-username">${this.escapeHtml(usuario.username)}</span>
                     </div>
                 </td>
                 <td>${this.escapeHtml(usuario.nombre_completo || '-')}</td>
                 <td>${this.escapeHtml(usuario.email || '-')}</td>
-                <td><span class="rol-badge rol-${usuario.rol}">${this.formatearRol(usuario.rol)}</span></td>
+                <td><span class="rol-badge rol-${escaparHtml(usuario.rol)}">${escaparHtml(this.formatearRol(usuario.rol))}</span></td>
                 <td>
                     <span class="estado-badge ${usuario.activo ? 'estado-activo' : 'estado-inactivo'}">
                         <i class="fas ${usuario.activo ? 'fa-check-circle' : 'fa-times-circle'}"></i>
@@ -544,11 +544,16 @@ class UsuariosComponent {
         return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
     }
 
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    /**
+     * Escapa un dato antes de interpolarlo en HTML.
+     *
+     * Delega en el helper compartido (`src/lib/escapar.js`). Antes era
+     * `div.textContent = x; return div.innerHTML`, que escapa `&`, `<` y `>` pero **no
+     * las comillas** — y acá se usa dentro de atributos (`data-username="${...}"`), donde
+     * eso no alcanza: un valor que empiece con comilla se sale del atributo.
+     */
+    escapeHtml(texto) {
+        return escaparHtml(texto);
     }
 
     mostrarFormError(elementId, message) {

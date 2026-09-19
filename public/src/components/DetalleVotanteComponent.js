@@ -96,21 +96,21 @@ class DetalleVotanteComponent {
                             <div class="info-row">
                                 <div class="info-item">
                                     <label>DNI:</label>
-                                    <span class="value">${votante.dni}</span>
+                                    <span class="value">${escaparHtml(votante.dni)}</span>
                                 </div>
                                 <div class="info-item">
                                     <label>Nombre:</label>
-                                    <span class="value">${votante.apellido}, ${votante.nombre}</span>
+                                    <span class="value">${escaparHtml(votante.apellido)}, ${escaparHtml(votante.nombre)}</span>
                                 </div>
                             </div>
                             <div class="info-row">
                                 <div class="info-item">
                                     <label>Edad:</label>
-                                    <span class="value">${votante.edad} años</span>
+                                    <span class="value">${escaparHtml(votante.edad)} años</span>
                                 </div>
                                 <div class="info-item">
                                     <label>Circuito:</label>
-                                    <span class="value">${votante.circuito}</span>
+                                    <span class="value">${escaparHtml(votante.circuito)}</span>
                                 </div>
                             </div>
                         </div>
@@ -180,7 +180,7 @@ class DetalleVotanteComponent {
                                 <label for="observaciones-detalle">Observaciones Adicionales:</label>
                                 <textarea id="observaciones-detalle" 
                                           rows="3" 
-                                          placeholder="Información adicional sobre las condiciones del votante...">${detalle?.observacionesDetalle || ''}</textarea>
+                                          placeholder="Información adicional sobre las condiciones del votante...">${escaparHtml(detalle?.observacionesDetalle)}</textarea>
                             </div>
 
                             ${detalle ? `

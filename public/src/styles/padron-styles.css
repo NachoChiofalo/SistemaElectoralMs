@@ -635,6 +635,33 @@ body {
     border-left: 3px solid var(--padron-border);
 }
 
+/* Una ficha que otra persona modificó mientras esta página estaba abierta.
+
+   El borde izquierdo ya significa relevado / sin relevar, así que la señal no puede ir
+   ahí sin pisar un dato. Va como tinte de fondo más un punto en el DNI.
+
+   Ámbar y no el acento: en esta interfaz el ámbar ya significa advertencia, y el acento
+   es grafito justamente para no competir con azul, rojo y gris, que significan PJ, UCR e
+   indeciso. Un acento cromático acá le sacaría lectura a la opción política, que es el
+   dato de la fila.
+
+   La marca la pone JS agregando la clase, nunca redibujando la fila: redibujar borraría
+   lo que alguien esté tipeando. */
+.fila-votante.fila-cambiada {
+    background: var(--ds-warning-50);
+}
+
+.fila-votante.fila-cambiada .dni::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--ds-warning-500);
+    vertical-align: middle;
+}
+
 /* ==================== JERARQUÍA DE LA FILA ====================
    Las once columnas estaban casi todas al mismo peso, así que la fila no tenía un punto
    de entrada: el ojo tenía que leerla entera para ubicar a la persona. Ahora manda el
@@ -2233,6 +2260,69 @@ select.form-input {
     font-size: var(--ds-font-sm);
     color: var(--ds-text-muted);
     font-variant-numeric: tabular-nums;
+}
+
+/* Firma de la última edición. Va arriba, pegada al encabezado: sirve para decidir si
+   cargar encima de lo de otro, y eso se decide antes de escribir. */
+.panel-firma {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 0;
+    font-size: var(--ds-font-sm);
+    color: var(--ds-warning-on-tint);
+    background: var(--ds-warning-100);
+    border-radius: var(--ds-radius-sm);
+    padding: 6px 10px;
+}
+
+/* Conflicto de edición: alguien más guardó esta ficha mientras ésta la editaba.
+
+   Va dentro del panel y encima de los botones, no como toast: un toast se va solo a los
+   5 segundos y esto es una decisión que la persona tiene que tomar. Lo que escribió sigue
+   en los campos de arriba; acá se muestra lo que hay en el servidor. */
+.panel-conflicto {
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid var(--ds-warning-400);
+    border-radius: var(--ds-radius-sm);
+    background: var(--ds-warning-50);
+}
+
+.conflicto-titulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 10px;
+    font-size: var(--ds-font-sm);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-warning-on-tint);
+}
+
+.conflicto-campo {
+    margin-bottom: 10px;
+}
+
+.conflicto-etiqueta {
+    display: block;
+    font-size: var(--ds-font-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ds-tracking-wide);
+    color: var(--ds-text-muted);
+}
+
+.conflicto-valor {
+    margin: 2px 0 0;
+    font-size: var(--ds-font-sm);
+    color: var(--ds-text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.conflicto-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .panel-cerrar {

@@ -107,6 +107,9 @@ module.exports = {
   'exclamation-triangle': 'triangle-alert',
   'circle': 'circle',
   'clock': 'clock',
+  // Firma de "última edición" en la ficha del padrón: un reloj con la flecha hacia
+  // atrás, que es lo pasado y no la hora.
+  'history': 'history',
   'hourglass-half': 'hourglass',
   'calendar-alt': 'calendar',
   'comment': 'message-square',

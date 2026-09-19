@@ -41,8 +41,32 @@ y sembró lo que faltaba. Eso es lo que permite no usar `migrate:adopt` — que 
 pero es más arriesgado, porque salta migraciones enteras sin ejecutarlas. Una
 migración aplicada no se edita: se agrega la siguiente.
 
+**Ningún dato de usuario entra a una plantilla sin `escaparHtml`.** Está en
+`public/src/lib/escapar.js` y lo cargan todas las páginas. Escapa las comillas además de
+`<`, `>` y `&`, porque este frontend interpola dentro de atributos (`value=`, `title=`,
+`onclick=`) y ahí el truco de `textContent`/`innerHTML` no alcanza. Un dato que va por
+`setAttribute` o `textContent` **no** se escapa: el DOM no parsea HTML ahí, y escaparlo
+mostraría `&amp;` en un apellido con "&". Hay un test que falla si una interpolación
+vuelve a entrar cruda.
+
 **Toda ruta de datos exige token.** Los módulos declaran `requiresAuth: true` y el
 factory lo aplica a todo el router, para que una ruta nueva nazca protegida.
+
+**Una escritura manda sólo los campos que la persona editó, y dice qué versión leyó.**
+En `relevamientos`, la clave ausente **no toca** el campo (`COALESCE($n, tabla.campo)`) y
+la cadena vacía lo vacía. Nunca se lee una fila para "preservar" los otros campos y
+reenviarlos: entre esa lectura y la escritura, lo que haya guardado otra persona se
+pierde, y el sistema lo responde con un 200. Esa era la forma del bug que arregló
+[012](specs/012-multiusuario/spec.md), y el panel del padrón lo hacía dos veces en
+paralelo contra la misma fila. Tampoco se mandan dos escrituras simultáneas a una misma
+fila, aunque toquen columnas distintas.
+
+Y **`version` es obligatoria**: el `UPDATE` lleva `WHERE version = $n`, así que si otra
+persona escribió en el medio la fila no se toca y la respuesta es 409 con el estado del
+servidor. La comprobación y la escritura son la **misma sentencia** — un `SELECT` seguido
+de un `UPDATE` tendría la carrera que esto viene a cerrar. No hay escritura a ciegas: sin
+versión es 400, y ante la duda el cliente manda 0, que no coincide con ninguna fila
+existente y fuerza el 409. Nadie mergea dos textos en conflicto: decide una persona.
 
 ---
 
@@ -66,7 +90,10 @@ factory lo aplica a todo el router, para que una ruta nueva nazca protegida.
 | Gráficos del frontend | `public/src/lib/microchart.js` |
 | Servido de estáticos y caché | `src/core/estaticos.js` |
 | Tokens, paleta y modo oscuro | `public/src/styles/design-system.css` |
+| Escapado de datos en el frontend | `public/src/lib/escapar.js` |
+| Quién tocó una ficha y qué cambió | `padron.relevamientos.actualizado_por`, `GET /api/padron/cambios` |
 | Por qué el frontend es como es | [docs/FRONTEND.md](docs/FRONTEND.md) |
+| Cómo hace el sistema para que dos personas no se pisen | [docs/MULTIUSUARIO.md](docs/MULTIUSUARIO.md) |
 | Selector de tema claro/oscuro | `public/src/tema.js` |
 
 Cada módulo sigue el mismo corte: `routes` (HTTP) → `service` (reglas) → `repository`
@@ -78,7 +105,7 @@ Cada módulo sigue el mismo corte: `routes` (HTTP) → `service` (reglas) → `r
 
 ```bash
 npm run dev              # con --watch
-npm test                 # 89 tests, no necesitan base
+npm test                 # 130 tests, no necesitan base
 npm run migrate:status   # qué está aplicado
 npm run migrate          # aplicar pendientes
 npm run seed:usuarios    # crear el administrador
@@ -148,7 +175,19 @@ node scripts/api-snapshot.js --base http://localhost:8080 --compare scripts/snap
 
 ---
 
+## Cómo se trabaja
+
+Spec primero: nada que no sea trivial arranca en el editor. Ver [docs/SDD.md](docs/SDD.md)
+para el ciclo y [docs/BACKLOG.md](docs/BACKLOG.md) para lo que falta, priorizado.
+
+La "constitución" de ese proceso son las **Reglas que no se rompen** de más arriba.
+
+---
+
 ## Deuda conocida
+
+Priorizada, con alcance y criterios, en [docs/BACKLOG.md](docs/BACKLOG.md). Acá queda lo
+que hay que entender para no repetirla:
 
 - El acento de la interfaz es grafito, no un color. Azul, rojo y gris ya significan
   PJ, UCR e indeciso, y verde y ámbar significan éxito y advertencia: cualquier acento
@@ -184,12 +223,7 @@ node scripts/api-snapshot.js --base http://localhost:8080 --compare scripts/snap
   el área útil hasta empujar la última de las once columnas fuera de la vista. Además
   cambia el modelo de scroll (la rueda mueve la tabla, no la página), que hay que
   probar usándolo. Vale la pena, pero como cambio verificado a mano.
-- `PadronComponent.renderizarTabla` interpola los datos del votante en HTML sin
-  escapar: `${votante.apellido}`, `${observacion}`, `value="${telefono}"`. Una
-  observación que contenga `</textarea><script>` se ejecuta. Los datos entran por carga
-  manual y por importación de CSV, así que es alcanzable. **Es anterior a cualquier
-  trabajo de rediseño y sigue abierto.**
-- Sin tests de integración contra una base real. Los 89 tests corren sin PostgreSQL;
+- Sin tests de integración contra una base real. Los 130 tests corren sin PostgreSQL;
   lo que toca la base se verifica con el snapshot de contrato.
 - La CSP está activa pero con `'unsafe-inline'` en `script-src`. Corta la carga de
   recursos externos, `<base>` y el framing, pero **no frena XSS inline**, que es lo que

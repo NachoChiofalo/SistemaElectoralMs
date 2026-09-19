@@ -26,7 +26,9 @@ const errores = {
   noAutenticado: (msg = 'Token de acceso requerido') => new AppError(msg, 401, 'UNAUTHENTICATED'),
   sinPermiso: (msg = 'Acceso denegado') => new AppError(msg, 403, 'INSUFFICIENT_PERMISSIONS'),
   noEncontrado: (msg = 'Recurso no encontrado') => new AppError(msg, 404, 'NOT_FOUND'),
-  conflicto: (msg = 'El recurso ya existe') => new AppError(msg, 409, 'CONFLICT'),
+  // `detalles` viaja como `errors` en el cuerpo: es por donde un conflicto de edicion
+  // devuelve el estado actual del servidor, para que la UI pueda mostrarlo.
+  conflicto: (msg = 'El recurso ya existe', detalles) => new AppError(msg, 409, 'CONFLICT', detalles),
   demasiadoGrande: (msg = 'El archivo excede el tamano permitido') => new AppError(msg, 413, 'PAYLOAD_TOO_LARGE'),
   interno: (msg = 'Error interno del servidor') => new AppError(msg, 500, 'INTERNAL_ERROR'),
 };

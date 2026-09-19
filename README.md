@@ -57,8 +57,23 @@ src/
 public/     el web-admin, servido por el mismo proceso (ver docs/FRONTEND.md)
 scripts/    migrate, seed de usuarios, snapshot de contrato, build de assets
 test/       node:test, sin base de datos
-docs/       AGREGAR-MODULO.md, FRONTEND.md
+docs/       SDD.md, BACKLOG.md, MULTIUSUARIO.md, AGREGAR-MODULO.md, FRONTEND.md
+specs/      una carpeta por trabajo tomado: spec, plan y tareas
 ```
+
+---
+
+## Cómo se trabaja
+
+Spec primero. Nada que no sea trivial arranca en el editor: cada trabajo empieza por un
+`spec.md` que dice **qué** y **por qué**, con criterios de aceptación verificables, y
+recién después se decide el cómo.
+
+- [docs/SDD.md](docs/SDD.md) — el ciclo, las tres piezas y qué no necesita spec
+- [docs/BACKLOG.md](docs/BACKLOG.md) — lo que falta, ordenado por consecuencia
+- [docs/MULTIUSUARIO.md](docs/MULTIUSUARIO.md) — cómo hace el sistema para que varias
+  personas trabajen sobre el mismo padrón sin pisarse, y qué sigue sin cubrir
+- `specs/_plantilla/` — las plantillas
 
 ---
 

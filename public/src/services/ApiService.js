@@ -66,6 +66,24 @@ class ApiService {
                     return { success: false, data: null, degraded: true };
                 }
 
+                // 409 al escribir un relevamiento: otra persona modificó la ficha entre
+                // que ésta la leyó y la guardó. No es un error de red ni un bug, y la UI
+                // necesita el estado del servidor para mostrar los dos valores — así que
+                // el cuerpo se devuelve en vez de perderse dentro de un Error.
+                //
+                // Acotado a esta ruta a propósito: un 409 en otro endpoint (crear un
+                // votante con un DNI que ya existe) tiene que seguir siendo una excepción,
+                // o quien lo llama creería que la operación salió bien.
+                if (response.status === 409 && endpoint.includes('/api/padron/relevamientos/')) {
+                    const cuerpo = await response.json().catch(() => ({}));
+                    return {
+                        success: false,
+                        conflicto: true,
+                        actual: cuerpo?.errors?.actual || null,
+                        message: cuerpo?.message || 'Otra persona modificó esta ficha'
+                    };
+                }
+
                 // Manejo suave de rate limiting para no romper la UI
                 if (response.status === 429) {
                     console.warn('⚠️ Límite de solicitudes alcanzado en gateway');
@@ -131,16 +149,22 @@ class ApiService {
     }
 
     /**
-     * Actualizar relevamiento
+     * Actualizar relevamiento. Sólo viajan los campos presentes en `campos`.
+     *
+     * Antes recibía los tres por separado y los mandaba siempre, así que para cambiar
+     * uno había que leer los otros dos y reenviarlos — y lo que hubiera guardado otra
+     * persona entre la lectura y el envío se perdía. Un campo que no está en `campos`
+     * no se manda, y el servidor no lo toca. Mandar `''` sí lo vacía.
      */
-    async actualizarRelevamiento(dni, opcionPolitica, observacion = '', telefono = '') {
+    async actualizarRelevamiento(dni, campos = {}) {
+        const cuerpo = {};
+        for (const nombre of ['opcionPolitica', 'observacion', 'telefono', 'version']) {
+            if (campos[nombre] !== undefined) cuerpo[nombre] = campos[nombre];
+        }
+
         return await this.request(`/api/padron/relevamientos/${dni}`, {
             method: 'PUT',
-            body: JSON.stringify({
-                opcionPolitica,
-                observacion,
-                telefono
-            })
+            body: JSON.stringify(cuerpo)
         });
     }
 
@@ -149,6 +173,24 @@ class ApiService {
      */
     async obtenerRelevamiento(dni) {
         return await this.request(`/api/padron/relevamientos/${dni}`);
+    }
+
+    /**
+     * Obtener el detalle (condiciones especiales) de un votante.
+     *
+     * Responde 200 con `data: null` cuando el votante todavía no tiene detalle: que no
+     * lo tenga es lo normal, no un error.
+     */
+    async obtenerDetalleVotante(dni) {
+        return await this.request(`/api/padron/detalle-votante/${dni}`);
+    }
+
+    /**
+     * Qué fichas cambiaron desde un momento dado, para marcar las filas que otra
+     * persona movió mientras la página estaba abierta.
+     */
+    async obtenerCambios(desde) {
+        return await this.request(`/api/padron/cambios?desde=${encodeURIComponent(desde)}`);
     }
 
     /**

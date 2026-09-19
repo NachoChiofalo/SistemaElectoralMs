@@ -11,6 +11,11 @@ class PadronComponent {
             cargando: false
         };
         this.elementos = {};
+        // Timer de la vigilancia de cambios ajenos. Uno solo: reiniciarla lo reemplaza.
+        this.vigilanciaId = null;
+        // DNI de la ficha que se está pidiendo al servidor, para descartar la respuesta
+        // de un clic que quedó viejo.
+        this.fichaPedida = null;
         this.rateLimit = {
             retries: 0,
             timerId: null,
@@ -76,6 +81,9 @@ class PadronComponent {
             console.error('❌ Error al cargar datos:', error);
             // No fallar completamente si los datos no cargan
         }
+
+        // Se arranca al final y no antes: sin tabla dibujada no hay filas que marcar.
+        this.iniciarVigilanciaDeCambios();
 
         console.log('✅ Componente de Padrón inicializado correctamente');
         return true;
@@ -568,24 +576,35 @@ class PadronComponent {
             return;
         }
 
-        // Se guarda lo que hay en pantalla para que el panel lateral no tenga que volver
-        // a pedir el votante a la API: los datos ya viajaron con el listado.
+        // Se guarda lo que hay en pantalla para saber qué filas marcar cuando otra
+        // persona toque una de ellas. La ficha ya no se arma con esto: `abrirPanel`
+        // relee del servidor, porque este snapshot envejece sin avisar.
         this.estado.votantesEnPantalla = votantes;
 
+        // Desde acá se cuentan los cambios ajenos: lo que se acaba de dibujar está al
+        // día por definición, así que las marcas viejas dejan de tener sentido.
+        this.estado.tablaCargadaEn = new Date().toISOString();
+
+        // Todo dato de votante pasa por escaparHtml antes de entrar al markup. Los
+        // datos llegan por carga manual y por importación de CSV: una observación con
+        // `</textarea><script>` se ejecutaba en la pantalla de cualquiera que abriera
+        // esta página. Incluye los atributos —`title`, `data-dni`, el `onclick`—, que es
+        // justo lo que el truco de textContent/innerHTML no cubre.
         this.elementos.tbody.innerHTML = votantes.map(item => {
-            const { votante, relevamiento, detalle } = item;
+            const { votante, relevamiento } = item;
             const opcionPolitica = relevamiento?.opcionPolitica || '';
-            const observacion = relevamiento?.observacion || '';
-            const telefono = relevamiento?.telefono || '';
+            const dni = escaparHtml(votante.dni);
+            const apellido = escaparHtml(votante.apellido);
+            const nombre = escaparHtml(votante.nombre);
 
             return `
-                <tr class="fila-votante ${relevamiento ? 'con-relevamiento' : 'sin-relevamiento'}" data-dni="${votante.dni}">
-                    <td class="dni" data-label="DNI">${votante.dni}</td>
-                    <td class="apellido" data-label="Apellido">${votante.apellido}</td>
-                    <td data-label="Nombre">${votante.nombre}</td>
-                    <td class="edad" data-label="Edad">${votante.edad}</td>
-                    <td data-label="Circuito">${votante.circuito}</td>
-                    <td data-label="Sexo">${votante.sexo}</td>
+                <tr class="fila-votante ${relevamiento ? 'con-relevamiento' : 'sin-relevamiento'}" data-dni="${dni}">
+                    <td class="dni" data-label="DNI">${dni}</td>
+                    <td class="apellido" data-label="Apellido">${apellido}</td>
+                    <td data-label="Nombre">${nombre}</td>
+                    <td class="edad" data-label="Edad">${escaparHtml(votante.edad)}</td>
+                    <td data-label="Circuito">${escaparHtml(votante.circuito)}</td>
+                    <td data-label="Sexo">${escaparHtml(votante.sexo)}</td>
                     <td data-label="Opción Política">
                         <div class="radio-group">
                             ${this.renderizarRadioButtons(votante.dni, opcionPolitica)}
@@ -596,9 +615,9 @@ class PadronComponent {
                     </td>
                     <td class="acciones" data-label="Abrir">
                         <button class="btn-abrir-panel"
-                                onclick="padronComponent.abrirPanel('${votante.dni}')"
-                                title="Abrir ficha de ${votante.apellido}, ${votante.nombre}"
-                                aria-label="Abrir ficha de ${votante.apellido}, ${votante.nombre}">
+                                onclick="padronComponent.abrirPanel('${dni}')"
+                                title="Abrir ficha de ${apellido}, ${nombre}"
+                                aria-label="Abrir ficha de ${apellido}, ${nombre}">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </td>
@@ -648,15 +667,53 @@ class PadronComponent {
      * lectura — la tabla sirve para encontrar a alguien, el panel para cargarle datos—,
      * y de paso la página pasa de unos 350 controles de formulario a unos 45.
      */
-    abrirPanel(dni) {
+    async abrirPanel(dni) {
         const item = (this.estado.votantesEnPantalla || []).find(v => String(v.votante.dni) === String(dni));
         if (!item) return;
 
-        const { votante, relevamiento, detalle } = item;
+        const { votante } = item;
+
+        // Los datos cargables se releen del servidor; del listado sólo sale la identidad
+        // del votante, que no cambia. Antes la ficha se armaba entera con el snapshot de
+        // la última vez que se tocó un filtro: una pestaña abierta hace veinte minutos
+        // mostraba —y guardaba encima de— veinte minutos de trabajo ajeno.
+        let relevamiento = item.relevamiento;
+        let detalle = item.detalle;
+        let firma = null;
+
+        // La ficha vieja se cierra antes de esperar: sin esto, la página se queda un
+        // instante mostrando la anterior como si nada hubiera pasado.
+        this.cerrarPanel();
+
+        // Ahora que abrir implica esperar al servidor, dos clics seguidos son dos
+        // lecturas en vuelo. Si la primera vuelve última, dibujaría la ficha equivocada
+        // sobre el DNI que la persona realmente eligió — que es peor que no abrir nada.
+        this.fichaPedida = dni;
+
+        try {
+            const [respuestaRelevamiento, respuestaDetalle] = await Promise.all([
+                window.apiService.obtenerRelevamiento(dni),
+                window.apiService.obtenerDetalleVotante(dni),
+            ]);
+
+            if (respuestaRelevamiento?.data) {
+                relevamiento = respuestaRelevamiento.data;
+                firma = respuestaRelevamiento.data.actualizadoPor || null;
+            }
+            if (respuestaDetalle?.data) detalle = respuestaDetalle.data;
+        } catch (error) {
+            // Si la relectura falla se abre igual con lo que hay en pantalla: no poder
+            // refrescar no es razón para dejar a alguien sin poder cargar. Lo que no se
+            // hace es fingir que el dato es fresco.
+            console.warn('No se pudo releer la ficha del servidor, se abre con el listado', error);
+            this.mostrarNotificacion('No se pudo verificar si la ficha cambió', 'warning');
+        }
+
+        // Entre el clic y esta línea la persona pudo haber elegido otra ficha.
+        if (this.fichaPedida !== dni) return;
+
         const cond = detalle || {};
         const marcado = valor => (valor ? 'checked' : '');
-
-        this.cerrarPanel();
 
         const panel = document.createElement('aside');
         panel.className = 'panel-votante';
@@ -665,34 +722,42 @@ class PadronComponent {
         panel.setAttribute('aria-modal', 'false');
         panel.setAttribute('aria-label', `Ficha de ${votante.apellido}, ${votante.nombre}`);
         panel.dataset.dni = votante.dni;
+        // La versión que esta persona realmente vio. Es lo que el servidor compara al
+        // guardar: si otra escribió en el medio, no coincide y la escritura no se aplica.
+        // Sale de la relectura de arriba y no del listado — mandar la versión de una
+        // página cargada hace veinte minutos haría saltar el conflicto siempre, y un
+        // aviso que salta siempre se aprende a ignorar.
+        panel.dataset.version = relevamiento?.version ?? 0;
 
         panel.innerHTML = `
             <header class="panel-header">
                 <div>
-                    <h3>${votante.apellido}, ${votante.nombre}</h3>
-                    <p class="panel-dni">DNI ${votante.dni}</p>
+                    <h3>${escaparHtml(votante.apellido)}, ${escaparHtml(votante.nombre)}</h3>
+                    <p class="panel-dni">DNI ${escaparHtml(votante.dni)}</p>
                 </div>
                 <button class="panel-cerrar" onclick="padronComponent.cerrarPanel()" title="Cerrar" aria-label="Cerrar ficha">
                     <i class="fas fa-times"></i>
                 </button>
             </header>
 
+            ${this.renderizarFirma(firma, relevamiento?.fechaModificacion)}
+
             <dl class="panel-datos">
-                <div><dt>Edad</dt><dd>${votante.edad}</dd></div>
-                <div><dt>Circuito</dt><dd>${votante.circuito}</dd></div>
+                <div><dt>Edad</dt><dd>${escaparHtml(votante.edad)}</dd></div>
+                <div><dt>Circuito</dt><dd>${escaparHtml(votante.circuito)}</dd></div>
                 <div><dt>Sexo</dt><dd>${votante.sexo === 'F' ? 'Femenino' : 'Masculino'}</dd></div>
             </dl>
 
             <div class="panel-campo">
                 <label for="panel-telefono">Teléfono</label>
-                <input type="tel" id="panel-telefono" value="${relevamiento?.telefono || ''}"
+                <input type="tel" id="panel-telefono" value="${escaparHtml(relevamiento?.telefono)}"
                        placeholder="Sin teléfono cargado">
             </div>
 
             <div class="panel-campo">
                 <label for="panel-observacion">Observación</label>
                 <textarea id="panel-observacion" rows="4"
-                          placeholder="Sin observaciones">${relevamiento?.observacion || ''}</textarea>
+                          placeholder="Sin observaciones">${escaparHtml(relevamiento?.observacion)}</textarea>
             </div>
 
             <fieldset class="panel-condiciones">
@@ -720,7 +785,194 @@ class PadronComponent {
         document.addEventListener('keydown', this._cerrarConEscape);
     }
 
+    /**
+     * La versión que el panel leyó, como entero.
+     *
+     * Ante cualquier cosa rara cae en 0, que significa "leí que esto no existía". No es
+     * un default cómodo: es el valor que **no coincide** con ninguna fila existente, así
+     * que en la duda el servidor responde 409 y la persona ve lo que hay. Un default
+     * optimista guardaría encima.
+     */
+    versionDelPanel(panel) {
+        const version = Number.parseInt(panel.dataset.version, 10);
+        return Number.isInteger(version) && version >= 0 ? version : 0;
+    }
+
+    /**
+     * Muestra un conflicto de edición dentro del panel, sin cerrarlo.
+     *
+     * La regla de acá: **lo que la persona escribió no se pierde por ningún camino.** Se
+     * queda en los campos, y al lado aparece lo que hay en el servidor con quién lo puso.
+     * Decide una persona: nadie mergea dos textos automáticamente, porque concatenarlos
+     * inventaría contenido que no escribió ninguno de los dos.
+     */
+    mostrarConflicto(panel, actual) {
+        panel.querySelector('.panel-conflicto')?.remove();
+
+        const mio = {
+            telefono: panel.querySelector('#panel-telefono').value,
+            observacion: panel.querySelector('#panel-observacion').value,
+        };
+
+        const suyo = {
+            telefono: actual?.telefono || '',
+            observacion: actual?.observacion || '',
+        };
+
+        const quien = actual?.actualizadoPor ? escaparHtml(actual.actualizadoPor) : 'Otra persona';
+        const campos = ['telefono', 'observacion'].filter(campo => mio[campo] !== suyo[campo]);
+
+        const aviso = document.createElement('div');
+        aviso.className = 'panel-conflicto';
+        aviso.innerHTML = `
+            <p class="conflicto-titulo">
+                <i class="fas fa-exclamation-triangle"></i>
+                ${quien} modificó esta ficha mientras la editabas
+            </p>
+            ${campos.map(campo => `
+                <div class="conflicto-campo">
+                    <span class="conflicto-etiqueta">${campo === 'telefono' ? 'Teléfono' : 'Observación'} en el servidor</span>
+                    <p class="conflicto-valor">${escaparHtml(suyo[campo]) || '<em>vacío</em>'}</p>
+                </div>
+            `).join('')}
+            <div class="conflicto-acciones">
+                <button class="btn btn-secondary" onclick="padronComponent.descartarMisCambios()">
+                    Quedarme con lo del servidor
+                </button>
+                <button class="btn btn-primary" onclick="padronComponent.guardarPanel()">
+                    Guardar lo mío igual
+                </button>
+            </div>
+        `;
+
+        // La versión se actualiza a la del servidor: si la persona decide pisar, el
+        // próximo Guardar tiene que poder aplicarse. Lo que no puede es aplicarse sin
+        // que lo haya visto — y para este punto ya lo vio.
+        if (actual?.version !== undefined) panel.dataset.version = actual.version;
+
+        panel.querySelector('.panel-acciones').before(aviso);
+        this.mostrarNotificacion('La ficha cambió mientras la editabas', 'warning');
+    }
+
+    /** Descarta lo escrito y vuelve a abrir la ficha con lo que hay en el servidor. */
+    async descartarMisCambios() {
+        const dni = document.getElementById('panel-votante')?.dataset.dni;
+        if (!dni) return;
+
+        this.cerrarPanel();
+        await this.abrirPanel(dni);
+    }
+
+    /**
+     * Vigila las fichas que otra persona modificó mientras esta página está abierta.
+     *
+     * Es un GET cada 30 s contra un índice, que en el caso normal vuelve vacío. La
+     * alternativa era una conexión persistente por usuario: `public/` es JS plano sin
+     * build y el servidor es chico, así que no se paga sola para avisar de un cambio
+     * cada varios minutos.
+     *
+     * La regla que no se rompe acá: **marcar, nunca redibujar**. Si esto reemplazara el
+     * contenido de una fila, borraría lo que alguien está tipeando en ese momento — que
+     * es la misma pérdida de datos que veníamos a arreglar, por otra puerta.
+     */
+    iniciarVigilanciaDeCambios(intervaloMs = 30000) {
+        if (this.vigilanciaId) clearInterval(this.vigilanciaId);
+
+        this.vigilanciaId = setInterval(() => {
+            // Con la pestaña en segundo plano no hay nadie mirando: son requests que no
+            // le sirven a nadie y el padrón se recarga entero al volver.
+            if (document.hidden) return;
+            this.revisarCambios();
+        }, intervaloMs);
+    }
+
+    detenerVigilanciaDeCambios() {
+        if (this.vigilanciaId) clearInterval(this.vigilanciaId);
+        this.vigilanciaId = null;
+    }
+
+    async revisarCambios() {
+        const desde = this.estado.tablaCargadaEn;
+        if (!desde) return;
+
+        try {
+            const respuesta = await window.apiService.obtenerCambios(desde);
+            const cambios = respuesta?.data?.cambios;
+            if (!Array.isArray(cambios)) return;
+
+            const propio = window.authService?.getCurrentUser()?.username || null;
+
+            for (const cambio of cambios) {
+                // Lo que cargó uno mismo no es una novedad. Sin este filtro, cambiar una
+                // opción política marcaría la propia fila y la señal se volvería ruido.
+                if (propio && cambio.actualizadoPor === propio) continue;
+                this.marcarFilaCambiada(cambio.dni, cambio.actualizadoPor);
+            }
+
+            // El próximo tick pregunta desde acá: una ficha ya marcada no se reporta de
+            // nuevo, y la marca se limpia sola cuando la tabla se vuelva a dibujar.
+            if (respuesta.data.hasta) this.estado.tablaCargadaEn = respuesta.data.hasta;
+        } catch (error) {
+            // Que falle una ronda no es motivo de cartel: el sistema sigue usable y el
+            // próximo tick lo reintenta.
+            console.warn('No se pudo consultar los cambios del padrón', error);
+        }
+    }
+
+    /** Marca una fila como tocada por otra persona. No toca su contenido. */
+    marcarFilaCambiada(dni, usuario) {
+        const fila = document.querySelector(`tr[data-dni="${dni}"]`);
+        if (!fila) return;
+
+        fila.classList.add('fila-cambiada');
+        fila.title = usuario
+            ? `${usuario} modificó esta ficha hace un momento`
+            : 'Esta ficha se modificó hace un momento';
+    }
+
+    /**
+     * La firma de la última edición, arriba de todo en la ficha.
+     *
+     * Va antes de los campos y no al pie: sirve para decidir si cargar encima, y eso se
+     * decide antes de escribir, no después. Si nadie la tocó todavía, no se muestra nada
+     * — una línea que dice "sin ediciones" es ruido en las 5.500 fichas sin relevar.
+     */
+    renderizarFirma(usuario, fecha) {
+        if (!usuario) return '';
+
+        const cuando = this.describirCuando(fecha);
+        const nombre = escaparHtml(usuario);
+        const detalle = cuando ? `${nombre}, ${cuando}` : nombre;
+
+        return `
+            <p class="panel-firma">
+                <i class="fas fa-history"></i>
+                Última edición: ${detalle}
+            </p>
+        `;
+    }
+
+    /** "hace 3 min" es más útil que una fecha cuando lo que importa es si es reciente. */
+    describirCuando(fecha) {
+        if (!fecha) return '';
+
+        const momento = new Date(fecha);
+        if (Number.isNaN(momento.getTime())) return '';
+
+        const minutos = Math.floor((Date.now() - momento.getTime()) / 60000);
+
+        if (minutos < 1) return 'recién';
+        if (minutos < 60) return `hace ${minutos} min`;
+        if (minutos < 60 * 24) return `hace ${Math.floor(minutos / 60)} h`;
+
+        return momento.toLocaleDateString('es-AR');
+    }
+
     cerrarPanel() {
+        // Cerrar también cancela cualquier apertura en vuelo: si alguien cierra mientras
+        // la ficha se está leyendo, no tiene que aparecer sola medio segundo después.
+        this.fichaPedida = null;
+
         document.getElementById('panel-votante')?.remove();
         document.querySelector('tr.fila-abierta')?.classList.remove('fila-abierta');
         if (this._cerrarConEscape) {
@@ -732,6 +984,12 @@ class PadronComponent {
     /**
      * Guarda la ficha completa: teléfono y observación van al relevamiento; las cuatro
      * casillas, al detalle. Son dos endpoints distintos, y por eso dos llamadas.
+     *
+     * Antes eran cinco: teléfono y observación salían como dos escrituras separadas,
+     * lanzadas en paralelo, y cada una leía la fila primero para reenviar el campo de la
+     * otra. Las dos leían el mismo estado previo, así que la que llegaba última pisaba
+     * el otro campo — cargar teléfono y observación juntos perdía uno de los dos, con un
+     * solo usuario y respondiendo 200. Ahora es **un** PUT con los dos campos.
      */
     async guardarPanel() {
         const panel = document.getElementById('panel-votante');
@@ -750,14 +1008,34 @@ class PadronComponent {
                 condiciones[casilla.name] = casilla.checked;
             }
 
-            await Promise.all([
-                this.actualizarTelefono(dni, panel.querySelector('#panel-telefono').value),
-                this.actualizarObservacion(dni, panel.querySelector('#panel-observacion').value),
-                window.apiService.request('/api/padron/detalle-votante', {
-                    method: 'POST',
-                    body: JSON.stringify({ dni, condiciones }),
-                }),
-            ]);
+            // En secuencia, no en paralelo: los dos endpoints escriben la MISMA fila de
+            // padron.relevamientos, cada uno sus columnas. Hoy no se pisarían —el upsert
+            // sólo toca lo que le mandan—, pero dos escrituras simultáneas contra una
+            // fila es exactamente la forma del bug que este cambio saca, y basta con que
+            // alguien agregue una columna compartida para que vuelva. Cuesta un viaje.
+            const respuesta = await window.apiService.actualizarRelevamiento(dni, {
+                telefono: panel.querySelector('#panel-telefono').value,
+                observacion: panel.querySelector('#panel-observacion').value,
+                version: this.versionDelPanel(panel),
+            });
+
+            // Otra persona escribió entre que se abrió la ficha y este Guardar. El panel
+            // NO se cierra: lo que esta persona escribió sigue en pantalla y decide ella.
+            if (respuesta?.conflicto) {
+                this.mostrarConflicto(panel, respuesta.actual);
+                boton.disabled = false;
+                boton.textContent = textoOriginal;
+                return;
+            }
+
+            if (respuesta?.relevamiento?.version !== undefined) {
+                panel.dataset.version = respuesta.relevamiento.version;
+            }
+
+            await window.apiService.request('/api/padron/detalle-votante', {
+                method: 'POST',
+                body: JSON.stringify({ dni, condiciones }),
+            });
 
             this.mostrarNotificacion('Ficha guardada', 'success');
             this.cerrarPanel();
@@ -774,14 +1052,17 @@ class PadronComponent {
      */
     renderizarRadioButtons(dni, opcionSeleccionada) {
         const opciones = ['PJ', 'UCR', 'Indeciso'];
-        
+        // El DNI viene del CSV importado, así que es dato de usuario aunque parezca un
+        // número. Las opciones salen de esta lista de acá, no de la base.
+        const dniSeguro = escaparHtml(dni);
+
         return opciones.map(opcion => `
             <label class="radio-label ${opcionSeleccionada === opcion ? 'selected' : ''}">
-                <input type="radio" 
-                       name="opcion_${dni}" 
+                <input type="radio"
+                       name="opcion_${dniSeguro}"
                        value="${opcion}"
                        ${opcionSeleccionada === opcion ? 'checked' : ''}
-                       onchange="padronComponent.cambiarOpcionPolitica('${dni}', '${opcion}')">
+                       onchange="padronComponent.cambiarOpcionPolitica('${dniSeguro}', '${opcion}')">
                 <span class="radio-custom ${opcion.toLowerCase()}">${opcion}</span>
             </label>
         `).join('');
@@ -924,51 +1205,36 @@ class PadronComponent {
                 }
             }
 
-            // Guardar en la base de datos (preservar observacion y telefono existentes)
-            const relevamiento = await window.apiService.obtenerRelevamiento(dni);
-            const observacion = relevamiento.data?.observacion || '';
-            const telefono = relevamiento.data?.telefono || '';
-            await window.apiService.actualizarRelevamiento(dni, opcionPolitica, observacion, telefono);
+            // Sólo la opción política. No hace falta leer la observación ni el teléfono
+            // para "preservarlos": lo que no se manda, el servidor no lo toca.
+            //
+            // La versión sale del listado, que es lo que esta persona tiene delante. Si
+            // otra cambió la opción mientras tanto, esto no la pisa en silencio.
+            const item = (this.estado.votantesEnPantalla || [])
+                .find(v => String(v.votante.dni) === String(dni));
+
+            const respuesta = await window.apiService.actualizarRelevamiento(dni, {
+                opcionPolitica,
+                version: item?.relevamiento?.version ?? 0,
+            });
+
+            if (respuesta?.conflicto) {
+                const quien = respuesta.actual?.actualizadoPor || 'Otra persona';
+                this.mostrarNotificacion(
+                    `${quien} ya había marcado ${respuesta.actual?.opcionPolitica} en esta fila`,
+                    'warning'
+                );
+                // Se recarga para que la fila muestre lo que hay, no lo que se clickeó.
+                await this.actualizarTabla();
+                return;
+            }
+
             this.mostrarNotificacion('Relevamiento actualizado', 'success');
             await this.actualizarEstadisticasRapidas();
         } catch (error) {
             this.mostrarError(`Error al actualizar relevamiento: ${error.message}`);
             // Revertir cambio visual en caso de error
             this.actualizarTabla();
-        }
-    }
-
-    /**
-     * Actualizar observación de un votante
-     */
-    async actualizarObservacion(dni, observacion) {
-        try {
-            // Obtener relevamiento actual para preservar otros campos
-            const relevamiento = await window.apiService.obtenerRelevamiento(dni);
-            const opcionPolitica = relevamiento.data?.opcionPolitica || 'Indeciso';
-            const telefono = relevamiento.data?.telefono || '';
-
-            await window.apiService.actualizarRelevamiento(dni, opcionPolitica, observacion, telefono);
-            this.mostrarNotificacion('Observación actualizada', 'success');
-        } catch (error) {
-            this.mostrarError(`Error al actualizar observación: ${error.message}`);
-        }
-    }
-
-    /**
-     * Actualizar teléfono de un votante
-     */
-    async actualizarTelefono(dni, telefono) {
-        try {
-            // Obtener relevamiento actual para preservar otros campos
-            const relevamiento = await window.apiService.obtenerRelevamiento(dni);
-            const opcionPolitica = relevamiento.data?.opcionPolitica || 'Indeciso';
-            const observacion = relevamiento.data?.observacion || '';
-
-            await window.apiService.actualizarRelevamiento(dni, opcionPolitica, observacion, telefono);
-            this.mostrarNotificacion('Teléfono actualizado', 'success');
-        } catch (error) {
-            this.mostrarError(`Error al actualizar teléfono: ${error.message}`);
         }
     }
 
@@ -1488,12 +1754,20 @@ class PadronComponent {
     mostrarNotificacion(mensaje, tipo = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification notification-${tipo}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas ${this.getIconoTipo(tipo)}"></i>
-                ${mensaje}
-            </div>
-        `;
+
+        // El mensaje entra como texto, no como HTML. Media docena de llamadores le
+        // interpolan cosas que no controlan —`error.message`, el nombre de quien editó
+        // una ficha—, así que armar esto con innerHTML dejaba abierta una segunda puerta,
+        // más difícil de ver que la de la tabla porque acá el dato no parece un dato.
+        const contenido = document.createElement('div');
+        contenido.className = 'notification-content';
+
+        const icono = document.createElement('i');
+        icono.className = `fas ${this.getIconoTipo(tipo)}`;
+
+        contenido.appendChild(icono);
+        contenido.appendChild(document.createTextNode(` ${mensaje}`));
+        notification.appendChild(contenido);
 
         document.body.appendChild(notification);
 
@@ -1508,138 +1782,15 @@ class PadronComponent {
         this.mostrarNotificacion(mensaje, 'error');
     }
 
-    /**
-     * Renderizar iconos de condiciones especiales
-     * @private
-     */
-    renderizarCondicionesEspeciales(detalle) {
-        if (!detalle) return '<span class="sin-condiciones">-</span>';
+    /* Acá vivían renderizarCondicionesEspeciales, renderizarCondicionesInline,
+       marcarCambioCondicion y guardarCondicionesInline: los controles de condiciones
+       dentro de la tabla. Quedaron sin un solo llamador cuando la carga se mudó al panel
+       lateral, y los cuatro interpolaban datos de votante sin escapar.
 
-        const iconos = [];
-        
-        if (detalle.esNuevoVotante) {
-            iconos.push('<i class="fas fa-user-plus icon-nuevo" title="Nuevo Votante"></i>');
-        }
-        
-        if (detalle.estaFallecido) {
-            iconos.push('<i class="fas fa-cross icon-fallecido" title="Fallecido"></i>');
-        }
-        
-        if (detalle.esEmpleadoMunicipal) {
-            iconos.push('<i class="fas fa-building icon-empleado" title="Empleado Municipal"></i>');
-        }
-        
-        if (detalle.recibeAyudaSocial) {
-            iconos.push('<i class="fas fa-hands-helping icon-ayuda" title="Recibe Ayuda Social"></i>');
-        }
+       Se borran en vez de escaparse. Código muerto que ya tiene el agujero adentro es
+       peor que código muerto a secas: el día que alguien lo vuelva a enchufar, el agujero
+       vuelve con él. */
 
-        return iconos.length > 0 ? `<span class="condiciones-iconos">${iconos.join(' ')}</span>` : '<span class="sin-condiciones">-</span>';
-    }
-
-    /**
-     * Renderizar controles inline para condiciones especiales
-     * @private
-     */
-    renderizarCondicionesInline(dni, detalle) {
-        const condiciones = detalle || {
-            esNuevoVotante: false,
-            estaFallecido: false,
-            esEmpleadoMunicipal: false,
-            recibeAyudaSocial: false,
-            observaciones: ''
-        };
-
-        return `
-            <div class="condiciones-inline" data-dni="${dni}">
-                <div class="condiciones-checkboxes">
-                    <label class="checkbox-inline" title="Nuevo Votante">
-                        <input type="checkbox" 
-                               name="esNuevoVotante" 
-                               ${condiciones.esNuevoVotante ? 'checked' : ''}
-                               onchange="padronComponent.marcarCambioCondicion('${dni}')">
-                        <i class="fas fa-user-plus icon-nuevo"></i>
-                    </label>
-                    
-                    <label class="checkbox-inline" title="Fallecido">
-                        <input type="checkbox" 
-                               name="estaFallecido" 
-                               ${condiciones.estaFallecido ? 'checked' : ''}
-                               onchange="padronComponent.marcarCambioCondicion('${dni}')">
-                        <i class="fas fa-cross icon-fallecido"></i>
-                    </label>
-                    
-                    <label class="checkbox-inline" title="Empleado Municipal">
-                        <input type="checkbox" 
-                               name="esEmpleadoMunicipal" 
-                               ${condiciones.esEmpleadoMunicipal ? 'checked' : ''}
-                               onchange="padronComponent.marcarCambioCondicion('${dni}')">
-                        <i class="fas fa-building icon-empleado"></i>
-                    </label>
-                    
-                    <label class="checkbox-inline" title="Recibe Ayuda Social">
-                        <input type="checkbox" 
-                               name="recibeAyudaSocial" 
-                               ${condiciones.recibeAyudaSocial ? 'checked' : ''}
-                               onchange="padronComponent.marcarCambioCondicion('${dni}')">
-                        <i class="fas fa-hands-helping icon-ayuda"></i>
-                    </label>
-                </div>
-                ${condiciones.observaciones ? `<small class="observaciones-preview" title="${condiciones.observaciones}">
-                    <i class="fas fa-comment"></i> ${condiciones.observaciones.substring(0, 20)}...
-                </small>` : ''}
-            </div>
-        `;
-    }
-
-    /**
-     * Marcar que hubo cambios en las condiciones para mostrar el botón guardar
-     */
-    marcarCambioCondicion(dni) {
-        const fila = document.querySelector(`tr[data-dni="${dni}"]`);
-        if (fila) {
-            fila.classList.add('condiciones-modificadas');
-            const botonGuardar = fila.querySelector('.btn-guardar-inline');
-            if (botonGuardar) {
-                botonGuardar.style.opacity = '1';
-                botonGuardar.disabled = false;
-            }
-        }
-    }
-
-    /**
-     * Guardar condiciones especiales inline
-     */
-    async guardarCondicionesInline(dni) {
-        try {
-            const fila = document.querySelector(`tr[data-dni="${dni}"]`);
-            if (!fila) return;
-
-            const condicionesContainer = fila.querySelector('.condiciones-inline');
-            const checkboxes = condicionesContainer.querySelectorAll('input[type="checkbox"]');
-
-            const condiciones = {};
-            checkboxes.forEach(checkbox => {
-                condiciones[checkbox.name] = checkbox.checked;
-            });
-
-            const botonGuardar = fila.querySelector('.btn-guardar-inline');
-            botonGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            botonGuardar.disabled = true;
-
-            const response = await window.apiService.request('/api/padron/detalle-votante', {
-                method: 'POST',
-                body: JSON.stringify({ dni, condiciones })
-            });
-
-            this.mostrarNotificacion('Condiciones guardadas correctamente', 'success');
-            fila.classList.remove('condiciones-modificadas');
-            botonGuardar.style.opacity = '0.5';
-            botonGuardar.innerHTML = '<i class="fas fa-save"></i> <span class="desktop-only">Guardar</span>';
-
-        } catch (error) {
-            this.mostrarError(`Error al guardar condiciones: ${error.message}`);
-        }
-    }
 
     /**
      * Enriquecer votantes con sus detalles (condiciones especiales)

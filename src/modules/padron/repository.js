@@ -86,7 +86,7 @@ class PadronRepository {
       `SELECT
          v.*,
          r.dni AS relevamiento_dni,
-         r.opcion_politica, r.fecha_relevamiento, r.observacion, r.telefono,
+         r.opcion_politica, r.fecha_relevamiento, r.observacion, r.telefono, r.version,
          r.es_nuevo_votante, r.esta_fallecido, r.es_empleado_municipal,
          r.recibe_ayuda_social, r.observaciones_detalle, r.fecha_detalle,
          COUNT(*) OVER() AS total_filtrado
@@ -124,7 +124,8 @@ class PadronRepository {
   votantePorDni(dni) {
     return this.db.unaFila(
       `SELECT v.*, r.opcion_politica, r.fecha_relevamiento, r.observacion,
-              r.fecha_modificacion, r.telefono
+              r.fecha_modificacion, r.telefono, r.version,
+              r.actualizado_por, r.actualizado_por_username
        FROM padron.votantes v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni
        WHERE v.dni = $1`,
@@ -162,17 +163,87 @@ class PadronRepository {
 
   // -------------------------------------------------------- relevamientos
 
-  upsertRelevamiento(dni, { opcion_politica, observacion, telefono }) {
+  /**
+   * Escritura parcial: un campo que llega como NULL no se toca.
+   *
+   * Antes esto escribia siempre las tres columnas, y por eso quien cargaba un telefono
+   * tenia que leer la fila entera para "preservar" la observacion y volver a mandarla.
+   * Entre esa lectura y esta escritura, cualquier cosa que hubiera guardado otra persona
+   * se perdia. Con dos personas sobre el mismo padron eso es perdida de datos silenciosa,
+   * y con una sola ya fallaba: el panel mandaba telefono y observacion en paralelo, cada
+   * uno con el valor viejo del otro.
+   *
+   * El COALESCE de la rama DO UPDATE va contra el **parametro**, no contra EXCLUDED:
+   * EXCLUDED ya trae el default aplicado en VALUES, y usarlo volveria a escribir
+   * 'Indeciso' o '' sobre lo que hubiera en la fila.
+   *
+   * NULL significa "no tocar"; cadena vacia significa "vaciar". Son dos cosas distintas
+   * y el service es el que las traduce desde el cuerpo del request.
+   */
+  upsertRelevamiento(dni, {
+    opcion_politica = null, observacion = null, telefono = null,
+    actualizado_por = null, actualizado_por_username = null, version_esperada = null,
+  }) {
     return this.db.unaFila(
-      `INSERT INTO padron.relevamientos (dni, opcion_politica, observacion, telefono)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO padron.relevamientos
+         (dni, opcion_politica, observacion, telefono,
+          actualizado_por, actualizado_por_username)
+       VALUES ($1, COALESCE($2, 'Indeciso'), COALESCE($3, ''), COALESCE($4, ''), $5, $6)
        ON CONFLICT (dni) DO UPDATE SET
-         opcion_politica    = EXCLUDED.opcion_politica,
-         observacion        = EXCLUDED.observacion,
-         telefono           = EXCLUDED.telefono,
-         fecha_modificacion = CURRENT_TIMESTAMP
+         opcion_politica          = COALESCE($2, padron.relevamientos.opcion_politica),
+         observacion              = COALESCE($3, padron.relevamientos.observacion),
+         telefono                 = COALESCE($4, padron.relevamientos.telefono),
+         actualizado_por          = $5,
+         actualizado_por_username = $6,
+         fecha_modificacion       = CURRENT_TIMESTAMP,
+         version                  = padron.relevamientos.version + 1
+       WHERE padron.relevamientos.version = $7
+         AND (
+           COALESCE($2, padron.relevamientos.opcion_politica) IS DISTINCT FROM padron.relevamientos.opcion_politica
+           OR COALESCE($3, padron.relevamientos.observacion)  IS DISTINCT FROM padron.relevamientos.observacion
+           OR COALESCE($4, padron.relevamientos.telefono)     IS DISTINCT FROM padron.relevamientos.telefono
+         )
        RETURNING *`,
-      [dni, opcion_politica, observacion, telefono],
+      [
+        dni, opcion_politica, observacion, telefono,
+        actualizado_por, actualizado_por_username, version_esperada,
+      ],
+    );
+  }
+
+  /**
+   * La fila de relevamiento sola, sin el JOIN con votantes.
+   *
+   * La necesita el service cuando el upsert no devuelve nada, para distinguir por que:
+   * version vieja (409) o nada que cambiar (200). Tiene que ser una lectura nueva y no
+   * la que se hizo antes de escribir — justamente lo que se esta averiguando es si
+   * alguien escribio en el medio.
+   */
+  relevamientoCrudo(dni) {
+    return this.db.unaFila('SELECT * FROM padron.relevamientos WHERE dni = $1', [dni]);
+  }
+
+  /**
+   * DNIs cuya ficha cambio despues de un momento dado.
+   *
+   * fecha_modificacion y fecha_detalle se miran las dos porque las condiciones
+   * especiales se guardan por otro endpoint y solo mueven la segunda: una ficha puede
+   * cambiar sin que fecha_modificacion se entere.
+   *
+   * El limite existe para que la respuesta no crezca sin techo despues de una
+   * importacion o de un dia entero sin recargar la pagina. Quien lo consume solo
+   * necesita saber que filas marcar de la pagina que tiene en pantalla.
+   */
+  dnisModificadosDesde(desde, limite = 500) {
+    return this.db.filas(
+      `SELECT dni,
+              GREATEST(fecha_modificacion, COALESCE(fecha_detalle, fecha_modificacion)) AS cambiado_en,
+              actualizado_por_username
+       FROM padron.relevamientos
+       WHERE fecha_modificacion > $1 OR fecha_detalle > $1
+       ORDER BY cambiado_en DESC
+       LIMIT $2`,
+      [desde, limite],
     );
   }
 
@@ -184,19 +255,37 @@ class PadronRepository {
    * Guarda las condiciones especiales. Crea el relevamiento base si el votante todavia
    * no tiene uno: antes eran tres consultas (existe? crear; actualizar) y ahora es una.
    */
-  guardarDetalle(dni, condiciones) {
+  /**
+   * Las condiciones especiales **no tocan `version` ni la chequean**, a diferencia de
+   * upsertRelevamiento. Es deliberado:
+   *
+   * - El panel guarda la ficha con dos requests seguidos contra esta misma fila. Si este
+   *   moviera la version, el primero la dejaria en N+1 y el segundo —que salio con N—
+   *   chocaria contra si mismo.
+   * - La version cubre lo que se escribe a mano y duele perder: opcion politica,
+   *   observacion y telefono. Cuatro casillas que se ven enteras en pantalla son otra
+   *   cosa: quien las guarda esta mirando su estado actual, porque el panel relee la
+   *   ficha al abrirse.
+   *
+   * Lo que si hace es dejar su firma y mover fecha_detalle, asi que un cambio de
+   * condiciones se ve igual en la marca de fila cambiada.
+   */
+  guardarDetalle(dni, condiciones, autor = {}) {
     return this.db.unaFila(
       `INSERT INTO padron.relevamientos
          (dni, opcion_politica, observacion, es_nuevo_votante, esta_fallecido,
-          es_empleado_municipal, recibe_ayuda_social, observaciones_detalle, fecha_detalle)
-       VALUES ($1, 'Indeciso', '', $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+          es_empleado_municipal, recibe_ayuda_social, observaciones_detalle, fecha_detalle,
+          actualizado_por, actualizado_por_username)
+       VALUES ($1, 'Indeciso', '', $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, $7, $8)
        ON CONFLICT (dni) DO UPDATE SET
-         es_nuevo_votante      = EXCLUDED.es_nuevo_votante,
-         esta_fallecido        = EXCLUDED.esta_fallecido,
-         es_empleado_municipal = EXCLUDED.es_empleado_municipal,
-         recibe_ayuda_social   = EXCLUDED.recibe_ayuda_social,
-         observaciones_detalle = EXCLUDED.observaciones_detalle,
-         fecha_detalle         = CURRENT_TIMESTAMP
+         es_nuevo_votante         = EXCLUDED.es_nuevo_votante,
+         esta_fallecido           = EXCLUDED.esta_fallecido,
+         es_empleado_municipal    = EXCLUDED.es_empleado_municipal,
+         recibe_ayuda_social      = EXCLUDED.recibe_ayuda_social,
+         observaciones_detalle    = EXCLUDED.observaciones_detalle,
+         fecha_detalle            = CURRENT_TIMESTAMP,
+         actualizado_por          = EXCLUDED.actualizado_por,
+         actualizado_por_username = EXCLUDED.actualizado_por_username
        RETURNING *`,
       [
         dni,
@@ -205,6 +294,8 @@ class PadronRepository {
         condiciones.esEmpleadoMunicipal,
         condiciones.recibeAyudaSocial,
         condiciones.observacionesDetalle,
+        autor.actualizado_por ?? null,
+        autor.actualizado_por_username ?? null,
       ],
     );
   }

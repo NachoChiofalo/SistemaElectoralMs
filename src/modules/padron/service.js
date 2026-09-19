@@ -130,21 +130,58 @@ class PadronService {
     return votante;
   }
 
-  async actualizarRelevamiento(dni, { opcionPolitica, observacion, telefono }, req) {
-    if (!OPCIONES_POLITICAS.includes(opcionPolitica)) {
+  /**
+   * Actualiza solo los campos que vinieron en el cuerpo.
+   *
+   * La distincion que sostiene todo esto: **la clave ausente no toca el campo; la cadena
+   * vacia lo vacia**. Por eso los campos viajan como null y no como '' — un `|| ''` aca
+   * volveria a convertir "no me lo mandaron" en "borralo", que es exactamente la perdida
+   * de datos que este cambio viene a sacar.
+   *
+   * opcionPolitica dejo de ser obligatoria por lo mismo: exigirla obligaba a quien solo
+   * queria cargar un telefono a leerla primero y reenviarla.
+   */
+  async actualizarRelevamiento(dni, { opcionPolitica, observacion, telefono, version }, req) {
+    const campos = {
+      opcion_politica: opcionPolitica === undefined ? null : opcionPolitica,
+      observacion: observacion === undefined ? null : observacion,
+      telefono: telefono === undefined ? null : telefono,
+    };
+
+    if (Object.values(campos).every((valor) => valor === null)) {
+      // Ojo: la firma del autor NO cuenta como campo. Un cuerpo vacio sigue siendo 400.
+      throw errores.solicitudInvalida(
+        'Hay que mandar al menos uno de: opcionPolitica, observacion, telefono',
+      );
+    }
+
+    if (campos.opcion_politica !== null && !OPCIONES_POLITICAS.includes(campos.opcion_politica)) {
       throw errores.solicitudInvalida(
         `opcionPolitica debe ser una de: ${OPCIONES_POLITICAS.join(', ')}`,
       );
+    }
+
+    // Sin version no se escribe. La ruta ya lo valida; esto esta aca porque el `WHERE
+    // version = $7` con NULL no matchea nunca, asi que una llamada interna sin version
+    // no fallaria: no escribiria nada y devolveria 200. Un no-op silencioso es peor que
+    // un error.
+    if (!Number.isInteger(version) || version < 0) {
+      throw errores.solicitudInvalida('version es obligatoria y tiene que ser un entero no negativo');
     }
 
     const anterior = await this.repo.votantePorDni(dni);
     if (!anterior) throw errores.noEncontrado('Votante no encontrado');
 
     const relevamiento = await this.repo.upsertRelevamiento(dni, {
-      opcion_politica: opcionPolitica,
-      observacion: observacion || '',
-      telefono: telefono || '',
+      ...campos,
+      ...autorDe(req),
+      version_esperada: version,
     });
+
+    // Cero filas no alcanza para saber que paso: puede ser que otra persona haya escrito
+    // en el medio (la version no coincide) o que no hubiera nada que cambiar. Son dos
+    // respuestas distintas —409 y 200— y distinguirlas exige releer.
+    if (!relevamiento) return this.resolverEscrituraSinEfecto(dni, version, req);
 
     this.cache.invalidar();
 
@@ -154,22 +191,84 @@ class PadronService {
       entidad_id: dni,
       datos_anteriores: anterior,
       datos_nuevos: relevamiento,
-      detalles: `Relevamiento actualizado para DNI ${dni}: ${opcionPolitica}`,
+      // Que campos se tocaron importa mas que el valor de uno solo, ahora que una
+      // escritura puede traer cualquier subconjunto.
+      detalles: `Relevamiento actualizado para DNI ${dni}: ${nombresDeCampos(campos)}`,
     });
 
     return relevamiento;
   }
 
+  /**
+   * Por que el upsert no escribio nada.
+   *
+   * Dos casos, y la diferencia importa:
+   *
+   * - **La version no coincide.** Otra persona guardo entre que esta abrio la ficha y
+   *   apreto Guardar. Es 409 con el estado del servidor en el cuerpo, para que la UI
+   *   pueda mostrar los dos valores y que decida una persona. No se mergea nada:
+   *   concatenar dos textos inventa contenido que no escribio ninguno de los dos.
+   *
+   * - **No habia nada que cambiar.** Guardar un valor identico al que ya estaba no es un
+   *   conflicto ni una escritura: es 200 y la fila queda intacta. Eso es tambien lo que
+   *   evita que un guardado sin cambios mueva la firma de "ultima edicion" y le marque
+   *   la fila como novedad a todos los demas.
+   */
+  async resolverEscrituraSinEfecto(dni, versionEsperada, req) {
+    const actual = await this.repo.relevamientoCrudo(dni);
+
+    // La ficha desaparecio entre la lectura y la escritura. Es rarisimo, pero devolver
+    // 409 aca mandaria a alguien a resolver un conflicto contra algo que ya no existe.
+    if (!actual) throw errores.noEncontrado('Votante no encontrado');
+
+    // Misma version: no habia nada que cambiar. La escritura no se aplico porque no
+    // hacia falta, no porque alguien se haya metido en el medio.
+    if (Number(actual.version) === Number(versionEsperada)) return actual;
+
+    // Es una condicion esperada del dominio, no una falla: va como info. Y es el unico
+    // dato que despues permite decidir el item 014 (señal de presencia) con un numero en
+    // vez de una intuicion.
+    this.logger.info('Conflicto de edicion en un relevamiento', {
+      dni,
+      usuario: req?.user?.username ?? null,
+      versionEnviada: versionEsperada,
+      versionActual: actual.version,
+      ultimaEdicionDe: actual.actualizado_por_username ?? null,
+    });
+
+    throw errores.conflicto(
+      'Otra persona modifico esta ficha mientras la editabas',
+      { actual: aRelevamiento(actual) },
+    );
+  }
+
   async relevamientoPorDni(dni) {
-    const votante = await this.votantePorDni(dni);
+    return aRelevamiento(await this.votantePorDni(dni));
+  }
+
+  /**
+   * Que fichas cambiaron desde un momento dado.
+   *
+   * Lo consume la tabla del padron para marcar las filas que otra persona movio mientras
+   * la pagina estaba abierta. Devuelve DNIs y no filas completas a proposito: quien lo
+   * llama ya tiene los datos en pantalla y solo necesita saber cuales marcar.
+   */
+  async cambiosDesde(desde) {
+    const momento = new Date(desde);
+    if (Number.isNaN(momento.getTime())) {
+      throw errores.solicitudInvalida('El parametro desde tiene que ser una fecha ISO valida');
+    }
+
+    const filas = await this.repo.dnisModificadosDesde(momento);
 
     return {
-      dni: votante.dni,
-      opcionPolitica: votante.opcion_politica || 'Indeciso',
-      observacion: votante.observacion || '',
-      telefono: votante.telefono || '',
-      fechaRelevamiento: votante.fecha_relevamiento || null,
-      fechaModificacion: votante.fecha_modificacion || votante.fecha_relevamiento || null,
+      desde: momento.toISOString(),
+      hasta: new Date().toISOString(),
+      cambios: filas.map((fila) => ({
+        dni: fila.dni,
+        cambiadoEn: fila.cambiado_en,
+        actualizadoPor: fila.actualizado_por_username || null,
+      })),
     };
   }
 
@@ -185,7 +284,7 @@ class PadronService {
     const previo = await this.repo.detallePorDni(dni);
     const anterior = await this.repo.votantePorDni(dni);
 
-    const fila = await this.repo.guardarDetalle(dni, normalizadas);
+    const fila = await this.repo.guardarDetalle(dni, normalizadas, autorDe(req));
     this.cache.invalidar();
 
     const despues = await this.repo.votantePorDni(dni);
@@ -323,6 +422,62 @@ class PadronService {
 
     return resumen;
   }
+}
+
+/**
+ * La forma del relevamiento que consume el frontend.
+ *
+ * La usan la lectura y el cuerpo del 409, y eso es a proposito: ante un conflicto, el
+ * estado del servidor tiene que llegar con la misma forma que una lectura normal, o la
+ * UI necesitaria dos caminos para dibujar lo mismo.
+ *
+ * `version` cae en 0 cuando el votante todavia no tiene fila de relevamiento. No es un
+ * detalle: es como el cliente dice "yo lei que esto no existia". Si en el medio otra
+ * persona la creo, la fila real esta en 1, el 0 no matchea y sale el 409 que corresponde.
+ */
+function aRelevamiento(fila) {
+  return {
+    dni: fila.dni,
+    opcionPolitica: fila.opcion_politica || 'Indeciso',
+    observacion: fila.observacion || '',
+    telefono: fila.telefono || '',
+    fechaRelevamiento: fila.fecha_relevamiento || null,
+    fechaModificacion: fila.fecha_modificacion || fila.fecha_relevamiento || null,
+    // La firma de la ultima edicion. Es lo que el panel muestra al abrirse, para que
+    // quien va a cargar vea primero que alguien ya toco esta ficha.
+    actualizadoPor: fila.actualizado_por_username || null,
+    version: fila.version ?? 0,
+  };
+}
+
+/**
+ * La firma de quien escribe, sacada del request.
+ *
+ * Es el unico lugar del modulo que traduce `req` a columnas: el repositorio no conoce
+ * `req` y no tiene por que. Se desnormaliza el username junto al id por la misma razon
+ * que lo hace padron.auditoria — mostrar "ultima edicion: jperez" no puede costar un
+ * JOIN entre esquemas en el camino del listado.
+ *
+ * Sin usuario en el request (una tarea interna, un script) la firma queda en null, que
+ * es honesto: nadie edito eso a mano.
+ */
+function autorDe(req) {
+  const usuario = req?.user;
+  if (!usuario) return { actualizado_por: null, actualizado_por_username: null };
+
+  return {
+    actualizado_por: usuario.id ?? null,
+    actualizado_por_username: usuario.username ?? null,
+  };
+}
+
+/** Los campos que una escritura parcial si toco, para que la auditoria lo diga. */
+function nombresDeCampos(campos) {
+  const tocados = Object.entries(campos)
+    .filter(([, valor]) => valor !== null)
+    .map(([nombre]) => nombre);
+
+  return tocados.join(', ');
 }
 
 /** Acepta el detalle tanto en camelCase (frontend) como en snake_case (base). */

@@ -63,8 +63,8 @@
                         <!-- El nombre es contexto, no una acción: va como texto y no como
                              botón, y el rol debajo responde "por qué veo lo que veo". -->
                         <div class="user-info">
-                            <span class="username" id="username">${username}</span>
-                            <span class="user-role">${userRole}</span>
+                            <span class="username" id="username">${escaparHtml(username)}</span>
+                            <span class="user-role">${escaparHtml(userRole)}</span>
                         </div>
                         <!-- Tema y salir son iconos: dicen lo mismo con un tercio del ancho,
                              y ese ancho es el que la barra va a necesitar al crecer. El texto
