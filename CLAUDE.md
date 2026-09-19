@@ -68,6 +68,14 @@ de un `UPDATE` tendría la carrera que esto viene a cerrar. No hay escritura a c
 versión es 400, y ante la duda el cliente manda 0, que no coincide con ninguna fila
 existente y fuerza el 409. Nadie mergea dos textos en conflicto: decide una persona.
 
+**La cuenta es personal, nunca compartida.** `actualizado_por` y la auditoría atribuyen
+cada cambio a un usuario puntual — una cuenta usada por varias personas rompe esa
+atribución en silencio, y el 409 deja de decir "otra persona está editando esto" para
+decir "vos mismo, en otra pestaña". Por eso un segundo login cierra el primero (sesión
+única): no es una limitación a tolerar, es lo que hace que "quién tocó esto" siga
+significando algo con más de un usuario activo, que es exactamente el escenario que
+[012](specs/012-multiusuario/spec.md) vino a sostener.
+
 ---
 
 ## Mapa

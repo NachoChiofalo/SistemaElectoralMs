@@ -63,8 +63,11 @@ Eso da la fecha: **las fases 0 a 2 de la spec tienen que estar en producción an
 alta del segundo usuario.** La fase 3 *es* esa alta.
 
 Spec y plan: [specs/012-multiusuario/](../specs/012-multiusuario/spec.md).
-**Estado:** fases 0, 1 y 2 hechas en código. Falta aplicar las dos migraciones contra la
-base, la verificación manual, y la fase 3 (alta de usuarios), que es lo último.
+**Estado:** fases 0, 1 y 2 desplegadas — las migraciones `003` y `004` ya están aplicadas
+en producción y el 409 con versión vieja se confirmó a mano. Fase 3: ya hay tres cuentas
+personales activas (`admin1`, `DaianaMontenegro`, `augusto`), cada una con su rol. Falta
+sólo **3.6**: mirar los 409 logueados después de una semana de uso real y decidir 014 con
+ese número.
 
 ---
 
@@ -201,31 +204,67 @@ Su spec tiene que decir explícitamente a qué anchos de pantalla se verifica.
 
 ---
 
-### 🔴 007 — Módulo de fiscales · **L**
+### ⬛ 007 — Módulo de fiscales · **L**
+
+**Reemplazado por 016** — el pedido real trae calendario de franjas horarias y la regla
+de un solo fiscal por mesa a la vez, que este ítem no contemplaba.
 
 `public/fiscales.html` existe con 80 líneas de cáscara y **no tiene backend**. Los
 permisos `fiscales.view` y `fiscales.edit` ya están sembrados en
 `auth/migrations/002_roles_y_permisos.sql`.
 
-Es el primer módulo nuevo desde que el monolito quedó modular: es la prueba de que
-`docs/AGREGAR-MODULO.md` sirve. Si agregar un módulo duele, el problema es la guía, no el
-módulo.
+---
 
-Su spec necesita definir **el dominio antes que la pantalla**: qué es un fiscal, qué lo
-liga a una mesa, si se importa o se carga a mano, y qué pasa cuando falta uno.
+### ⬛ 008 — Módulo de comicio (lugares de votación) · **L**
+
+**Reemplazado por 015** — el pedido real define el alcance que este ítem dejaba abierto:
+mesas con sectorización del padrón, carga de votos por lista y métricas del comicio.
+
+Mismo estado que 007 en su momento: página vacía, permisos sembrados, sin backend.
 
 ---
 
-### 🔴 008 — Módulo de comicio (lugares de votación) · **L**
+### 🔴 015 — Módulo de comicio: mesas, votos y sectorización del padrón · **L**
 
-Mismo estado que 007: página vacía, permisos sembrados, sin backend.
+Hoy no existe forma de registrar un comicio: qué listas participan, cuántas mesas, tipo
+de elección (provincial, municipal, nacional). Tampoco hay dónde cargar los votos que
+obtiene cada lista por mesa, ni los votos en blanco y nulos, ni una sección de métricas y
+estadísticas del comicio.
 
-Va después de 007 a propósito: el segundo módulo es el que dice si el patrón de 007 se
-sostiene o si lo copiamos mal dos veces.
+Reemplaza el alcance de 008, que dejaba sin resolver la relación entre `comicio`, mesa y
+circuito. Ahora el alcance viene dado: cada mesa se configura con un rango del padrón
+("desde tal persona hasta tal persona" en la mesa 1, la mesa 2, etc.), lo que fija cómo
+`comicio` se relaciona con `padron`.
 
-Relación a resolver en su spec: `comicio` es probablemente el dueño de mesa y circuito,
-que hoy viven sueltos dentro de `padron`. Eso cruza el límite entre módulos, y ese límite
-es lo que hace barato agregar módulos — merece decidirse por escrito y no en el camino.
+Criterios candidatos: alta de comicio con listas y tipo de elección; alta de mesa con
+rango de padrón asignado; carga de votos por lista + blancos + nulos por mesa; sección de
+métricas agregadas del comicio.
+
+---
+
+### 🔴 016 — Gestión de fiscales por mesa con calendario · **L**
+
+`public/fiscales.html` existe con cáscara y sin backend. El pedido es más específico que
+007: cada mesa necesita uno o más fiscales asignados, pero solo uno presente en cada
+momento — lo que exige un calendario/horario (8 a 18hs) que muestre quién cubre qué
+franja.
+
+Depende de 015: no hay mesa a la que asignar un fiscal hasta que exista el módulo de
+comicio.
+
+Criterios candidatos: asignación de uno o más fiscales por mesa; calendario por franja
+horaria que impida o marque dos fiscales simultáneos en la misma mesa; vista de quién
+está en cada mesa en un horario dado.
+
+---
+
+### 🔴 017 — Módulo de armado de listas (borradores) · **M**
+
+No existe forma de armar un borrador de lista antes de presentarla: cantidad de lugares,
+tipo de elección, candidatos. Hoy esto se arma fuera del sistema.
+
+Es insumo directo de 015 (qué listas participan en el comicio) y hoy no queda registrado
+en ningún lado del sistema.
 
 ---
 
@@ -242,6 +281,21 @@ estado efímero de servidor —heartbeat y expiración—, y eso no se construye
 
 *Criterios candidatos:* sin bloquear nunca la edición; una pestaña cerrada sin avisar no
 puede dejar una ficha marcada para siempre.
+
+---
+
+### 🔴 018 — Mapa sectorizado por domicilio del votante · **L**
+
+No existe una vista geográfica del padrón. El pedido es un mapa que sectorice por barrio
+o manzana de una localidad y ubique automáticamente a los votantes según su domicilio,
+para sacar estadísticas y trabajar sobre esa información. Incluye una subsección para
+marcar manzanas ya visitadas en el casa por casa.
+
+Es la única herramienta pedida que conecta el padrón con el trabajo territorial (visitas
+casa por casa), hoy inexistente en el sistema.
+
+**Fuera de alcance inicial**: la fuente de los polígonos de barrios/manzanas (mapa base)
+queda para la spec — no está definida en el pedido original.
 
 ---
 
@@ -271,6 +325,28 @@ entrando por la otra réplica hasta que venza el TTL.
 **Es el supuesto que sostiene el diseño de `core/security/sessions.js`.** Disparador: la
 primera vez que se hable de correr dos instancias. Antes de eso es pagar infraestructura
 por nada.
+
+---
+
+### 🔴 019 — Métricas de familias por apellido · **S**
+
+Hoy no hay una métrica que agrupe votantes por apellido para detectar núcleos familiares
+en el padrón. El pedido queda abierto a sumar otras métricas similares más adelante.
+
+Extensión chica de las métricas existentes del padrón: no bloquea ni es bloqueada por
+otro ítem.
+
+---
+
+### 🔴 020 — Pronósticos por mesa en base al padrón · **M**
+
+Idea: usar lo relevado en el padrón para proyectar resultados en las mesas ya asignadas.
+El alcance no está definido todavía — así quedó anotado en el pedido original ("ver
+alcance, no definido aún").
+
+**No se toma hasta tener 015 y 018**: sin sectorización real del padrón por mesa no hay
+con qué pronosticar. Su spec debe empezar por definir qué se pronostica y con qué
+información, no por la pantalla.
 
 ---
 

@@ -121,14 +121,17 @@ Cero código. **Nada de esto se hace antes de que las fases 0, 1 y 2 estén en p
 el alta del segundo usuario es el momento en que el sistema empieza a perder datos, y es
 una fecha que controlamos.
 
-- [ ] **3.1** Confirmar que 0, 1 y 2 están desplegadas. *Verifica:* un PUT con versión
-      vieja contra producción responde 409.
+- [x] **3.1** Confirmar que 0, 1 y 2 están desplegadas. *Verifica:* un PUT con versión
+      vieja contra producción responde 409. **Confirmado en producción.**
 - [x] **3.2** Hacer el ítem 001 (escapado) antes del alta. Con una sola persona el XSS del
       padrón es casi auto-infligido; con varias, no. **Hecho**, junto con el ítem 013
       (lock de importación). Los dos quedaron cerrados en el backlog.
-- [ ] **3.3** Crear un usuario por persona, con su rol. *Verifica:* cada una entra con el
-      suyo y ve sólo lo que su rol permite.
-- [ ] **3.4** `CLAUDE.md`, reglas que no se rompen: la cuenta es personal, porque la
+- [x] **3.3** Crear un usuario por persona, con su rol. *Verifica:* cada una entra con el
+      suyo y ve sólo lo que su rol permite. **Hecho**: `admin1` (Nacho Chiofalo, admin),
+      `DaianaMontenegro` (encargado_relevamiento) y `augusto` (Augusto Chiofalo, admin)
+      son cuentas activas y separadas. `admin`, `consultor1`, `encargado1` y `pruebas`
+      quedan de seed/demo, inactivas.
+- [x] **3.4** `CLAUDE.md`, reglas que no se rompen: la cuenta es personal, porque la
       auditoría y `actualizado_por` atribuyen por usuario.
       *Verifica:* está escrito el porqué, no sólo la regla.
 - [ ] **3.5** Avisar al dar de alta: una misma persona no puede tener dos dispositivos
