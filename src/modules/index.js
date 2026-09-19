@@ -19,4 +19,5 @@ module.exports = [
   require('./padron/module'),
   require('./listas/module'),
   require('./comicio/module'),
+  require('./fiscales/module'),
 ];

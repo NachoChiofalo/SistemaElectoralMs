@@ -45,15 +45,14 @@ const MODULES_CONFIG = {
         {
             id: 'fiscales',
             title: 'Gestión de Fiscales',
-            description: 'Administración de fiscales de mesa y coordinadores de comicio.',
+            description: 'Fiscales de mesa con calendario de franjas horarias por comicio.',
             icon: 'fa-user-shield',
             href: 'fiscales.html',
-            status: 'coming-soon',
+            status: 'available',
             features: [
                 'Registro de fiscales',
-                'Asignación de mesas',
-                'Capacitación online',
-                'Control de asistencia'
+                'Calendario por mesa (8 a 18hs)',
+                'Agenda del comicio por horario'
             ]
         },
         {

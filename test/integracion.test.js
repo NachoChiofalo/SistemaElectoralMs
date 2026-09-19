@@ -36,7 +36,7 @@ test.after(() => new Promise((resolve) => servidor.close(resolve)));
 const pedir = (ruta, opciones) => fetch(`${base}${ruta}`, opciones);
 
 test('los modulos se registran en el orden declarado', () => {
-  assert.deepEqual(modulos.map((m) => m.name), ['auditoria', 'auth', 'padron', 'listas', 'comicio']);
+  assert.deepEqual(modulos.map((m) => m.name), ['auditoria', 'auth', 'padron', 'listas', 'comicio', 'fiscales']);
 });
 
 test('auditoria se monta antes que padron para capturar su prefijo', () => {
@@ -110,6 +110,8 @@ test('todas las rutas de datos exigen token', async () => {
     ['POST', '/api/listas'],
     ['GET', '/api/comicio'],
     ['POST', '/api/comicio'],
+    ['GET', '/api/fiscales'],
+    ['POST', '/api/fiscales'],
   ];
 
   for (const [method, ruta] of protegidas) {

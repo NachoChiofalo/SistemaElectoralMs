@@ -272,7 +272,7 @@ Spec, plan y tareas en [specs/015-modulo-comicio/](../specs/015-modulo-comicio/s
 
 ---
 
-### 🔴 016 — Gestión de fiscales por mesa con calendario · **L**
+### ⬛ 016 — Gestión de fiscales por mesa con calendario · **L**
 
 `public/fiscales.html` existe con cáscara y sin backend. El pedido es más específico que
 007: cada mesa necesita uno o más fiscales asignados, pero solo uno presente en cada
@@ -285,6 +285,29 @@ comicio.
 Criterios candidatos: asignación de uno o más fiscales por mesa; calendario por franja
 horaria que impida o marque dos fiscales simultáneos en la misma mesa; vista de quién
 está en cada mesa en un horario dado.
+
+**Hecho, back y front.** Módulo `fiscales` (`/api/fiscales`), mismo schema `elecciones`.
+El fiscal es un registro de datos — nombre, DNI y teléfono opcionales — sin cuenta de
+usuario: nunca se loguea, alguien con `fiscales.edit` lo carga y lo asigna. Una
+asignación es una franja (`desde`/`hasta`, `TIME`) entre 08:00 y 18:00. Dos validaciones
+de solapamiento, las dos sobre la misma operación de alta/edición: una mesa no puede
+tener dos fiscales al mismo tiempo (409), y un mismo fiscal no puede estar en dos mesas
+al mismo tiempo (409) — la segunda no estaba en el criterio original del backlog, se
+sumó porque es la misma consulta con otro `WHERE` y evita un dato imposible en la
+realidad. Franjas contiguas no chocan. `GET .../agenda?hora=` devuelve, por cada mesa
+del comicio, qué fiscal está presente a esa hora (o ninguno). Permisos
+`fiscales.view`/`fiscales.edit` ya estaban sembrados desde antes.
+
+`public/fiscales.html` + `FiscalesComponent.js` reemplazan la cáscara "Próximamente":
+padrón de fiscales (tabla + modal), selector de comicio → mesa con el calendario de esa
+mesa, y una vista de agenda por hora. Probado de punta a punta en un navegador real
+contra Postgres real: alta de fiscal, asignación válida, asignación contigua sin chocar,
+rechazo por solapamiento de mesa (mensaje real visible en el modal), rechazo por
+solapamiento del mismo fiscal en otra mesa, agenda correcta a distintas horas, edición y
+borrado. Sin errores de consola.
+
+Spec, plan y tareas en
+[specs/016-fiscales-calendario/](../specs/016-fiscales-calendario/spec.md).
 
 ---
 

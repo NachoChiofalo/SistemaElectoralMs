@@ -80,6 +80,7 @@ module.exports = {
   // No hay equivalente literal de "urna con tilde" en Lucide; 'vote' es el mas cercano.
   'check-to-slot': 'vote',
   'chair': 'armchair',
+  'calendar-day': 'calendar-1',
   'clipboard-list': 'clipboard-list',
   'clipboard-check': 'clipboard-check',
 

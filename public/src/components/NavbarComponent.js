@@ -25,6 +25,7 @@
         // admin), listas.view puede terminar asignado a otro rol el dia de manana.
         { href: 'listas.html', icon: 'fa-list-ol', label: 'Listas', key: 'listas', permission: 'listas.view' },
         { href: 'comicio.html', icon: 'fa-building', label: 'Comicio', key: 'comicio', permission: 'comicio.view' },
+        { href: 'fiscales.html', icon: 'fa-user-shield', label: 'Fiscales', key: 'fiscales', permission: 'fiscales.view' },
         { href: 'usuarios.html', icon: 'fa-users-gear', label: 'Usuarios', key: 'usuarios', adminOnly: true },
         { href: 'auditoria.html', icon: 'fa-clipboard-list', label: 'Auditoría', key: 'auditoria', adminOnly: true }
     ];

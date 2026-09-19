@@ -478,6 +478,50 @@ class ApiService {
         return await this.request(`/api/comicio/${comicioId}/mesas/${mesaId}/votos`, { method: 'PUT', body: JSON.stringify(data) });
     }
 
+    // ==================== METODOS DE FISCALES ====================
+
+    async obtenerFiscales(parametros = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(parametros).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                queryParams.append(key, value);
+            }
+        });
+        return await this.request(`/api/fiscales?${queryParams.toString()}`);
+    }
+
+    async crearFiscal(data) {
+        return await this.request('/api/fiscales', { method: 'POST', body: JSON.stringify(data) });
+    }
+
+    async actualizarFiscal(id, data) {
+        return await this.request(`/api/fiscales/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    }
+
+    async eliminarFiscal(id) {
+        return await this.request(`/api/fiscales/${id}`, { method: 'DELETE' });
+    }
+
+    async asignacionesDeMesa(mesaId) {
+        return await this.request(`/api/fiscales/mesas/${mesaId}/asignaciones`);
+    }
+
+    async crearAsignacionFiscal(mesaId, data) {
+        return await this.request(`/api/fiscales/mesas/${mesaId}/asignaciones`, { method: 'POST', body: JSON.stringify(data) });
+    }
+
+    async actualizarAsignacionFiscal(id, data) {
+        return await this.request(`/api/fiscales/asignaciones/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    }
+
+    async eliminarAsignacionFiscal(id) {
+        return await this.request(`/api/fiscales/asignaciones/${id}`, { method: 'DELETE' });
+    }
+
+    async agendaDeComicio(comicioId, hora) {
+        return await this.request(`/api/fiscales/comicio/${comicioId}/agenda?hora=${encodeURIComponent(hora)}`);
+    }
+
     // ==================== METODOS DE AUDITORIA ====================
 
     async obtenerAuditoria(filtros = {}) {

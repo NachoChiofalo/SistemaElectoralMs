@@ -102,6 +102,7 @@ significando algo con más de un usuario activo, que es exactamente el escenario
 | Votantes, relevamientos, resultados | `src/modules/padron/` |
 | Listas electorales (borradores) y candidatos | `src/modules/listas/` (schema propio `elecciones`, no `padron` — una lista de candidatos no es un dato del votante) |
 | Comicios, mesas y votos | `src/modules/comicio/` (mismo schema `elecciones`). El rango de una mesa son dos DNIs, no una tabla votante↔mesa — se calcula contra `padron.votantes` con el mismo orden (apellido, nombre, dni) que ya usa el listado del padrón |
+| Fiscales y su calendario por mesa | `src/modules/fiscales/` (mismo schema `elecciones`). El fiscal es un registro de datos, sin cuenta de usuario — nunca se loguea. Una asignación valida dos solapamientos, no uno: que la mesa no tenga dos fiscales a la vez, y que el mismo fiscal no esté en dos mesas a la vez |
 | Importación por COPY | `src/modules/padron/importer.js` |
 | Exportación en streaming | `src/modules/padron/exporter.js` |
 | Iconos y tipografía del frontend | `scripts/build-assets.js` |
