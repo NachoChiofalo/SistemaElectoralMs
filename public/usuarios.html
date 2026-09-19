@@ -52,40 +52,6 @@
     <script src="src/services/ApiService.js?v=32a50499"></script>
     <script src="src/services/AuthService.js?v=dbc5042e"></script>
     <script src="src/components/UsuariosComponent.js?v=d6f1602c"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                // Inicializar navbar
-                if (window.navbarComponent) {
-                    window.navbarComponent.init('navbar-container', 'usuarios');
-                }
-
-                // Verificar autenticacion
-                if (window.authService && window.authService.init) {
-                    const isAuthenticated = await window.authService.init();
-                    if (!isAuthenticated) {
-                        window.location.href = 'index.html';
-                        return;
-                    }
-                }
-
-                // Verificar que es administrador
-                const response = await window.apiService.request('/api/auth/me', { method: 'GET' });
-                if (!response.success || response.data.rol !== 'administrador') {
-                    alert('Acceso denegado: se requieren permisos de administrador');
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-
-                // Inicializar componente de usuarios
-                await window.usuariosComponent.init('usuarios-container');
-
-            } catch (error) {
-                console.error('Error iniciando pagina de usuarios:', error);
-                alert('Error al cargar la pagina: ' + error.message);
-            }
-        });
-    </script>
+    <script src="src/pages/usuarios.js?v=64b8328a"></script>
 </body>
 </html>

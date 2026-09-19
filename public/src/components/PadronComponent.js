@@ -253,7 +253,7 @@ class PadronComponent {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3>Importar Padrón desde CSV</h3>
-                        <button class="modal-close" onclick="padronComponent.cerrarModalImportar()">
+                        <button class="modal-close" data-action="cerrarModalImportar">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -262,7 +262,7 @@ class PadronComponent {
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Seleccione archivo CSV con datos del padrón</p>
                             <input type="file" id="archivo-csv" accept=".csv" style="display: none;">
-                            <button onclick="document.getElementById('archivo-csv').click()" class="btn btn-primary">
+                            <button data-action="abrirSelectorArchivo" class="btn btn-primary">
                                 Seleccionar Archivo
                             </button>
                         </div>
@@ -276,7 +276,7 @@ class PadronComponent {
 
 
             <!-- Modal para nuevo votante -->
-            <div id="modal-nuevo-votante" class="modal-overlay" style="display: none;" onclick="padronComponent.cerrarModalNuevoVotanteOverlay(event)">
+            <div id="modal-nuevo-votante" class="modal-overlay" style="display: none;" data-action="cerrarModalNuevoVotante">
                 <div class="modal-content modal-nuevo-votante">
                     <div class="modal-header">
                         <div class="modal-header-title">
@@ -288,12 +288,12 @@ class PadronComponent {
                                 <p class="modal-subtitle">Completá los datos para registrar un nuevo elector</p>
                             </div>
                         </div>
-                        <button class="modal-close" onclick="padronComponent.cerrarModalNuevoVotante()" title="Cerrar (Esc)">
+                        <button class="modal-close" data-action="cerrarModalNuevoVotante" title="Cerrar (Esc)">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="form-nuevo-votante" onsubmit="return false;">
+                        <form id="form-nuevo-votante">
                             <!-- Sección: Identificación -->
                             <div class="form-section">
                                 <div class="form-section-header">
@@ -386,10 +386,10 @@ class PadronComponent {
                                 <span id="error-nuevo-votante-text"></span>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" onclick="padronComponent.cerrarModalNuevoVotante()">
+                                <button type="button" class="btn btn-secondary" data-action="cerrarModalNuevoVotante">
                                     <i class="fas fa-times"></i> Cancelar
                                 </button>
-                                <button type="button" id="btn-guardar-votante" class="btn btn-primary" onclick="padronComponent.guardarNuevoVotante()">
+                                <button type="button" id="btn-guardar-votante" class="btn btn-primary" data-action="guardarNuevoVotante">
                                     <i class="fas fa-save"></i> Guardar Votante
                                 </button>
                             </div>
@@ -452,6 +452,49 @@ class PadronComponent {
 
         // Importar CSV
         on('archivo-csv', 'change', (e) => this.manejarArchivoCSV(e));
+
+        // El formulario de nuevo votante no manda: sus botones ya disparan
+        // guardarNuevoVotante() por su cuenta.
+        on('form-nuevo-votante', 'submit', (e) => e.preventDefault());
+
+        // Despacho delegado de las acciones que antes eran onclick= inline: el
+        // modal de importar/nuevo votante y la tabla están dentro de this.container,
+        // pero el panel de ficha se cuelga de document.body (ver abrirPanel), así
+        // que el listener va en document y se filtra por pertenencia a cualquiera
+        // de los dos.
+        document.addEventListener('click', (e) => {
+            const el = e.target.closest('[data-action]');
+            if (!el) return;
+            if (!(this.container?.contains(el) || el.closest('#panel-votante'))) return;
+
+            const accion = el.dataset.action;
+            if (typeof this[accion] !== 'function') return;
+
+            // El radio de opción política despacha por 'change', no por 'click': el
+            // propio click en el radio dispara los dos eventos, y despachar acá
+            // también mandaba una segunda escritura con la opción sin definir.
+            if (accion === 'cambiarOpcionPolitica') return;
+
+            // Si `el` es el overlay del modal (y no un botón dentro de él, que
+            // `closest` también matchea por compartir el mismo data-action), sólo
+            // dispara si el clic fue directo sobre el overlay — si no, un clic en
+            // cualquier parte vacía del contenido burbujea hasta acá y lo cerraría.
+            if (el.classList.contains('modal-overlay') && e.target !== el) return;
+
+            if ('dni' in el.dataset) this[accion](el.dataset.dni);
+            else if ('pagina' in el.dataset) this[accion](Number(el.dataset.pagina));
+            else this[accion]();
+        });
+
+        // Igual, pero para el 'change' del radio de opción política.
+        document.addEventListener('change', (e) => {
+            const el = e.target.closest('[data-action]');
+            if (!el || !this.container?.contains(el)) return;
+            const accion = el.dataset.action;
+            if (accion === 'cambiarOpcionPolitica') {
+                this.cambiarOpcionPolitica(el.dataset.dni, el.dataset.opcion);
+            }
+        });
 
         // Evento de redimensionado de ventana
         window.addEventListener('resize', () => this.handleResize());
@@ -615,7 +658,7 @@ class PadronComponent {
                     </td>
                     <td class="acciones" data-label="Abrir">
                         <button class="btn-abrir-panel"
-                                onclick="padronComponent.abrirPanel('${dni}')"
+                                data-action="abrirPanel" data-dni="${dni}"
                                 title="Abrir ficha de ${apellido}, ${nombre}"
                                 aria-label="Abrir ficha de ${apellido}, ${nombre}">
                             <i class="fas fa-chevron-right"></i>
@@ -735,7 +778,7 @@ class PadronComponent {
                     <h3>${escaparHtml(votante.apellido)}, ${escaparHtml(votante.nombre)}</h3>
                     <p class="panel-dni">DNI ${escaparHtml(votante.dni)}</p>
                 </div>
-                <button class="panel-cerrar" onclick="padronComponent.cerrarPanel()" title="Cerrar" aria-label="Cerrar ficha">
+                <button class="panel-cerrar" data-action="cerrarPanel" title="Cerrar" aria-label="Cerrar ficha">
                     <i class="fas fa-times"></i>
                 </button>
             </header>
@@ -769,9 +812,9 @@ class PadronComponent {
             </fieldset>
 
             <footer class="panel-acciones">
-                <button class="btn btn-secondary" onclick="padronComponent.cerrarPanel()">Cancelar</button>
+                <button class="btn btn-secondary" data-action="cerrarPanel">Cancelar</button>
                 <button class="btn btn-primary" id="panel-guardar" data-requires-permission="padron.edit"
-                        onclick="padronComponent.guardarPanel()">Guardar</button>
+                        data-action="guardarPanel">Guardar</button>
             </footer>
         `;
 
@@ -836,10 +879,10 @@ class PadronComponent {
                 </div>
             `).join('')}
             <div class="conflicto-acciones">
-                <button class="btn btn-secondary" onclick="padronComponent.descartarMisCambios()">
+                <button class="btn btn-secondary" data-action="descartarMisCambios">
                     Quedarme con lo del servidor
                 </button>
-                <button class="btn btn-primary" onclick="padronComponent.guardarPanel()">
+                <button class="btn btn-primary" data-action="guardarPanel">
                     Guardar lo mío igual
                 </button>
             </div>
@@ -1062,7 +1105,7 @@ class PadronComponent {
                        name="opcion_${dniSeguro}"
                        value="${opcion}"
                        ${opcionSeleccionada === opcion ? 'checked' : ''}
-                       onchange="padronComponent.cambiarOpcionPolitica('${dniSeguro}', '${opcion}')">
+                       data-action="cambiarOpcionPolitica" data-dni="${dniSeguro}" data-opcion="${opcion}">
                 <span class="radio-custom ${opcion.toLowerCase()}">${opcion}</span>
             </label>
         `).join('');
@@ -1083,7 +1126,7 @@ class PadronComponent {
         
         // Botón anterior
         if (paginaActual > 1) {
-            html += `<button class="btn-paginacion" onclick="padronComponent.irAPagina(${paginaActual - 1})">
+            html += `<button class="btn-paginacion" data-action="irAPagina" data-pagina="${paginaActual - 1}">
                 <i class="fas fa-chevron-left"></i>
             </button>`;
         }
@@ -1093,23 +1136,23 @@ class PadronComponent {
         const fin = Math.min(totalPaginas, paginaActual + 2);
 
         if (inicio > 1) {
-            html += `<button class="btn-paginacion" onclick="padronComponent.irAPagina(1)">1</button>`;
+            html += `<button class="btn-paginacion" data-action="irAPagina" data-pagina="1">1</button>`;
             if (inicio > 2) html += '<span class="paginacion-dots">...</span>';
         }
 
         for (let i = inicio; i <= fin; i++) {
-            html += `<button class="btn-paginacion ${i === paginaActual ? 'active' : ''}" 
-                     onclick="padronComponent.irAPagina(${i})">${i}</button>`;
+            html += `<button class="btn-paginacion ${i === paginaActual ? 'active' : ''}"
+                     data-action="irAPagina" data-pagina="${i}">${i}</button>`;
         }
 
         if (fin < totalPaginas) {
             if (fin < totalPaginas - 1) html += '<span class="paginacion-dots">...</span>';
-            html += `<button class="btn-paginacion" onclick="padronComponent.irAPagina(${totalPaginas})">${totalPaginas}</button>`;
+            html += `<button class="btn-paginacion" data-action="irAPagina" data-pagina="${totalPaginas}">${totalPaginas}</button>`;
         }
 
         // Botón siguiente
         if (paginaActual < totalPaginas) {
-            html += `<button class="btn-paginacion" onclick="padronComponent.irAPagina(${paginaActual + 1})">
+            html += `<button class="btn-paginacion" data-action="irAPagina" data-pagina="${paginaActual + 1}">
                 <i class="fas fa-chevron-right"></i>
             </button>`;
         }
@@ -1353,6 +1396,10 @@ class PadronComponent {
         document.getElementById('archivo-csv').value = '';
     }
 
+    abrirSelectorArchivo() {
+        document.getElementById('archivo-csv').click();
+    }
+
     async manejarArchivoCSV(event) {
         const archivo = event.target.files[0];
         if (!archivo) return;
@@ -1404,12 +1451,6 @@ class PadronComponent {
 
     cerrarModalNuevoVotante() {
         document.getElementById('modal-nuevo-votante').style.display = 'none';
-    }
-
-    cerrarModalNuevoVotanteOverlay(event) {
-        if (event.target === event.currentTarget) {
-            this.cerrarModalNuevoVotante();
-        }
     }
 
     /**

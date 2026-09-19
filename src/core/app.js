@@ -68,19 +68,21 @@ function crearApp(modulos) {
   app.set('trust proxy', config.http.trustProxy);
 
   app.use(helmet({
-    // Esta CSP es la que se puede sostener hoy, no la que uno querria.
+    // Lo que corta: desde que `public/` no depende de ningun CDN, `default-src 'self'`
+    // es cumplible, y con eso un `<script src="...">` o un `<link>` inyectado hacia
+    // afuera no carga. Sumado a `object-src 'none'`, `base-uri` y `frame-ancestors`,
+    // cierra la inyeccion de recursos externos, el secuestro de rutas relativas via
+    // <base> y el clickjacking.
     //
-    // Lo que si corta: desde que `public/` no depende de ningun CDN, `default-src
-    // 'self'` es cumplible, y con eso un `<script src="...">` o un `<link>` inyectado
-    // hacia afuera no carga. Sumado a `object-src 'none'`, `base-uri` y
-    // `frame-ancestors`, cierra la inyeccion de recursos externos, el secuestro de
-    // rutas relativas via <base> y el clickjacking.
+    // `script-src` ya no lleva `'unsafe-inline'` (ver 002 en docs/BACKLOG.md): no
+    // queda ni un `<script>` sin `src` ni un `onclick=`/`onchange=`/`onsubmit=` en
+    // `public/` — todo pasa por delegacion de eventos con `data-action`. Esto es lo
+    // que hace que la CSP frene XSS inline de verdad, y no solo reduzca superficie.
     //
-    // Lo que no corta: `'unsafe-inline'` en scripts. Cada pagina tiene su bloque
-    // <script> y sus `onclick=`, y los componentes generan mas dentro de sus
-    // plantillas. Sacarlos es lo que falta para que la CSP frene XSS de verdad, y es
-    // un trabajo que toca todo el frontend. Mientras tanto esto no es teatro: reduce
-    // superficie real, pero no da por cubierto el XSS inline.
+    // `style-src` si sigue con `'unsafe-inline'`: los estilos no ejecutan JavaScript,
+    // es una superficie de ataque bastante mas baja, y el frontend usa `style=""` con
+    // variables del design system para valores dinamicos (colores de partido, barras
+    // de grafico) en varios lugares. Sacarlo es un trabajo aparte.
     //
     // `img-src data:` no es opcional: los iconos son mascaras CSS con el SVG embebido
     // en un data URI, y el navegador los pide bajo img-src. Sin eso no se ve ninguno.
@@ -88,7 +90,7 @@ function crearApp(modulos) {
       useDefaults: false,
       directives: {
         'default-src': ["'self'"],
-        'script-src': ["'self'", "'unsafe-inline'"],
+        'script-src': ["'self'"],
         'style-src': ["'self'", "'unsafe-inline'"],
         'img-src': ["'self'", 'data:'],
         'font-src': ["'self'"],

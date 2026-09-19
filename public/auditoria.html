@@ -52,40 +52,6 @@
     <script src="src/services/ApiService.js?v=32a50499"></script>
     <script src="src/services/AuthService.js?v=dbc5042e"></script>
     <script src="src/components/AuditoriaComponent.js?v=f695c100"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                // Inicializar navbar
-                if (window.navbarComponent) {
-                    window.navbarComponent.init('navbar-container', 'auditoria');
-                }
-
-                // Verificar autenticacion
-                if (window.authService && window.authService.init) {
-                    const isAuthenticated = await window.authService.init();
-                    if (!isAuthenticated) {
-                        window.location.href = 'index.html';
-                        return;
-                    }
-                }
-
-                // Verificar que es administrador
-                const response = await window.apiService.request('/api/auth/me', { method: 'GET' });
-                if (!response.success || response.data.rol !== 'administrador') {
-                    alert('Acceso denegado: se requieren permisos de administrador');
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-
-                // Inicializar componente de auditoria
-                await window.auditoriaComponent.init('auditoria-container');
-
-            } catch (error) {
-                console.error('Error iniciando pagina de auditoria:', error);
-                alert('Error al cargar la pagina: ' + error.message);
-            }
-        });
-    </script>
+    <script src="src/pages/auditoria.js?v=851a84a9"></script>
 </body>
 </html>

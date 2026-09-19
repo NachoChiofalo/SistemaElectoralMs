@@ -10,6 +10,15 @@ class DetalleVotanteComponent {
             detalleActual: null
         };
         this.apiService = window.apiService;
+
+        // El modal se cuelga de document.body (ver crearModal), no de un
+        // contenedor propio, así que el listener delegado va en document.
+        document.addEventListener('click', (event) => {
+            const accion = event.target.closest('#modal-detalle-votante [data-action]')?.dataset.action;
+            if (accion && typeof this[accion] === 'function') {
+                this[accion]();
+            }
+        });
     }
 
     /**
@@ -86,7 +95,7 @@ class DetalleVotanteComponent {
                 <div class="modal-content modal-medium">
                     <div class="modal-header">
                         <h3><i class="fas fa-user-edit"></i> Gestionar Detalles del Votante</h3>
-                        <button class="modal-close" onclick="detalleVotanteComponent.cerrarModal()">
+                        <button class="modal-close" data-action="cerrarModal">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -191,15 +200,15 @@ class DetalleVotanteComponent {
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="detalleVotanteComponent.cerrarModal()">
+                        <button type="button" class="btn btn-secondary" data-action="cerrarModal">
                             <i class="fas fa-times"></i> Cancelar
                         </button>
                         ${detalle ? `
-                        <button type="button" class="btn btn-warning" onclick="detalleVotanteComponent.eliminarDetalle()">
+                        <button type="button" class="btn btn-warning" data-action="eliminarDetalle">
                             <i class="fas fa-trash"></i> Resetear
                         </button>
                         ` : ''}
-                        <button type="button" class="btn btn-primary" onclick="detalleVotanteComponent.guardarDetalle()">
+                        <button type="button" class="btn btn-primary" data-action="guardarDetalle">
                             <i class="fas fa-save"></i> Guardar
                         </button>
                     </div>
