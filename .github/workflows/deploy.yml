@@ -16,6 +16,21 @@ jobs:
     runs-on: ubuntu-latest
     name: Tests y validacion
 
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_migraciones
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +42,22 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Build de assets
+        run: npm run build:assets
+
+      - name: Verificar que el build no deja el arbol sucio
+        run: |
+          # Si esto falla, alguien edito un asset (CSS, icono, fuente) y no corrio
+          # build:assets antes de commitear: el ?v= versionado en public/ quedo viejo.
+          git diff --exit-code -- public/ || {
+            echo "public/ quedo desactualizado respecto de scripts/build-assets.js"
+            echo "Corre 'npm run build:assets' y commitea el resultado."
+            exit 1
+          }
+
       - name: Tests
+        env:
+          DATABASE_URL_TEST: postgresql://test:test@localhost:55432/test_migraciones
         run: npm test
 
       - name: Auditoria de dependencias de produccion
