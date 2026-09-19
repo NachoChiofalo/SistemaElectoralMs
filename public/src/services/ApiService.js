@@ -97,7 +97,19 @@ class ApiService {
                     };
                 }
 
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                // El resto de los errores (400 de validacion, 403, 409 fuera del caso
+                // especial de relevamientos, etc.) traen el motivo real en el cuerpo
+                // ({ success:false, message }). Sin esto, cualquier 400/409 llegaba a
+                // la UI como "HTTP 400: Bad Request", perdiendo el mensaje que el
+                // service ya habia armado con la validacion concreta.
+                let mensaje = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const cuerpo = await response.json();
+                    if (cuerpo?.message) mensaje = cuerpo.message;
+                } catch {
+                    // Sin cuerpo JSON (o vacio): se mantiene el mensaje generico.
+                }
+                throw new Error(mensaje);
             }
 
             const data = await response.json();
@@ -412,6 +424,58 @@ class ApiService {
      */
     async eliminarLista(id) {
         return await this.request(`/api/listas/${id}`, { method: 'DELETE' });
+    }
+
+    // ==================== METODOS DE COMICIO ====================
+
+    async obtenerComicios(parametros = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(parametros).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                queryParams.append(key, value);
+            }
+        });
+        return await this.request(`/api/comicio?${queryParams.toString()}`);
+    }
+
+    async obtenerComicio(id) {
+        return await this.request(`/api/comicio/${id}`);
+    }
+
+    async crearComicio(data) {
+        return await this.request('/api/comicio', { method: 'POST', body: JSON.stringify(data) });
+    }
+
+    async actualizarComicio(id, data) {
+        return await this.request(`/api/comicio/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    }
+
+    async eliminarComicio(id) {
+        return await this.request(`/api/comicio/${id}`, { method: 'DELETE' });
+    }
+
+    async metricasComicio(id) {
+        return await this.request(`/api/comicio/${id}/metricas`);
+    }
+
+    async crearMesa(comicioId, data) {
+        return await this.request(`/api/comicio/${comicioId}/mesas`, { method: 'POST', body: JSON.stringify(data) });
+    }
+
+    async actualizarMesa(comicioId, mesaId, data) {
+        return await this.request(`/api/comicio/${comicioId}/mesas/${mesaId}`, { method: 'PUT', body: JSON.stringify(data) });
+    }
+
+    async eliminarMesa(comicioId, mesaId) {
+        return await this.request(`/api/comicio/${comicioId}/mesas/${mesaId}`, { method: 'DELETE' });
+    }
+
+    async obtenerVotosMesa(comicioId, mesaId) {
+        return await this.request(`/api/comicio/${comicioId}/mesas/${mesaId}/votos`);
+    }
+
+    async cargarVotosMesa(comicioId, mesaId, data) {
+        return await this.request(`/api/comicio/${comicioId}/mesas/${mesaId}/votos`, { method: 'PUT', body: JSON.stringify(data) });
     }
 
     // ==================== METODOS DE AUDITORIA ====================

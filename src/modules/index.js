@@ -18,4 +18,5 @@ module.exports = [
   require('./auth/module'),
   require('./padron/module'),
   require('./listas/module'),
+  require('./comicio/module'),
 ];

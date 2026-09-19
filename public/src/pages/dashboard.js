@@ -59,15 +59,15 @@ const MODULES_CONFIG = {
         {
             id: 'comicio',
             title: 'Gestión de Comicio',
-            description: 'Configuración y administración de lugares de votación y mesas electorales.',
+            description: 'Comicios, mesas con rango de padrón, carga de votos y métricas.',
             icon: 'fa-building',
             href: 'comicio.html',
-            status: 'coming-soon',
+            status: 'available',
             features: [
-                'Configuración de escuelas',
-                'Distribución de mesas',
-                'Logística electoral',
-                'Materiales de votación'
+                'Alta de comicio con listas',
+                'Mesas con rango de padrón',
+                'Carga de votos por mesa',
+                'Métricas del comicio'
             ]
         }
     ],

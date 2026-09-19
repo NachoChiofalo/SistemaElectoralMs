@@ -29,6 +29,15 @@ planos y `none`: así se apagan en todos sus usos sin perseguir cada regla.
 `new Pool()`. La versión anterior tenía ocho instancias de `Database`, cada una con su
 pool: hasta 120 conexiones potenciales contra Supabase.
 
+**Dentro de una transacción, nada de leer por el pool.** `db.transaccion(fn)` da un
+`cliente` propio; `fn` tiene que usarlo para *todo* lo que necesite ver sus propios
+cambios sin confirmar — otra conexión del pool está en `READ COMMITTED` y no los ve
+todavía. El bug real: `ComicioRepository.reemplazarVotos` mandaba el `UPDATE`/`INSERT`
+por `cliente` pero releía el resultado con `this.db` (el pool) *antes* del `COMMIT`, y
+la respuesta volvía con los valores viejos aunque la escritura ya estaba hecha. Si hace
+falta releer algo recién escrito, se hace después de que `transaccion()` resuelve (ya
+comprometido), no adentro del callback.
+
 **`process.env` solo se lee en `core/config.js`.** El resto usa `config`.
 
 **Los errores se lanzan, no se responden.** `errores.*` de `core/errors` + `asyncHandler`.
@@ -92,6 +101,7 @@ significando algo con más de un usuario activo, que es exactamente el escenario
 | Usuarios, roles, permisos | `src/modules/auth/` |
 | Votantes, relevamientos, resultados | `src/modules/padron/` |
 | Listas electorales (borradores) y candidatos | `src/modules/listas/` (schema propio `elecciones`, no `padron` — una lista de candidatos no es un dato del votante) |
+| Comicios, mesas y votos | `src/modules/comicio/` (mismo schema `elecciones`). El rango de una mesa son dos DNIs, no una tabla votante↔mesa — se calcula contra `padron.votantes` con el mismo orden (apellido, nombre, dni) que ya usa el listado del padrón |
 | Importación por COPY | `src/modules/padron/importer.js` |
 | Exportación en streaming | `src/modules/padron/exporter.js` |
 | Iconos y tipografía del frontend | `scripts/build-assets.js` |

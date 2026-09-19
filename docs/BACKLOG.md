@@ -224,7 +224,7 @@ Mismo estado que 007 en su momento: página vacía, permisos sembrados, sin back
 
 ---
 
-### 🔴 015 — Módulo de comicio: mesas, votos y sectorización del padrón · **L**
+### ⬛ 015 — Módulo de comicio: mesas, votos y sectorización del padrón · **L**
 
 Hoy no existe forma de registrar un comicio: qué listas participan, cuántas mesas, tipo
 de elección (provincial, municipal, nacional). Tampoco hay dónde cargar los votos que
@@ -239,6 +239,36 @@ circuito. Ahora el alcance viene dado: cada mesa se configura con un rango del p
 Criterios candidatos: alta de comicio con listas y tipo de elección; alta de mesa con
 rango de padrón asignado; carga de votos por lista + blancos + nulos por mesa; sección de
 métricas agregadas del comicio.
+
+**Hecho, back y front.** Módulo `comicio` (`/api/comicio`), mismo schema `elecciones` que
+017 — `comicios`, `comicio_listas`, `mesas`, `votos_lista`. El rango de una mesa son dos
+DNIs (no una tabla que copie votante↔mesa): la cantidad de votantes y el solapamiento
+entre mesas se calculan con comparaciones de tupla `(apellido, nombre, dni)` contra
+`padron.votantes`, en el momento — mismo orden que ya usa el listado del padrón. Dos mesas
+del mismo comicio no pueden tener rangos que se crucen (409). Votos por mesa: blancos,
+nulos y cantidad por cada lista participante, reemplazo transaccional completo (mismo
+patrón que los candidatos de 017). Métricas agregadas: totales por lista, blancos, nulos,
+emitidos, mesas cargadas/total, participación. Permisos `comicio.view`/`comicio.edit` ya
+estaban sembrados desde antes, sin migración propia.
+
+`public/comicio.html` + `ComicioComponent.js`: listado de comicios con drill-down a sus
+mesas, editor de votos por mesa y sección de métricas. Probado de punta a punta en un
+navegador real contra Postgres real: alta de comicio con listas, mesa válida, mesa con
+rango solapado (rechazada, mensaje visible en el modal), mesa contigua sin solapar, carga
+de votos, métricas correctas, edición y borrado.
+
+Dos bugs reales encontrados y arreglados al probar en vivo, ninguno anticipado por la spec:
+- `repository.reemplazarVotos` leía el resultado con el pool general **antes** del commit
+  de la transacción: la respuesta del `PUT` de votos devolvía `null`/vacío aunque el
+  `UPDATE` ya se había mandado (visible recién al releer con `GET`). Se lee ahora después
+  de que la transacción resuelve.
+- `ApiService.request()` sólo leía el cuerpo del error en un puñado de rutas especiales
+  (401, 404/500 de detalle-votante, 409 de relevamientos, 429): cualquier otro error —
+  cualquier 400 o 409 de listas y comicio incluidos — llegaba a la UI como
+  `"HTTP 409: Conflict"` en vez del mensaje real. Afecta a todo el frontend, no sólo a
+  este ítem; arreglado leyendo `message` del cuerpo en el resto de los casos.
+
+Spec, plan y tareas en [specs/015-modulo-comicio/](../specs/015-modulo-comicio/spec.md).
 
 ---
 

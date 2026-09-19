@@ -18,6 +18,7 @@
 module.exports = {
   // —— Navegación y flechas ——
   'arrow-left': 'arrow-left',
+  'arrow-right': 'arrow-right',
   'arrow-up': 'arrow-up',
   'arrow-down': 'arrow-down',
   'plus': 'plus',
@@ -76,6 +77,9 @@ module.exports = {
   'tachometer-alt': 'gauge',
   'list': 'list',
   'list-ol': 'list-ordered',
+  // No hay equivalente literal de "urna con tilde" en Lucide; 'vote' es el mas cercano.
+  'check-to-slot': 'vote',
+  'chair': 'armchair',
   'clipboard-list': 'clipboard-list',
   'clipboard-check': 'clipboard-check',
 

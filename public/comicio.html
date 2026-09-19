@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Comicio - Sistema Electoral</title>
+    <title>Comicio - Sistema Electoral</title>
+
     <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
     <!-- Antes del primer pintado: si se aplicara despues, el tema oscuro destellaria en blanco. -->
     <script src="src/tema.js?v=2e769770"></script>
     <script src="src/lib/escapar.js?v=e0153e84"></script>
     <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
-    <link rel="stylesheet" href="src/styles/icons.css?v=f5a99c05">
+    <link rel="stylesheet" href="src/styles/icons.css?v=b2b82a6a">
+
+    <!-- Design System -->
     <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
+
+    <!-- Estilos -->
     <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
-    <link rel="stylesheet" href="src/styles/padron-styles.css?v=19eacf86">
+    <link rel="stylesheet" href="src/styles/comicio-styles.css?v=a926ad20">
+
     <style>
         body {
             font-family: var(--ds-font-family);
@@ -22,53 +28,29 @@
             padding: 0;
             line-height: 1.6;
         }
-        
-        .container {
+
+        .page-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .coming-soon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 60vh;
-            color: var(--ds-text-muted);
-        }
-        
-        .coming-soon i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: var(--ds-primary-500);
-            filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.3));
-        }
-        
-        .coming-soon h2 {
-            margin: 0 0 15px 0;
-            font-size: 2rem;
-            color: var(--ds-text-primary);
-        }
-        
-        .coming-soon p {
-            font-size: 1.1rem;
-            margin: 0;
-            opacity: 0.8;
+            padding: 24px 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Barra de navegación unificada -->
+    <!-- Barra de navegacion unificada -->
     <div id="navbar-container"></div>
-    <div class="container">
-        <div class="coming-soon">
-            <i class="fas fa-building"></i>
-            <h2>Gestión de Comicio</h2>
-            <p>Próximamente</p>
+
+    <main class="page-container">
+        <div id="comicio-container">
+            <!-- ComicioComponent se renderiza aqui -->
         </div>
-    </div>
-    <script src="src/components/NavbarComponent.js?v=34e0318c"></script>
-    <script src="src/pages/comicio.js?v=c6895a99"></script>
+    </main>
+
+    <!-- Scripts -->
+    <script src="src/components/NavbarComponent.js?v=7ffd8cbe"></script>
+    <script src="src/services/ApiService.js?v=a115bfd2"></script>
+    <script src="src/services/AuthService.js?v=dbc5042e"></script>
+    <script src="src/components/ComicioComponent.js?v=5dd7555b"></script>
+    <script src="src/pages/comicio.js?v=2e5e8917"></script>
 </body>
 </html>
