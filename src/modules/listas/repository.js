@@ -44,10 +44,16 @@ class ListasRepository {
     const offset = (page - 1) * limit;
 
     const [registros, { total }] = await Promise.all([
+      // El conteo de candidatos por lista es barato: el volumen esperado es de unas
+      // pocas listas por eleccion, y candidatos_count evita que el listado tenga que
+      // traer los candidatos completos (eso es lo que hace porId, para una sola lista).
       this.db.filas(
-        `SELECT id, nombre, tipo_eleccion, cantidad_lugares, created_at
-         FROM elecciones.listas
-         ORDER BY created_at DESC, id DESC
+        `SELECT l.id, l.nombre, l.tipo_eleccion, l.cantidad_lugares, l.created_at,
+                COUNT(c.id)::int AS candidatos_count
+         FROM elecciones.listas l
+         LEFT JOIN elecciones.candidatos c ON c.lista_id = l.id
+         GROUP BY l.id
+         ORDER BY l.created_at DESC, l.id DESC
          LIMIT $1 OFFSET $2`,
         [limit, offset],
       ),

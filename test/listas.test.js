@@ -36,7 +36,10 @@ function repoFalso(inicial = null) {
       return guardada && guardada.id === id ? guardada : null;
     },
     async listar({ page, limit }) {
-      return { registros: guardada ? [guardada] : [], total: guardada ? 1 : 0, page, limit };
+      const registros = guardada
+        ? [{ ...guardada, candidatos_count: guardada.candidatos.length, candidatos: undefined }]
+        : [];
+      return { registros, total: guardada ? 1 : 0, page, limit };
     },
     async actualizarDatos(id, datos) {
       guardada = { ...guardada, ...datos, id };

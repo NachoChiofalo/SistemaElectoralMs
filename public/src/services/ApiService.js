@@ -365,6 +365,55 @@ class ApiService {
         return await this.request('/api/users/roles');
     }
 
+    // ==================== METODOS DE LISTAS ELECTORALES ====================
+
+    /**
+     * Listado paginado de listas (borradores)
+     */
+    async obtenerListas(parametros = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(parametros).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                queryParams.append(key, value);
+            }
+        });
+        return await this.request(`/api/listas?${queryParams.toString()}`);
+    }
+
+    /**
+     * Una lista con sus candidatos
+     */
+    async obtenerLista(id) {
+        return await this.request(`/api/listas/${id}`);
+    }
+
+    /**
+     * Crear una lista (datos + candidatos)
+     */
+    async crearLista(data) {
+        return await this.request('/api/listas', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+     * Editar una lista: reemplaza datos y el set completo de candidatos
+     */
+    async actualizarLista(id, data) {
+        return await this.request(`/api/listas/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+
+    /**
+     * Borrar una lista
+     */
+    async eliminarLista(id) {
+        return await this.request(`/api/listas/${id}`, { method: 'DELETE' });
+    }
+
     // ==================== METODOS DE AUDITORIA ====================
 
     async obtenerAuditoria(filtros = {}) {

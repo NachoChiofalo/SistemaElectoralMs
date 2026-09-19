@@ -36,8 +36,12 @@ function construirRutas(auth, usuarios) {
   }));
 
   /**
-   * Verificacion de token. Internamente ya no se usa —requireAuth lo resuelve en
-   * proceso— pero se mantiene expuesto por si algun cliente externo depende de el.
+   * Verificacion de token. El frontend la llama en cada carga de pagina
+   * (AuthService.init) y pisa con esto el usuario guardado en localStorage — por eso
+   * la forma tiene que calzar con la de /login y /me. Faltaba `permisos` acá: el
+   * navbar decide que items mostrar contra ese campo, y sin el, cualquier item
+   * gateado por permiso (no por rol) quedaba invisible despues de la primera
+   * verificacion periodica. No es una consulta nueva: ya viaja en el JWT.
    */
   rutasAuth.post('/verify', requireAuth, (req, res) => {
     res.json({
@@ -50,6 +54,7 @@ function construirRutas(auth, usuarios) {
         email: req.user.email,
         rol: req.user.rol,
         activo: req.user.activo,
+        permisos: req.user.permisos,
       },
     });
   });

@@ -30,6 +30,19 @@ const MODULES_CONFIG = {
             ]
         },
         {
+            id: 'listas',
+            title: 'Armado de Listas',
+            description: 'Borradores de listas electorales: candidatos, orden y tipo de elección.',
+            icon: 'fa-list-ol',
+            href: 'listas.html',
+            status: 'available',
+            features: [
+                'Alta de listas y candidatos',
+                'Orden de candidatos por posición',
+                'Edición y baja de borradores'
+            ]
+        },
+        {
             id: 'fiscales',
             title: 'Gestión de Fiscales',
             description: 'Administración de fiscales de mesa y coordinadores de comicio.',

@@ -72,9 +72,32 @@
 
 ---
 
+## Fase 2 — Frontend (fuera del alcance original de la spec, sumada después)
+
+- [x] **7.1** `public/listas.html` + `ListasComponent.js`: tabla, filtro por tipo de
+      elección, modal de alta/edición con editor de candidatos por posición (sin
+      pedir el orden a mano).
+      verificación: probado en un navegador real contra Postgres real — alta,
+      reordenar con las flechas, editar quitando un candidato, borrar, validación de
+      nombre vacío. Sin errores de consola.
+- [x] **7.2** `NavbarComponent.js`: item "Listas" gateado por `listas.view` (no por
+      rol, a diferencia de Usuarios/Auditoría).
+      verificación: visible tras login como admin, con los permisos reales del token.
+- [x] **7.3** Bug encontrado y arreglado, ajeno a este ítem: `/api/auth/verify` no
+      devolvía `permisos`, así que el navbar perdía cualquier item gateado por
+      permiso después de la primera verificación periódica del token.
+      verificación: agregado `permisos: req.user.permisos` (ya viaja en el JWT);
+      confirmado que el item "Listas" aparece después del fix.
+- [x] **7.4** `repository.listar` suma `candidatos_count` (COUNT barato, LEFT JOIN +
+      GROUP BY): la tabla lo necesitaba y el listado no traía candidatos.
+      verificación: la columna "Candidatos" deja de mostrar "-" tras crear una lista.
+- [x] **7.5** Iconos nuevos (`list-ol`, `plus`, `arrow-down`, `folder-open`) agregados
+      a `scripts/iconos-lucide.js`.
+      verificación: `npm run build:assets` no falla por icono faltante.
+
 ## Cierre
 
-- [ ] `docs/BACKLOG.md`: 017 a ⬛.
+- [x] `docs/BACKLOG.md`: 017 a ⬛.
 - [ ] `CLAUDE.md`: si `elecciones` como schema propio (en vez de meter todo bajo
       `padron`) no es obvio por el código, dejar la razón en el mapa o en la deuda
       conocida — es la decisión que más se va a repreguntar cuando llegue 015.

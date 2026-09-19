@@ -21,6 +21,9 @@
         { href: 'dashboard.html', icon: 'fa-tachometer-alt', label: 'Inicio', key: 'dashboard' },
         { href: 'index.html', icon: 'fa-list', label: 'Padrón', key: 'padron' },
         { href: 'resultados.html', icon: 'fa-chart-bar', label: 'Resultados', key: 'resultados' },
+        // Gateado por permiso, no por rol: a diferencia de usuarios/auditoria (siempre
+        // admin), listas.view puede terminar asignado a otro rol el dia de manana.
+        { href: 'listas.html', icon: 'fa-list-ol', label: 'Listas', key: 'listas', permission: 'listas.view' },
         { href: 'usuarios.html', icon: 'fa-users-gear', label: 'Usuarios', key: 'usuarios', adminOnly: true },
         { href: 'auditoria.html', icon: 'fa-clipboard-list', label: 'Auditoría', key: 'auditoria', adminOnly: true }
     ];
@@ -29,7 +32,11 @@
         const user = (window.authService && window.authService.getCurrentUser && window.authService.getCurrentUser()) || { username: 'Usuario' };
         const username = user.nombre_completo || user.username || 'Usuario';
         const userRole = user.rol || '';
-        const visibleItems = NAV_ITEMS.filter(item => !item.adminOnly || userRole === 'administrador');
+        const userPermisos = user.permisos || [];
+        const visibleItems = NAV_ITEMS.filter(item =>
+            (!item.adminOnly || userRole === 'administrador') &&
+            (!item.permission || userPermisos.includes(item.permission))
+        );
         return `
         <nav class="navbar-unified">
             <div class="navbar-content">

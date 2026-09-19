@@ -19,6 +19,8 @@ module.exports = {
   // —— Navegación y flechas ——
   'arrow-left': 'arrow-left',
   'arrow-up': 'arrow-up',
+  'arrow-down': 'arrow-down',
+  'plus': 'plus',
   'chevron-left': 'chevron-left',
   'chevron-right': 'chevron-right',
   'caret-down': 'chevron-down',
@@ -73,6 +75,7 @@ module.exports = {
   'chart-pie': 'chart-pie',
   'tachometer-alt': 'gauge',
   'list': 'list',
+  'list-ol': 'list-ordered',
   'clipboard-list': 'clipboard-list',
   'clipboard-check': 'clipboard-check',
 
@@ -84,6 +87,7 @@ module.exports = {
   'download': 'download',
   'cloud-upload-alt': 'cloud-upload',
   'save': 'save',
+  'folder-open': 'folder-open',
 
   // —— Acciones ——
   'edit': 'square-pen',

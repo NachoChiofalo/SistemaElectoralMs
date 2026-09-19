@@ -266,14 +266,27 @@ tipo de elección, candidatos. Hoy esto se arma fuera del sistema.
 Es insumo directo de 015 (qué listas participan en el comicio) y hoy no queda registrado
 en ningún lado del sistema.
 
-**Hecho.** Módulo `listas` (`/api/listas`), schema propio `elecciones` — separado de
-`padron` porque una lista de candidatos no es un dato del votante, y deja lugar a que 015
-sume `elecciones.comicios`/`elecciones.mesas` sin decisiones de esquema pendientes. CRUD
-completo de listas y candidatos (reemplazo transaccional en el `PUT`, no PATCH parcial),
-validado contra Postgres real: alta con candidatos ordenados, edición, baja, y los 400 de
-validación (tipo de elección fuera de lista blanca, orden duplicado o con huecos, tope de
-60 candidatos). Auditado. Spec y plan en
+**Hecho, con frontend.** Módulo `listas` (`/api/listas`), schema propio `elecciones` —
+separado de `padron` porque una lista de candidatos no es un dato del votante, y deja
+lugar a que 015 sume `elecciones.comicios`/`elecciones.mesas` sin decisiones de esquema
+pendientes. CRUD completo de listas y candidatos (reemplazo transaccional en el `PUT`, no
+PATCH parcial), validado contra Postgres real: alta con candidatos ordenados, edición,
+baja, y los 400 de validación (tipo de elección fuera de lista blanca, orden duplicado o
+con huecos, tope de 60 candidatos). Auditado. Spec y plan en
 [specs/017-armado-listas/](../specs/017-armado-listas/spec.md).
+
+`public/listas.html` + `ListasComponent.js`: tabla con conteo de candidatos por lista
+(`candidatos_count`, un `COUNT` barato en el listado — no viene gratis, se agregó porque
+la tabla lo necesitaba) y un editor de candidatos donde el orden es la posición en la
+lista, no un campo que la persona tipea. Probado de punta a punta en un navegador real
+(alta, reordenar, editar quitando un candidato, borrar, validación de nombre vacío) contra
+Postgres real, sin errores de consola.
+
+En el camino apareció un bug real y ajeno a este ítem: `/api/auth/verify` no devolvía
+`permisos`, así que cualquier item de navbar gateado por permiso (no por rol) quedaba
+invisible después de la primera verificación periódica del token. Arreglado agregando
+`permisos: req.user.permisos` a esa respuesta — ya viaja en el JWT, no es una consulta
+nueva.
 
 Pendiente: el snapshot de contrato antes/después contra producción, que necesita
 credenciales de esta sesión (mismo bloqueo que dejó pendiente 002).
