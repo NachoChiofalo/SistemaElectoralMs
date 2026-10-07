@@ -50,6 +50,12 @@ y sembró lo que faltaba. Eso es lo que permite no usar `migrate:adopt` — que 
 pero es más arriesgado, porque salta migraciones enteras sin ejecutarlas. Una
 migración aplicada no se edita: se agrega la siguiente.
 
+**Las migraciones NO corren solas al desplegar.** `render.yaml` declara un `dockerCommand`
+con `npm run migrate`, pero el servicio real arranca con el `CMD` del Dockerfile
+(`node src/server.js`), que se niega a levantar si hay migraciones pendientes. El orden es:
+`npm run migrate:status` → backup → `npm run migrate` → recién ahí push/deploy. Si se hace
+al revés, el deploy falla al arrancar (sin tocar la base) y sigue sirviendo la versión anterior.
+
 **No hay base de staging: `DATABASE_URL` es la de producción.** `npm run migrate`
 corrido desde un checkout local aplica directo contra Supabase real — lo confirmó
 `npm run migrate:status` al implementar [G3](specs/G3-sesion-jwt/spec.md). Una migración que

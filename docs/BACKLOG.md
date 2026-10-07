@@ -25,9 +25,8 @@ reemplazado por esta sección y se puede borrar.
 Postgres descartable; ninguno tocó producción): G4 (FE-003/004/005, circuito escapado), G7 (CHECK
 `NOT VALID` en `comicio/005`), G8 (contraseña 8–72 bytes, backend y formulario a la vez),
 y los sueltos FE-006, 007, 008, 010, 011, 014, 026 y BE-003, 004, 005, 006, 007, 008, 011,
-012, 017, 020, 022, 028, 046. G6 implementado pero **sin aplicar**. **Aviso: Render corre
-`npm run migrate` en cada arranque**, así que `auditoria/002_inmutabilidad.sql` y
-`comicio/005_checks_no_negativos.sql` se aplican solos en el próximo deploy.
+012, 017, 020, 022, 028, 046. G6 **aplicado en producción** (2026-10-07, junto con las otras 9 migraciones de la
+ronda, corridas a mano con `npm run migrate`).
 Quedan para vos: G2 (CASCADE→RESTRICT cambia qué se puede borrar), DB-007, DB-010 (hay que
 mirar el rol real de la conexión), 018, 014 y 002.
 
