@@ -33,7 +33,7 @@ mirar el rol real de la conexión), 018, 014 y 002.
 **2026-10-07 (decisiones de base de datos) — DB-004, 005 y 018 hechos; DB-015 decidido que no.**
 DB-004: `auth/007` y `padron/007` convierten las 15 columnas `TIMESTAMP` a `TIMESTAMPTZ`
 interpretando lo guardado como UTC (verificado: 18:00 queda 18:00 UTC aun con la sesión en otra
-zona, y correrla dos veces no mueve nada), y cada conexión del pool fija `TIME ZONE 'UTC'`.
+zona, y correrla dos veces no mueve nada); la zona de la sesión no se fija desde el pool (un `SET` por conexión nueva dispara el aviso de deprecación de pg y será error en pg@9).
 **Antes de migrar, mirar la sección "Zona horaria" del preflight**: la última actividad guardada
 tiene que coincidir con la hora UTC actual. DB-005: los rangos etarios de Resultados salen de
 `anio_nac` (año actual menos año de nacimiento); la columna `edad` queda para la exportación.
