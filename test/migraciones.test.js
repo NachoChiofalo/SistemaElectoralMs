@@ -145,12 +145,13 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     assert.equal(sigueAhi.detalles, null, 'la fila no debe haberse tocado');
   });
 
-  await t.test('padron.auditoria rechaza operacion/entidad en minuscula (DB-033)', async () => {
-    await assert.rejects(
-      () => db.query("INSERT INTO padron.auditoria (operacion, entidad) VALUES ('login', 'SESION')"),
-      (error) => error.code === '23514',
-      'operacion en minuscula deberia violar el CHECK',
+  await t.test('padron.auditoria acepta el vocabulario real: operacion en mayusculas, entidad en minusculas', async () => {
+    // Es lo que escriben comicio, fiscales, listas y padron. Un CHECK de mayusculas haria que
+    // `registrar` perdiera esos eventos en silencio (DB-033, descartado a proposito).
+    const fila = await db.unaFila(
+      "INSERT INTO padron.auditoria (operacion, entidad, entidad_id) VALUES ('CREATE', 'votante', '1') RETURNING id",
     );
+    assert.ok(fila.id);
   });
 
   await t.test('correr migrate sobre datos preexistentes no los pisa', async () => {

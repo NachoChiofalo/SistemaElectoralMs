@@ -406,6 +406,7 @@ técnica a programar.
 - **Descripción:** Los valores usados hoy son consistentes por convención de código, pero nada impide que otro módulo escriba una variante (minúscula, sinónimo) y fragmente sin querer las agregaciones de `estadisticas()` (`GROUP BY operacion`).
 - **Impacto:** Bajo pero acumulativo — problema típico de "estadísticas que no cierran" por typos silenciosos, difícil de detectar hasta que alguien audita los números.
 - **Sugerencia de solución:** `CHECK (operacion = UPPER(operacion))` liviano, o normalizar en el repository antes de insertar.
+- **Nota:** un `CHECK` de mayúsculas se probó y se descartó. El vocabulario real es mixto (`operacion` en mayúsculas, `entidad` en minúscula) y el `CHECK` rechazaría los eventos de casi todos los módulos. Sigue abierto: si se quiere fijar el vocabulario, va con tabla de catálogo y migración de datos.
 
 ---
 

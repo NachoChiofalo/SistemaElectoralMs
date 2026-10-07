@@ -21,11 +21,8 @@ REVOKE UPDATE, DELETE ON padron.auditoria FROM CURRENT_USER;
 COMMENT ON COLUMN padron.auditoria.usuario_id IS
   'Sin FK a usuarios a proposito: un DELETE sobre una cuenta no debe arrastrar en cascada su rastro de auditoria (DB-016).';
 
--- Restriccion de forma, no de contenido: no fija una lista cerrada de valores (el
--- vocabulario de operacion/entidad crece con el tiempo, como el REFRESH que este mismo
--- cambio agrega), solo evita que una variante en minuscula fragmente en silencio las
--- agregaciones de estadisticas() (DB-033). NOT VALID: no escanea las filas existentes (Render
--- corre las migraciones en cada arranque y una fila vieja en minuscula impediria arrancar).
-ALTER TABLE padron.auditoria DROP CONSTRAINT IF EXISTS chk_auditoria_vocabulario;
-ALTER TABLE padron.auditoria ADD CONSTRAINT chk_auditoria_vocabulario
-  CHECK (operacion = UPPER(operacion) AND entidad = UPPER(entidad)) NOT VALID;
+-- DB-033 NO se resuelve con un CHECK de mayusculas, a proposito: el vocabulario real ya es
+-- mixto (operacion en mayusculas, entidad en minusculas: 'votante', 'comicio', 'mesa'...) y
+-- una restriccion asi rechazaria el registro de auditoria de casi todos los modulos, que
+-- `registrar` descartaria en silencio. Si algun dia se quiere fijar el vocabulario, va con
+-- una tabla de catalogo y una migracion de datos, no con un CHECK sobre lo que ya hay.

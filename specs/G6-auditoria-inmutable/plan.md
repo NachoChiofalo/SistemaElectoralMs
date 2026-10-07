@@ -44,23 +44,18 @@ COMMENT ON COLUMN padron.auditoria.usuario_id IS
   'Sin FK a usuarios a proposito: un DELETE sobre una cuenta no debe arrastrar en '
   'cascada su rastro de auditoria (DB-016).';
 
-ALTER TABLE padron.auditoria DROP CONSTRAINT IF EXISTS chk_auditoria_vocabulario;
-ALTER TABLE padron.auditoria ADD CONSTRAINT chk_auditoria_vocabulario
-  CHECK (operacion = UPPER(operacion) AND entidad = UPPER(entidad));
 ```
 
+> **Corrección (preflight de producción):** el plan original agregaba un `CHECK` de
+> mayúsculas sobre `operacion` y `entidad`. Se descartó: el código escribe `entidad` en
+> minúscula (`'votante'`, `'comicio'`, `'mesa'`…) y producción tiene 5.275 filas así. El
+> `CHECK` habría rechazado el evento de casi todos los módulos, y `registrar` lo habría
+> perdido sin avisar. DB-033 queda abierto.
+
 El `REVOKE` corrido dos veces no falla (Postgres no tira error si el privilegio ya no
-está). `DROP TRIGGER IF EXISTS` + `CREATE TRIGGER` y `DROP CONSTRAINT IF EXISTS` + `ADD
-CONSTRAINT` hacen que la migración completa sea idempotente, igual que el resto del
+está). `DROP TRIGGER IF EXISTS` + `CREATE TRIGGER` hace que la migración completa sea idempotente, igual que el resto del
 esquema.
 
-**Por qué `CHECK` en mayúsculas y no una lista fija de valores**: `operacion` ya usa
-`LOGIN`, `LOGIN_FALLIDO`, `LOGOUT`, `CREAR`, `ACTUALIZAR`, `ELIMINAR`, etc. — es
-consistente en mayúsculas por convención de código, no hay un catálogo cerrado. Fijar la
-lista completa en el `CHECK` rompería el primer valor nuevo que un módulo futuro
-necesite (como el propio `'REFRESH'` que agrega este mismo ítem). El `CHECK` sólo cierra
-el caso concreto del hallazgo (DB-033: una variante en minúscula fragmentando
-`GROUP BY operacion`), no normaliza un vocabulario cerrado.
 
 ## `renovar()` — evento REFRESH
 

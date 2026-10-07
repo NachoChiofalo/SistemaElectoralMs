@@ -17,7 +17,6 @@ if (!url) { console.error('Falta DATABASE_URL'); process.exit(1); }
 const pool = new Pool({ connectionString: url, ssl: /localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: false } });
 
 const CHEQUEOS = [
-  ['auditoria/002 operacion/entidad en minuscula', "SELECT COUNT(*) FROM padron.auditoria WHERE operacion <> UPPER(operacion) OR entidad <> UPPER(entidad)"],
   ['comicio/005 votos_blancos < 0', 'SELECT COUNT(*) FROM elecciones.mesas WHERE votos_blancos < 0'],
   ['comicio/005 votos_nulos < 0', 'SELECT COUNT(*) FROM elecciones.mesas WHERE votos_nulos < 0'],
   ['comicio/005 numero de mesa <= 0', 'SELECT COUNT(*) FROM elecciones.mesas WHERE numero <= 0'],
