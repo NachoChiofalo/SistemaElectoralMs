@@ -17,6 +17,12 @@ const { exportar } = require('./exporter');
  * Cada ruta de abajo declara ahora el permiso que realmente le corresponde segun
  * migrations/002_roles_y_permisos.sql. exportar-relevamientos y exportar-padron
  * mantienen requireAdmin, que es el unico control que el sistema anterior si tenia.
+ *
+ * Decisiones del 2026-10-07: exportar es SOLO del rol administrador (BE-024; la migracion
+ * auth/006 le quita padron.export al encargado para que no vea botones que dan 403), y el
+ * telefono relevado viaja con padron.view (BE-021): con los tres roles actuales quien tiene
+ * padron.view tambien puede relevar. Un rol futuro de solo lectura del padron obliga a
+ * revisar formatearFila antes de otorgarle padron.view.
  */
 const verPadron = requirePermission('padron.view');
 const editarPadron = requirePermission('padron.edit');

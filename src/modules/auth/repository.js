@@ -30,7 +30,7 @@ class AuthRepository {
        LEFT JOIN roles r ON u.rol_id = r.id
        LEFT JOIN rol_permisos rp ON r.id = rp.rol_id
        LEFT JOIN permisos p ON rp.permiso_id = p.id
-       WHERE u.username = $1
+       WHERE LOWER(u.username) = LOWER($1)
        GROUP BY u.id, r.nombre, r.descripcion`,
       [username],
     );
@@ -146,7 +146,7 @@ class AuthRepository {
   }
 
   existeUsername(username) {
-    return this.db.unaFila('SELECT id FROM usuarios WHERE username = $1', [username]);
+    return this.db.unaFila('SELECT id FROM usuarios WHERE LOWER(username) = LOWER($1)', [username]);
   }
 
   rolPorNombre(nombre) {

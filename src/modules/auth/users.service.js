@@ -46,8 +46,10 @@ class UsersService {
     return usuario;
   }
 
-  async crear({ username, password, nombre_completo, email, rol }, req) {
+  async crear({ username: usernameCrudo, password, nombre_completo, email, rol }, req) {
     validarPassword(password);
+    // Sin espacios en los bordes; las mayusculas se conservan, la comparacion no las distingue (BE-040).
+    const username = typeof usernameCrudo === 'string' ? usernameCrudo.trim() : usernameCrudo;
 
     if (await this.repo.existeUsername(username)) {
       throw errores.conflicto('El username ya existe');

@@ -27,7 +27,7 @@ function construirRutas(auth, usuarios) {
     legacyHeaders: false,
     skipSuccessfulRequests: true,
     skip: () => !config.http.rateLimit.activo,
-    keyGenerator: (req) => `${req.ip}|${String((req.body && req.body.username) || '').toLowerCase()}`,
+    keyGenerator: (req) => `${req.ip}|${String((req.body && req.body.username) || '').trim().toLowerCase()}`,
     message: { success: false, message: 'Demasiados intentos de login, intente mas tarde' },
   });
 

@@ -379,6 +379,21 @@ test('la politica de contrasenas exige 8 a 72 bytes (G8)', async () => {
   }
 });
 
+test('el username se recorta antes de comparar y de guardar (BE-040)', async () => {
+  const { UsersService } = require('../src/modules/auth/users.service');
+  let consultado = null;
+  let guardado = null;
+  const repo = {
+    async existeUsername(u) { consultado = u; return null; },
+    async rolPorNombre() { return { id: 1 }; },
+    async crearUsuario(datos) { guardado = datos.username; return { id: 9, username: datos.username }; },
+  };
+  const servicio = new UsersService(repo, auditoriaFalsa());
+  await servicio.crear({ username: '  Nuevo  ', password: 'secreta123', nombre_completo: 'N', rol: 'consultor' }, { headers: {} });
+  assert.equal(consultado, 'Nuevo');
+  assert.equal(guardado, 'Nuevo');
+});
+
 test('un JWT firmado con otro algoritmo no se acepta (BE-012)', () => {
   const forjado = jwt.sign({ id: 1 }, config.jwt.secreto, {
     algorithm: 'HS512', issuer: config.jwt.emisor, audience: config.jwt.audiencia,

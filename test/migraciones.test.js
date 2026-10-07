@@ -365,6 +365,34 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     assert.equal(n, 3000, 'sin duplicados ni filas perdidas');
   });
 
+  await t.test('el username no distingue mayusculas ni espacios, y el indice impide duplicados (BE-040)', async () => {
+    const AuthRepository = require('../src/modules/auth/repository');
+    const repo = new AuthRepository(db);
+    const rol = await repo.rolPorNombre('consultor');
+
+    await repo.crearUsuario({ username: 'DaianaPrueba', passwordHash: 'x', nombre_completo: 'D', email: null, rolId: rol.id });
+
+    assert.ok(await repo.porUsername('daianaprueba'), 'el login encuentra la cuenta en minusculas');
+    assert.ok(await repo.existeUsername('DAIANAPRUEBA'), 'existeUsername ignora las mayusculas');
+    assert.equal((await repo.porUsername('daianaprueba')).username, 'DaianaPrueba', 'se conserva el nombre guardado');
+
+    await assert.rejects(
+      () => repo.crearUsuario({ username: 'daianaprueba', passwordHash: 'x', nombre_completo: 'D2', email: null, rolId: rol.id }),
+      (error) => error.code === '23505',
+      'el indice unico sobre LOWER(username) debe rechazar la variante',
+    );
+  });
+
+  await t.test('exportar el padron es solo del administrador: el encargado ya no tiene padron.export (BE-024)', async () => {
+    const tiene = async (rol) => (await db.unaFila(
+      `SELECT COUNT(*)::int AS n FROM rol_permisos rp
+         JOIN roles r ON r.id = rp.rol_id JOIN permisos p ON p.id = rp.permiso_id
+        WHERE r.nombre = $1 AND p.codigo = 'padron.export'`, [rol],
+    )).n;
+    assert.equal(await tiene('encargado_relevamiento'), 0);
+    assert.equal(await tiene('administrador'), 1);
+  });
+
   await t.test('sesion unica: un login nuevo invalida el refresh token anterior y se guarda hasheado (G3, 003)', async () => {
     const bcrypt = require('bcryptjs');
     const AuthRepository = require('../src/modules/auth/repository');

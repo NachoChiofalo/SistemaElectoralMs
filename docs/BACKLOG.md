@@ -30,10 +30,17 @@ ronda, corridas a mano con `npm run migrate`).
 Quedan para vos: G2 (CASCADE→RESTRICT cambia qué se puede borrar), DB-007, DB-010 (hay que
 mirar el rol real de la conexión), 018, 014 y 002.
 
+**2026-10-07 (decisiones de permisos) — BE-015, 021, 024 y 040 cerrados.** BE-015: gestión de
+usuarios y roles queda sólo del rol administrador, `admin.users`/`admin.roles` ya no se declaran.
+BE-024: exportar el padrón es sólo del administrador; la migración `auth/006` le quita
+`padron.export` al encargado (veía dos botones que daban 403). BE-021: el teléfono viaja con
+`padron.view`, decidido y documentado en `padron/routes.js`. BE-040: el username se compara sin
+distinguir mayúsculas ni espacios, conservando el nombre guardado (índice único sobre
+`LOWER(username)`, `auth/006`); no se renombró a nadie. **Antes de migrar:** correr el preflight,
+que ahora verifica que no haya dos cuentas que difieran sólo en mayúsculas.
+
 **2026-10-07 (segunda tanda) — hallazgos medios.** Hechos: ver ⬛ en la tabla de severidad
-media. **Quedan para decidir con vos, no por falta de tiempo:** BE-015 y BE-024 (¿los
-permisos `admin.*`/`*.export` se aplican, o se quitan y el export queda sólo-admin?),
-BE-021 (¿el teléfono lo ve cualquiera con `padron.view`?), DB-004 (¿en qué zona horaria
+media. **Quedan para decidir con vos, no por falta de tiempo:** (BE-015, 021 y 024 ya decididos, ver arriba) DB-004 (¿en qué zona horaria
 están los `TIMESTAMP` viejos?), DB-014/015/018 (un `UNIQUE`/`NOT NULL` sobre datos reales
 que no revisé puede impedir el arranque), DB-017 (esperar el patrón de uso real), DB-026
 (borrar un worktree), FE-024/028/029 (refactors grandes de Comicio/CSS, se tocan junto con
@@ -717,12 +724,12 @@ actual.
 | ⬛ BE-012 | `jwt.verify` sin restringir `algorithms` | Seguridad | Backend |
 | ⬛ BE-013 | Stack traces descartados en logs internos de producción | Mantenibilidad | Backend |
 | ⬛ BE-014 | Sin advisory lock en el runner de migraciones | Bug/Mantenibilidad | Backend |
-| BE-015 | Permisos `admin.users`/`admin.roles` nunca verificados | Inconsistencia/Seguridad | Backend |
+| ⬛ BE-015 | Permisos `admin.users`/`admin.roles` nunca verificados | Inconsistencia/Seguridad | Backend |
 | ⬛ BE-017 | `PUT /users/:id` no valida tipo de `activo` | Bug/Inconsistencia | Backend |
 | ⬛ BE-020 | CSV Injection / Formula Injection en exportación | Seguridad | Backend |
-| BE-021 | Teléfono relevado visible con sólo `padron.view` | Seguridad | Backend |
+| ⬛ BE-021 | Teléfono relevado visible con sólo `padron.view` | Seguridad | Backend |
 | ⬛ BE-023 | Campo demasiado largo aborta importación de padrón completa | Bug | Backend |
-| BE-024 | Permisos `padron.export`/`resultados.export` no aplicados | Mantenibilidad | Backend |
+| ⬛ BE-024 | Permisos `padron.export`/`resultados.export` no aplicados | Mantenibilidad | Backend |
 | ⬛ BE-025 | Sin manejo de encoding en importación de CSV | Bug | Backend |
 | ⬛ BE-028 | Falta validar `fuerzaId` duplicado al cargar votos | Bug | Backend |
 | ⬛ BE-029 | Posible falta de índice compuesto sobre `padron.votantes` | Performance | Backend |
@@ -838,7 +845,7 @@ información, no por la pantalla.
 | ⬛ BE-037 | Sin `server.requestTimeout` explícito | Performance/Seguridad | Backend |
 | ⬛ BE-038 | `auditoria/estadisticas` sin límite en `porUsuario`/`porTipo` | Performance | Backend |
 | ⬛ BE-039 | Inconsistencia de forma de respuesta en listado de auditoría | Inconsistencia | Backend |
-| BE-040 | Sin normalización de `username` | Mantenibilidad | Backend |
+| ⬛ BE-040 | Sin normalización de `username` | Mantenibilidad | Backend |
 | ⬛ BE-041 | Código muerto y columnas de export duplicadas | Mantenibilidad | Backend |
 | BE-042 | `guardarDetalle` hace 5 round-trips por escritura | Performance | Backend |
 | BE-043 | Opciones políticas duplicadas entre JS y `CHECK` SQL | Mantenibilidad | Backend |

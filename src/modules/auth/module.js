@@ -26,7 +26,10 @@ module.exports = {
   basePath: '/api',
   migrations: path.join(__dirname, 'migrations'),
   requiresAuth: false,
-  permissions: ['admin.users', 'admin.roles', 'admin.system'],
+  // admin.users y admin.roles siguen en la base pero NO se declaran: la gestion de usuarios y roles
+  // es exclusiva del rol administrador (requireAdmin) y no se delega por permiso (BE-015, decision
+  // del 2026-10-07). Declararlos sugeriria un control granular que no existe.
+  permissions: ['admin.system'],
 
   register({ db, services, logger }) {
     const repo = new AuthRepository(db);

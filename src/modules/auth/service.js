@@ -35,7 +35,7 @@ class AuthService {
    */
   async login(username, password, req) {
     const ip = ipDeRequest(req);
-    const usuario = await this.repo.porUsername(username);
+    const usuario = await this.repo.porUsername(typeof username === 'string' ? username.trim() : username);
 
     if (!usuario) {
       await bcrypt.compare(password, HASH_FALSO);

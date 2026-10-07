@@ -33,6 +33,7 @@ const CHEQUEOS = [
   ['fiscales/002 [BLOQUEA] pares de asignaciones solapadas de un mismo fiscal', `SELECT COUNT(*) FROM elecciones.fiscal_asignaciones a JOIN elecciones.fiscal_asignaciones b ON a.id < b.id AND a.fiscal_id = b.fiscal_id AND a.desde < b.hasta AND b.desde < a.hasta`],
   ['fiscales/002 [BLOQUEA] extension btree_gist no disponible', "SELECT CASE WHEN EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'btree_gist') THEN 0 ELSE 1 END AS count"],
   ['(info) refresh tokens que auth/004 va a borrar (esas sesiones deberan volver a loguearse)', 'SELECT COUNT(*) FROM refresh_tokens'],
+  ['auth/006 [BLOQUEA] usernames que difieren solo en mayusculas (el indice unico fallaria)', 'SELECT COUNT(*) FROM (SELECT LOWER(username) FROM usuarios GROUP BY LOWER(username) HAVING COUNT(*) > 1) d'],
   ['(info) usernames con mayusculas', "SELECT COUNT(*) FROM usuarios WHERE username <> LOWER(username)"],
 ];
 
