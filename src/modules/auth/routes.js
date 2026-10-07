@@ -1,4 +1,6 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
+const { config } = require('../../core/config');
 const { asyncHandler, errores } = require('../../core/errors');
 const { requireAuth, requireAdmin } = require('../../core/security/authorize');
 const jwtHelper = require('../../core/security/jwt');
@@ -15,7 +17,21 @@ function construirRutas(auth, usuarios) {
   // ==================== /api/auth ====================
   const rutasAuth = express.Router();
 
-  rutasAuth.post('/login', asyncHandler(async (req, res) => {
+  // Limite propio del login, aparte del global de /api (BE-004/BE-006): se cuenta por
+  // IP + usuario, asi que probar muchas claves contra una cuenta se corta rapido sin
+  // dejar afuera a quien comparte IP con otra gente. Los logins exitosos no cuentan.
+  const limitarLogin = rateLimit({
+    windowMs: config.http.rateLimit.ventanaMs,
+    max: config.http.rateLimit.loginMax,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true,
+    skip: () => !config.http.rateLimit.activo,
+    keyGenerator: (req) => `${req.ip}|${String((req.body && req.body.username) || '').toLowerCase()}`,
+    message: { success: false, message: 'Demasiados intentos de login, intente mas tarde' },
+  });
+
+  rutasAuth.post('/login', limitarLogin, asyncHandler(async (req, res) => {
     const { username, password } = req.body || {};
 
     if (!username || !password) {
@@ -63,7 +79,7 @@ function construirRutas(auth, usuarios) {
     const { refreshToken } = req.body || {};
     if (!refreshToken) throw errores.solicitudInvalida('Refresh token requerido');
 
-    const resultado = await auth.renovar(refreshToken);
+    const resultado = await auth.renovar(refreshToken, req);
     res.json({ success: true, message: 'Token renovado exitosamente', data: resultado });
   }));
 
@@ -125,6 +141,10 @@ function construirRutas(auth, usuarios) {
   rutasUsuarios.put('/:id', requireAdmin, asyncHandler(async (req, res) => {
     const id = idDeParametro(req);
     const { nombre_completo, email, rol, activo } = req.body || {};
+
+    if (activo !== undefined && typeof activo !== 'boolean') {
+      throw errores.solicitudInvalida('El campo activo debe ser un valor booleano');
+    }
 
     const actualizado = await usuarios.actualizar(id, { nombre_completo, email, rol, activo }, req);
     res.json({ success: true, message: 'Usuario actualizado exitosamente', data: actualizado });

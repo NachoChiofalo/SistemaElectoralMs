@@ -25,6 +25,9 @@ const csv = require('csv-parser');
 const copyFrom = require('pg-copy-streams').from;
 const { errores } = require('../../core/errors');
 
+/** Largo maximo de cada columna de tmp_import_votantes (BE-023). */
+const LARGO_MAXIMO = { dni: 20, apellido: 100, nombre: 100, tipo_ejemplar: 20, circuito: 50 };
+
 /**
  * Clave del advisory lock que serializa las importaciones.
  *
@@ -73,13 +76,27 @@ function filaATsv(fila, anioActual) {
   // llegar como 'ANO NAC' o con la ene mal codificada.
   const anioNac = campo(fila, 'AÑO NAC', 'ANO NAC', 'ANIO NAC', 'anio_nac', 'anioNac');
   const anio = Number.parseInt(anioNac, 10);
-  if (!Number.isFinite(anio)) return null;
+  // Fuera de 1900..anio actual el CHECK de la tabla rechazaria la fila y, con la
+  // atomicidad de la importacion, se perderia el archivo entero (DB-013).
+  if (!Number.isFinite(anio) || anio < 1900 || anio > anioActual) return null;
 
   const apellido = campo(fila, 'APELLIDO', 'apellido');
   const nombre = campo(fila, 'NOMBRE', 'nombre');
   if (!apellido || !nombre) return null;
 
   const sexo = campo(fila, 'S', 'SEXO', 'sexo');
+  const tipoEjemplar = campo(fila, 'TIPO_EJEMPL', 'tipo_ejemplar', 'tipoEjempl');
+  const circuito = campo(fila, 'CIRCUITO', 'circuito');
+
+  // Un campo mas largo que su columna hace fallar el COPY entero, y con la atomicidad de
+  // la importacion se pierde el archivo completo sin decir que fila fue (BE-023). Se
+  // descarta la fila y se cuenta, igual que las que no tienen DNI.
+  if (dni.length > LARGO_MAXIMO.dni || apellido.length > LARGO_MAXIMO.apellido
+    || nombre.length > LARGO_MAXIMO.nombre
+    || (tipoEjemplar && tipoEjemplar.length > LARGO_MAXIMO.tipo_ejemplar)
+    || (circuito && circuito.length > LARGO_MAXIMO.circuito)) {
+    return null;
+  }
 
   return [
     dni,
@@ -87,13 +104,41 @@ function filaATsv(fila, anioActual) {
     apellido,
     nombre,
     campo(fila, 'DOMICILIO', 'domicilio'),
-    campo(fila, 'TIPO_EJEMPL', 'tipo_ejemplar', 'tipoEjempl'),
-    campo(fila, 'CIRCUITO', 'circuito'),
+    tipoEjemplar,
+    circuito,
     // La columna tiene CHECK (sexo IN ('M','F')): cualquier otra cosa entra como NULL
     // en vez de voltear el COPY entero.
     sexo === 'M' || sexo === 'F' ? sexo : null,
     anioActual - anio,
   ].map(escaparCopy).join('\t');
+}
+
+/**
+ * Dice si el archivo es UTF-8 valido. Un CSV exportado desde Excel en Windows suele venir
+ * en Windows-1252, y leido como UTF-8 los apellidos con tilde o "n" se corrompen sin
+ * ningun error (BE-025).
+ */
+async function esUtf8(ruta) {
+  const decodificador = new TextDecoder('utf-8', { fatal: true });
+  try {
+    for await (const trozo of fs.createReadStream(ruta)) decodificador.decode(trozo, { stream: true });
+    decodificador.decode();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Stream de texto UTF-8 del archivo, convirtiendolo desde Windows-1252 si hace falta. */
+async function abrirComoTexto(ruta) {
+  const origen = fs.createReadStream(ruta);
+  if (await esUtf8(ruta)) return origen;
+
+  const decodificador = new TextDecoder('windows-1252');
+  return origen.pipe(new Transform({
+    transform(trozo, _c, cb) { cb(null, decodificador.decode(trozo, { stream: true })); },
+    flush(cb) { cb(null, decodificador.decode()); },
+  }));
 }
 
 /**
@@ -170,7 +215,7 @@ async function importarCsv(db, rutaArchivo) {
     `);
 
     await pipeline(
-      fs.createReadStream(rutaArchivo),
+      await abrirComoTexto(rutaArchivo),
       csv(),
       aTsv,
       cliente.query(copyFrom(`COPY tmp_import_votantes (${COLUMNAS.join(', ')}) FROM STDIN`)),

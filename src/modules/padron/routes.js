@@ -106,7 +106,7 @@ function construirRutas(padron, db) {
         totalPaginas: resultado.totalPaginas,
         totalRegistros: resultado.total,
         registrosPorPagina: resultado.limite,
-        inicio: (resultado.pagina - 1) * resultado.limite + 1,
+        inicio: resultado.total === 0 ? 0 : (resultado.pagina - 1) * resultado.limite + 1,
         fin: Math.min(resultado.pagina * resultado.limite, resultado.total),
       },
     });
@@ -124,7 +124,9 @@ function construirRutas(padron, db) {
   }));
 
   router.get('/votantes/:dni', verPadron, asyncHandler(async (req, res) => {
-    res.json(await padron.votantePorDni(req.params.dni));
+    // Envuelto como el resto de la API: devolver el objeto pelado hacia que
+    // DetalleVotanteComponent lo tomara por un error y el modal de condiciones nunca abriera.
+    res.json({ success: true, data: await padron.votantePorDni(req.params.dni) });
   }));
 
   // ==================== relevamientos ====================
@@ -215,6 +217,11 @@ function construirRutas(padron, db) {
       res.json({ success: true, data: await calcular() });
     }));
   }
+
+  // Aparte del bucle de arriba: recibe parametros (minimo, limite).
+  router.get('/resultados/por-familia', verResultados, asyncHandler(async (req, res) => {
+    res.json({ success: true, data: await padron.estadisticasPorFamilia(req.query) });
+  }));
 
   // ==================== detalle de votante ====================
 

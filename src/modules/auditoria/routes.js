@@ -39,6 +39,7 @@ function construirRutas(servicio) {
 
     res.json({
       success: true,
+      message: 'Auditoria obtenida exitosamente',
       data: resultado.registros,
       paginacion: {
         paginaActual: resultado.page,

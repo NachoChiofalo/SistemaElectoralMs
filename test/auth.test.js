@@ -13,11 +13,13 @@ delete process.env.DATABASE_URL;
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const { AuthService } = require('../src/modules/auth/service');
 const { UsersService } = require('../src/modules/auth/users.service');
 const sesiones = require('../src/core/security/sessions');
 const jwtHelper = require('../src/core/security/jwt');
+const { config } = require('../src/core/config');
 
 /** Auditoria que solo anota, para poder afirmar sobre lo que se registro. */
 function auditoriaFalsa() {
@@ -32,10 +34,12 @@ function auditoriaFalsa() {
 /** Repositorio en memoria con la misma interfaz que AuthRepository. */
 function repoFalso(usuarios = []) {
   const sesionesAbiertas = [];
+  const sesionesCerradas = [];
   const refreshTokens = new Map();
 
   return {
     sesionesAbiertas,
+    sesionesCerradas,
     refreshTokens,
     usuarios,
 
@@ -50,6 +54,11 @@ function repoFalso(usuarios = []) {
       return u ? { ...u, modulos: ['padron', 'padron', 'admin'] } : null;
     },
     async abrirSesion(datos) {
+      // Simula el DELETE previo del repo real: una sesion nueva invalida el refresh
+      // token de cualquier sesion anterior del mismo usuario.
+      for (const [token, userId] of refreshTokens) {
+        if (userId === datos.userId) refreshTokens.delete(token);
+      }
       sesionesAbiertas.push(datos);
       refreshTokens.set(datos.refreshToken, datos.userId);
     },
@@ -57,8 +66,7 @@ function repoFalso(usuarios = []) {
       const userId = refreshTokens.get(token);
       return userId ? usuarios.find((u) => u.id === userId) ?? null : null;
     },
-    async borrarRefreshToken(token) { refreshTokens.delete(token); },
-    async cerrarSesion() {},
+    async cerrarSesion(datos) { sesionesCerradas.push(datos); },
     async purgarVencidos() { return { blacklist: 0, refresh: 0 }; },
     async hashPorId(id) {
       const u = usuarios.find((x) => x.id === id);
@@ -187,7 +195,7 @@ test('cada intento de login queda auditado con su motivo', async () => {
 test('un refresh token invalido devuelve 401, no 500', async () => {
   const { auth } = await armar();
 
-  const error = await auth.renovar('token-que-no-existe').catch((e) => e);
+  const error = await auth.renovar('token-que-no-existe', req).catch((e) => e);
 
   assert.equal(error.status, 401);
   assert.equal(error.message, 'Refresh token invalido o expirado');
@@ -198,12 +206,45 @@ test('el refresh token es de un solo uso', async () => {
 
   const { refreshToken } = await auth.login('admin', 'secreta123', req);
 
-  const renovado = await auth.renovar(refreshToken);
+  const renovado = await auth.renovar(refreshToken, req);
   assert.equal(renovado.user.username, 'admin');
   assert.notEqual(renovado.refreshToken, refreshToken);
 
-  const error = await auth.renovar(refreshToken).catch((e) => e);
+  const error = await auth.renovar(refreshToken, req).catch((e) => e);
   assert.equal(error.status, 401);
+});
+
+test('un segundo login invalida el refresh token del primero', async () => {
+  const { auth } = await armar();
+
+  const primero = await auth.login('admin', 'secreta123', req);
+  await auth.login('admin', 'secreta123', req);
+
+  const error = await auth.renovar(primero.refreshToken, req).catch((e) => e);
+  assert.equal(error.status, 401);
+});
+
+test('renovar deja un evento REFRESH en auditoria (BE-016/G6)', async () => {
+  const { auth, auditoria } = await armar();
+
+  const { refreshToken } = await auth.login('admin', 'secreta123', req);
+  auditoria.eventos.length = 0;
+
+  await auth.renovar(refreshToken, req);
+
+  assert.deepEqual(auditoria.eventos.map((e) => `${e.operacion} ${e.entidad}`), ['REFRESH SESION']);
+  assert.equal(auditoria.eventos[0].usuario_username, 'admin');
+  assert.equal(auditoria.eventos[0].ip_address, '10.0.0.7');
+});
+
+test('el repositorio nunca guarda el refresh token en texto plano', async () => {
+  const { auth, repo } = await armar();
+
+  const { refreshToken } = await auth.login('admin', 'secreta123', req);
+
+  const guardados = [...repo.refreshTokens.keys()];
+  assert.equal(guardados.length, 1);
+  assert.notEqual(guardados[0], refreshToken);
 });
 
 test('el logout no falla aunque el token sea ilegible', async () => {
@@ -211,6 +252,41 @@ test('el logout no falla aunque el token sea ilegible', async () => {
 
   await auth.logout('no-es-un-token', req);
   await auth.logout('', req);
+});
+
+test('el logout con firma invalida no cierra ninguna sesion', async () => {
+  const { auth, repo, auditoria } = await armar();
+
+  await auth.login('admin', 'secreta123', req);
+
+  const forjado = jwt.sign(
+    { id: 1, username: 'admin', jti: 'jti-inventado' },
+    'secreto-equivocado',
+    { issuer: 'auth-service', audience: 'electoral-system', expiresIn: '1h' },
+  );
+
+  await auth.logout(forjado, req);
+
+  assert.equal(repo.sesionesCerradas.length, 0);
+  assert.ok(!auditoria.eventos.some((e) => e.operacion === 'LOGOUT'));
+});
+
+test('el logout con firma valida pero token vencido sigue cerrando la sesion', async () => {
+  const { auth, repo } = await armar();
+
+  const { accessToken } = await auth.login('admin', 'secreta123', req);
+  const claims = jwt.decode(accessToken);
+
+  const vencido = jwt.sign(
+    { id: claims.id, username: claims.username, jti: claims.jti },
+    config.jwt.secreto,
+    { issuer: 'auth-service', audience: 'electoral-system', expiresIn: -1 },
+  );
+
+  await auth.logout(vencido, req);
+
+  assert.equal(repo.sesionesCerradas.length, 1);
+  assert.equal(repo.sesionesCerradas[0].jti, claims.jti);
 });
 
 test('perfilCompleto deduplica los modulos disponibles', async () => {
@@ -291,4 +367,21 @@ test('las operaciones sobre usuarios quedan auditadas', async () => {
     'CREAR USUARIO',
     'DESACTIVAR USUARIO',
   ]);
+});
+
+test('la politica de contrasenas exige 8 a 72 bytes (G8)', async () => {
+  const { UsersService } = require('../src/modules/auth/users.service');
+  const servicio = new UsersService({ async existeUsername() { return false; } }, auditoriaFalsa());
+
+  for (const password of ['1234567', 'a'.repeat(73), 'ñ'.repeat(37)]) {
+    const error = await servicio.crear({ username: 'nuevo', password, nombre_completo: 'N', rol: 'consultor' }, { headers: {} }).catch((e) => e);
+    assert.equal(error.status, 400, `${password.length} caracteres deberia rechazarse`);
+  }
+});
+
+test('un JWT firmado con otro algoritmo no se acepta (BE-012)', () => {
+  const forjado = jwt.sign({ id: 1 }, config.jwt.secreto, {
+    algorithm: 'HS512', issuer: config.jwt.emisor, audience: config.jwt.audiencia,
+  });
+  assert.throws(() => jwtHelper.verificar(forjado));
 });

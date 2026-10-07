@@ -41,6 +41,7 @@ const PG_A_HTTP = {
   '23514': [400, 'Un valor no cumple las restricciones'], // check_violation
   '22P02': [400, 'Formato de dato invalido'],         // invalid_text_representation
   '57014': [503, 'La consulta tardo demasiado'],      // query_canceled (statement_timeout)
+  '23P01': [409, 'El horario se superpone con otra asignacion'], // exclusion_violation
 };
 
 function traducir(error) {
@@ -82,6 +83,10 @@ function manejadorNoEncontrado(req, res) {
 
 // eslint-disable-next-line no-unused-vars -- Express identifica el handler por aridad 4
 function manejadorErrores(error, req, res, next) {
+  // Si la respuesta ya empezo (un export en streaming que fallo a mitad), no se puede
+  // escribir un JSON de error: se deja a Express cortar la conexion (BE-008).
+  if (res.headersSent) return next(error);
+
   const traducido = traducir(error);
 
   if (!traducido) {

@@ -32,8 +32,15 @@ async function asegurarTabla() {
 function leerMigraciones(directorio) {
   if (!directorio || !fs.existsSync(directorio)) return [];
 
-  return fs.readdirSync(directorio)
-    .filter((archivo) => archivo.endsWith('.sql'))
+  const sql = fs.readdirSync(directorio).filter((archivo) => archivo.endsWith('.sql'));
+  // El orden es lexicografico: un nombre sin el prefijo NNN_ se aplicaria en un lugar
+  // inesperado, sin avisar (BE-033).
+  const malNombrados = sql.filter((archivo) => !/^\d{3}_[a-z0-9_]+\.sql$/.test(archivo));
+  if (malNombrados.length) {
+    throw new Error(`Migraciones con nombre invalido en ${directorio}: ${malNombrados.join(', ')} (se espera NNN_descripcion.sql)`);
+  }
+
+  return sql
     .sort() // el prefijo numerico define el orden: 001_, 002_, ...
     .map((archivo) => {
       const sql = fs.readFileSync(path.join(directorio, archivo), 'utf8');
@@ -121,21 +128,44 @@ async function contarPendientes(modulos) {
   return pendientes;
 }
 
-/** Aplica las migraciones de todos los modulos, en el orden en que estan registrados. */
+/**
+ * Clave del advisory lock que serializa el runner. Fija y arbitraria, como
+ * LOCK_IMPORTACION: los advisory locks son un espacio de nombres global de la base.
+ */
+const LOCK_MIGRACIONES = 20260919;
+
+/**
+ * Aplica las migraciones de todos los modulos, en el orden en que estan registrados.
+ *
+ * Con un lock: dos arranques simultaneos (dos deploys, un reintento de CI) leian el mismo
+ * "pendiente" y aplicaban la misma migracion a la vez (BE-014). El lock es de sesion, asi
+ * que vive en una conexion propia hasta el final; el que llega segundo ESPERA (a
+ * diferencia de la importacion, que responde 409) y despues encuentra todo aplicado.
+ */
 async function migrarTodo(modulos, opciones = {}) {
   await asegurarTabla();
-  let total = 0;
 
-  for (const modulo of modulos) {
-    if (!modulo.migrations) continue;
-    const { aplicadas } = await migrarModulo(modulo.name, modulo.migrations, opciones);
-    total += aplicadas;
+  const cliente = await db.conexion();
+  try {
+    await cliente.query('SELECT pg_advisory_lock($1)', [LOCK_MIGRACIONES]);
+
+    let total = 0;
+    for (const modulo of modulos) {
+      if (!modulo.migrations) continue;
+      const { aplicadas } = await migrarModulo(modulo.name, modulo.migrations, opciones);
+      total += aplicadas;
+    }
+
+    if (total === 0) logger.info('Sin migraciones pendientes');
+    else logger.info(`${total} migracion(es) aplicadas`);
+
+    return total;
+  } finally {
+    // Soltarlo explicito: si la conexion vuelve al pool con el lock tomado, el proximo en
+    // usarla lo heredaria.
+    await cliente.query('SELECT pg_advisory_unlock($1)', [LOCK_MIGRACIONES]).catch(() => {});
+    cliente.release();
   }
-
-  if (total === 0) logger.info('Sin migraciones pendientes');
-  else logger.info(`${total} migracion(es) aplicadas`);
-
-  return total;
 }
 
 module.exports = { migrarTodo, migrarModulo, contarPendientes, asegurarTabla, TABLA };

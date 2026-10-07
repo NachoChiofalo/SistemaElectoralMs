@@ -39,8 +39,15 @@ function parseArgs(argv) {
 
 const args = parseArgs(process.argv.slice(2));
 const BASE = (args.base || process.env.SNAPSHOT_BASE || 'http://localhost:8080').replace(/\/$/, '');
-const USER = args.user || process.env.SNAPSHOT_USER || 'admin';
-const PASS = args.pass || process.env.SNAPSHOT_PASS || 'admin123';
+const USER = args.user || process.env.SNAPSHOT_USER;
+const PASS = args.pass || process.env.SNAPSHOT_PASS;
+
+// Sin credenciales por defecto (BE-032): `admin123` es exactamente la contrasena fija
+// del sistema viejo que seed-usuarios.js vino a eliminar.
+if (!USER || !PASS) {
+  console.error('Faltan credenciales: pasar --user/--pass o SNAPSHOT_USER/SNAPSHOT_PASS.');
+  process.exit(1);
+}
 
 // ------------------------------------------------------- endpoints a relevar
 

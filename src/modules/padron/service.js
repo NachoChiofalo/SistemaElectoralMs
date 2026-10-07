@@ -103,7 +103,21 @@ class PadronService {
   // ------------------------------------------------------------ escritura
 
   async crearVotante({ dni, nombre, apellido, anioNac, domicilio, circuito, sexo }, req) {
+    // Validar aca y no dejar que lo haga Postgres: un valor invalido llegaba al INSERT y
+    // volvia como un 500 crudo en vez de un 400 con el motivo (BE-022, BE-046).
+    if (!/^\d{7,8}$/.test(String(dni))) {
+      throw errores.solicitudInvalida('El DNI debe tener 7 u 8 digitos');
+    }
+
+    // La columna es NOT NULL: sin esto, un alta sin anio volvia como un codigo de
+    // Postgres crudo en vez de decir que campo falta.
+    if (!anioNac) throw errores.solicitudInvalida('El anio de nacimiento es obligatorio');
+
     const anio = anioNac ? Number.parseInt(anioNac, 10) : null;
+    const anioActual = new Date().getFullYear();
+    if (anioNac && (!Number.isInteger(anio) || anio < 1900 || anio > anioActual)) {
+      throw errores.solicitudInvalida(`El anio de nacimiento debe estar entre 1900 y ${anioActual}`);
+    }
 
     const votante = await this.repo.insertarVotante({
       dni,
@@ -114,8 +128,10 @@ class PadronService {
       tipo_ejemplar: null,
       circuito: circuito || '',
       sexo: sexo === 'M' || sexo === 'F' ? sexo : null,
-      edad: anio ? new Date().getFullYear() - anio : null,
+      edad: anio ? anioActual - anio : null,
     });
+
+    if (!votante) throw errores.conflicto(`Ya existe un votante con DNI ${dni}`);
 
     this.cache.invalidar();
 
@@ -399,6 +415,16 @@ class PadronService {
 
   estadisticasPorCircuito() {
     return this.cache.resolver('por-circuito', () => this.repo.estadisticasPorCircuito());
+  }
+
+  /**
+   * Apellidos repetidos (019). `minimo` y `limite` se recortan aca: son parte de la clave
+   * de cache, y sin techo un cliente podria llenarla de combinaciones.
+   */
+  estadisticasPorFamilia({ minimo, limite } = {}) {
+    const min = Math.min(Math.max(Number.parseInt(minimo, 10) || 2, 2), 50);
+    const lim = Math.min(Math.max(Number.parseInt(limite, 10) || 50, 1), 100);
+    return this.cache.resolver(`por-familia:${min}:${lim}`, () => this.repo.estadisticasPorFamilia(min, lim));
   }
 
   estadisticasCondicionesDetalladas() {

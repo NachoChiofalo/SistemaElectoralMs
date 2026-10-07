@@ -666,3 +666,125 @@ test('el limite por pagina tiene un techo', async () => {
   // Sin techo, ?limite=1000000 traeria el padron entero a memoria en cada request.
   assert.equal(limiteRecibido, 500);
 });
+
+// ---------------------------------------------------------------- alta de votante
+
+test('crearVotante rechaza un DNI con formato invalido con 400, sin llegar a la base (BE-022)', async () => {
+  let inserto = false;
+  const { servicio } = servicioDePrueba({ async insertarVotante() { inserto = true; return {}; } });
+
+  for (const dni of ['abc', '123', '123456789', "30'111222", '30.111.222']) {
+    const error = await servicio.crearVotante({ dni, nombre: 'A', apellido: 'B' }, {}).catch((e) => e);
+    assert.equal(error.status, 400, `DNI ${dni} deberia rechazarse`);
+  }
+  assert.equal(inserto, false);
+});
+
+test('crearVotante rechaza un anio de nacimiento fuera de rango (BE-046)', async () => {
+  const { servicio } = servicioDePrueba({ async insertarVotante() { return {}; } });
+
+  for (const anioNac of ['1800', '3000', 'abc']) {
+    const error = await servicio.crearVotante({ dni: '30111222', nombre: 'A', apellido: 'B', anioNac }, {}).catch((e) => e);
+    assert.equal(error.status, 400, `anio ${anioNac} deberia rechazarse`);
+  }
+});
+
+test('crearVotante con un DNI que ya existe responde 409 y no pisa al existente (BE-005)', async () => {
+  const { servicio, auditoria } = servicioDePrueba({ async insertarVotante() { return null; } });
+
+  const error = await servicio.crearVotante({ dni: '30111222', nombre: 'A', apellido: 'B', anioNac: 1980 }, {}).catch((e) => e);
+
+  assert.equal(error.status, 409);
+  assert.equal(auditoria.eventos?.length ?? 0, 0, 'no se audita una creacion que no ocurrio');
+});
+
+// ---------------------------------------------------------------- exportacion CSV
+
+test('el CSV neutraliza celdas que Excel interpretaria como formula (BE-020)', () => {
+  const { escapar } = require('../src/modules/padron/exporter');
+
+  assert.equal(escapar('=HYPERLINK("http://x")'), `"'=HYPERLINK(""http://x"")"`);
+  assert.equal(escapar('@SUM(A1)'), "'@SUM(A1)");
+  assert.equal(escapar('+cmd|calc'), "'+cmd|calc");
+  // Telefonos y numeros no se tocan.
+  assert.equal(escapar('+54 351 555-1234'), '+54 351 555-1234');
+  assert.equal(escapar('-12'), '-12');
+  assert.equal(escapar('PEREZ'), 'PEREZ');
+});
+
+test('si un lote del export falla a mitad, se corta la conexion en vez de terminar un CSV truncado (BE-008)', async () => {
+  const { exportar } = require('../src/modules/padron/exporter');
+  let destruida = null;
+  const res = {
+    write() { return true; },
+    end() { throw new Error('no deberia cerrar como si hubiera terminado bien'); },
+    destroy(e) { destruida = e; },
+  };
+  const db = { async filas() { throw new Error('conexion caida'); } };
+
+  await assert.rejects(() => exportar(db, res, false), /conexion caida/);
+  assert.ok(destruida, 'tiene que destruir la respuesta');
+});
+
+test('crearVotante sin anio de nacimiento responde 400, no un error crudo de Postgres', async () => {
+  const { servicio } = servicioDePrueba({ async insertarVotante() { return {}; } });
+  const error = await servicio.crearVotante({ dni: '30111222', nombre: 'A', apellido: 'B' }, {}).catch((e) => e);
+  assert.equal(error.status, 400);
+});
+
+// ---------------------------------------------------------------- importador
+
+test('una fila con un campo mas largo que su columna se descarta, no voltea el COPY (BE-023)', () => {
+  const base = { DNI: '30111222', 'AÑO NAC': '1980', APELLIDO: 'PEREZ', NOMBRE: 'JUAN' };
+
+  assert.ok(filaATsv(base, 2026));
+  assert.equal(filaATsv({ ...base, DNI: '1'.repeat(21) }, 2026), null);
+  assert.equal(filaATsv({ ...base, APELLIDO: 'A'.repeat(101) }, 2026), null);
+  assert.equal(filaATsv({ ...base, CIRCUITO: 'C'.repeat(51) }, 2026), null);
+});
+
+test('una fila con anio de nacimiento fuera de 1900..hoy se descarta (DB-013)', () => {
+  const base = { DNI: '30111222', APELLIDO: 'PEREZ', NOMBRE: 'JUAN' };
+
+  assert.ok(filaATsv({ ...base, 'AÑO NAC': '1980' }, 2026));
+  assert.equal(filaATsv({ ...base, 'AÑO NAC': '1800' }, 2026), null);
+  assert.equal(filaATsv({ ...base, 'AÑO NAC': '2999' }, 2026), null);
+});
+
+// ---------------------------------------------------------------- 019 familias por apellido
+
+test('por-familia recorta minimo y limite y cachea por parametros (019)', async () => {
+  const llamadas = [];
+  const { servicio } = servicioDePrueba({
+    async estadisticasPorFamilia(minimo, limite) { llamadas.push([minimo, limite]); return { familias: [], resumen: {} }; },
+  });
+
+  await servicio.estadisticasPorFamilia({ minimo: '-5', limite: '99999' });
+  await servicio.estadisticasPorFamilia({ minimo: 'abc' });
+  await servicio.estadisticasPorFamilia({ minimo: '2', limite: '100' }); // misma clave que la primera: cacheada
+  await servicio.estadisticasPorFamilia();                                // misma que la segunda
+
+  assert.deepEqual(llamadas, [[2, 100], [2, 50]]);
+});
+
+test('GET /resultados/por-familia exige resultados.view (019)', async () => {
+  const construirRutas = require('../src/modules/padron/routes');
+  const express = require('express');
+  const { manejadorErrores } = require('../src/core/errors');
+  const servicio = { estadisticasPorFamilia: async () => ({ familias: [], resumen: {} }) };
+  const crear = (permisos) => {
+    const app = express();
+    app.use((req, res, next) => { req.user = { id: 1, username: 't', permisos }; next(); });
+    app.use('/api/padron', construirRutas(servicio, { conexion() {} }));
+    app.use(manejadorErrores);
+    return app.listen(0);
+  };
+
+  for (const [permisos, esperado] of [[[], 403], [['resultados.view'], 200]]) {
+    const server = crear(permisos);
+    try {
+      const res = await fetch(`http://127.0.0.1:${server.address().port}/api/padron/resultados/por-familia`);
+      assert.equal(res.status, esperado);
+    } finally { server.close(); }
+  }
+});

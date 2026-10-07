@@ -10,9 +10,19 @@ function extraerDatosLista(body) {
   };
 }
 
+function extraerSuplentes(suplentes) {
+  if (!Array.isArray(suplentes)) return [];
+  return suplentes.map((s) => ({ nombre: s.nombre, orden: Number(s.orden) }));
+}
+
 function extraerCandidatos(body) {
   if (!Array.isArray(body.candidatos)) return body.candidatos;
-  return body.candidatos.map((c) => ({ nombre: c.nombre, orden: Number(c.orden) }));
+  return body.candidatos.map((c) => ({
+    nombre: c.nombre,
+    orden: Number(c.orden),
+    notas: typeof c.notas === 'string' ? c.notas : null,
+    suplentes: extraerSuplentes(c.suplentes),
+  }));
 }
 
 function construirRutas(servicio) {

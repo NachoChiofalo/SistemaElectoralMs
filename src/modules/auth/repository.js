@@ -60,9 +60,15 @@ class AuthRepository {
    * Registra la sesion recien creada: guarda el refresh token y reemplaza la sesion
    * activa del usuario. Va en una transaccion porque dejar una sin la otra produce
    * una sesion que no se puede renovar o un token que no autentica.
+   *
+   * Borra antes los refresh tokens previos del usuario: sin esto, el de una sesion ya
+   * reemplazada seguia siendo valido hasta sus 7 dias y permitia reabrir esa sesion
+   * vieja por encima de la nueva (ver specs/G3-sesion-jwt). `refreshToken` ya llega
+   * hasheado — el valor crudo nunca toca esta capa.
    */
   async abrirSesion({ userId, jti, refreshToken, expiraRefresh }) {
     await this.db.transaccion(async (cliente) => {
+      await cliente.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId]);
       await cliente.query(
         'INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)',
         [userId, refreshToken, expiraRefresh],
@@ -77,7 +83,7 @@ class AuthRepository {
     });
   }
 
-  /** Refresh token vigente junto con el usuario al que pertenece. */
+  /** Refresh token vigente junto con el usuario al que pertenece. `token` ya viene hasheado. */
   porRefreshToken(token) {
     return this.db.unaFila(
       `SELECT
@@ -93,10 +99,6 @@ class AuthRepository {
        GROUP BY rt.user_id, u.username, u.nombre_completo, u.email, u.activo, r.nombre`,
       [token],
     );
-  }
-
-  borrarRefreshToken(token) {
-    return this.db.query('DELETE FROM refresh_tokens WHERE token = $1', [token]);
   }
 
   /**

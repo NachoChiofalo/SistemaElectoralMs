@@ -69,7 +69,7 @@ async function arrancar() {
   }
 
   const servidor = app.listen(config.puerto, () => {
-    logger.info(`Sistema Electoral escuchando en el puerto ${config.puerto}`, { entorno: config.entorno });
+    logger.info(`ÁGORA escuchando en el puerto ${config.puerto}`, { entorno: config.entorno });
     montados.forEach((m) => logger.info(`  modulo ${m.nombre} -> ${m.basePath}${m.protegido ? ' (protegido)' : ''}`));
   });
 
@@ -77,6 +77,7 @@ async function arrancar() {
   // 502 esporadicos detras de un load balancer.
   servidor.keepAliveTimeout = 65_000;
   servidor.headersTimeout = 66_000;
+  servidor.requestTimeout = config.http.requestTimeoutMs;
 
   return { servidor, app };
 }

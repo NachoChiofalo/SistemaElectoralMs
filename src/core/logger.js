@@ -32,7 +32,10 @@ function emitir(nivel, mensaje, datos) {
   if (NIVELES[nivel] < nivelMinimo) return;
 
   const contexto = datos instanceof Error
-    ? { error: datos.message, stack: config.esProduccion ? undefined : datos.stack }
+    // El stack va siempre al log interno (BE-013): es lo que hace falta para diagnosticar un
+    // error no manejado. Lo que se oculta en produccion es el cuerpo de la respuesta HTTP,
+    // y eso lo decide core/errors.js, no este archivo.
+    ? { error: datos.message, stack: datos.stack }
     : limpiar(datos);
 
   if (config.esProduccion) {

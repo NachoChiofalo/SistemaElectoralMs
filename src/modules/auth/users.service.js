@@ -11,10 +11,14 @@ const sesiones = require('../../core/security/sessions');
 const { errores } = require('../../core/errors');
 const { COSTO_BCRYPT } = require('./service');
 
-// El formulario del web-admin valida 6 (UsuariosComponent.js:444). Subir el minimo del
-// lado del servidor sin tocar el cliente produciria un rechazo que el usuario no puede
-// anticipar, asi que se mantiene alineado. Conviene subirlo en ambos lados a la vez.
-const LARGO_MINIMO_PASSWORD = 6;
+// El formulario del web-admin (UsuariosComponent.js) valida el mismo minimo: tienen que
+// subir juntos, o el servidor rechaza algo que la pantalla dio por bueno.
+//
+// El maximo es el de bcrypt: ignora todo lo que pasa de 72 bytes, asi que una clave mas
+// larga no es mas fuerte, y sin tope un cuerpo gigante es CPU gratis para quien lo mande
+// (G8, BE-018/BE-019).
+const LARGO_MINIMO_PASSWORD = 8;
+const LARGO_MAXIMO_PASSWORD = 72;
 
 class UsersService {
   constructor(repositorio, auditoria) {
@@ -163,6 +167,9 @@ function validarPassword(password) {
   if (!password || password.length < LARGO_MINIMO_PASSWORD) {
     throw errores.solicitudInvalida(`La contrasena debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres`);
   }
+  if (Buffer.byteLength(password, 'utf8') > LARGO_MAXIMO_PASSWORD) {
+    throw errores.solicitudInvalida(`La contrasena no puede superar los ${LARGO_MAXIMO_PASSWORD} bytes`);
+  }
 }
 
-module.exports = { UsersService, LARGO_MINIMO_PASSWORD };
+module.exports = { UsersService, LARGO_MINIMO_PASSWORD, LARGO_MAXIMO_PASSWORD };

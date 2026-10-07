@@ -6,6 +6,8 @@
  * migracion y la conexion es la compartida.
  */
 
+const { config } = require('../../core/config');
+
 class AuditoriaRepository {
   constructor(db) {
     this.db = db;
@@ -92,18 +94,18 @@ class AuditoriaRepository {
   async estadisticas(opciones = {}) {
     const { where, params } = AuditoriaRepository.filtros(opciones);
 
-    const [porUsuario, porTipo, porDia, total] = await Promise.all([
+    const [porUsuario, porTipo, porDia, total, usuariosActivos] = await Promise.all([
       this.db.filas(
         `SELECT usuario_id, usuario_nombre, usuario_username, COUNT(*) AS total_operaciones
          FROM padron.auditoria ${where}
          GROUP BY usuario_id, usuario_nombre, usuario_username
-         ORDER BY total_operaciones DESC`,
+         ORDER BY total_operaciones DESC LIMIT 50`,
         params,
       ),
       this.db.filas(
         `SELECT operacion, COUNT(*) AS total
          FROM padron.auditoria ${where}
-         GROUP BY operacion ORDER BY total DESC`,
+         GROUP BY operacion ORDER BY total DESC LIMIT 50`,
         params,
       ),
       this.db.filas(
@@ -113,6 +115,7 @@ class AuditoriaRepository {
         params,
       ),
       this.db.unaFila(`SELECT COUNT(*)::int AS total FROM padron.auditoria ${where}`, params),
+      this.usuariosActivos(),
     ]);
 
     return {
@@ -120,11 +123,36 @@ class AuditoriaRepository {
       porUsuario,
       porTipo,
       porDia,
+      usuariosActivos,
     };
   }
 
   async porId(id) {
     return this.db.unaFila('SELECT * FROM padron.auditoria WHERE id = $1', [id]);
+  }
+
+  /**
+   * Sesiones con actividad reciente, no "usuarios que alguna vez hicieron algo" (eso es
+   * `porUsuario`, que es historico y depende del rango de fechas filtrado -- confundir
+   * las dos cosas es el bug que este metodo reemplaza: con un solo usuario logueado,
+   * `estadisticas()` mostraba la cantidad de personas distintas en TODO el historial de
+   * auditoria, sin filtro de fecha por defecto).
+   *
+   * `active_sessions` tiene una fila por usuario con sesion vigente (sesion unica, ver
+   * auth/migrations/001). Una sesion que vencio por inactividad puede seguir con fila
+   * ahi hasta el proximo request de esa persona (el borrado es perezoso, ver
+   * core/security/sessions.js#cerrarPorInactividad) -- por eso se filtra por la misma
+   * ventana de inactividad que usa la validacion de sesion, no por la existencia de la
+   * fila sola.
+   */
+  async usuariosActivos() {
+    const minutos = config.sesiones.timeoutInactividadMs / 60000;
+    const fila = await this.db.unaFila(
+      `SELECT COUNT(*)::int AS total FROM active_sessions
+       WHERE last_activity >= NOW() - ($1 || ' minutes')::interval`,
+      [minutos],
+    );
+    return fila.total;
   }
 }
 

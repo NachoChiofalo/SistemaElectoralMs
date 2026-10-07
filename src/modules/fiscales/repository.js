@@ -30,7 +30,7 @@ class FiscalesRepository {
       this.db.filas(
         `SELECT id, nombre, dni, telefono, created_at
          FROM elecciones.fiscales
-         ORDER BY nombre
+         ORDER BY nombre, id
          LIMIT $1 OFFSET $2`,
         [limit, offset],
       ),
@@ -128,7 +128,7 @@ class FiscalesRepository {
 
   async actualizarAsignacion(id, { fiscalId, desde, hasta }) {
     return this.db.unaFila(
-      `UPDATE elecciones.fiscal_asignaciones SET fiscal_id = $2, desde = $3, hasta = $4
+      `UPDATE elecciones.fiscal_asignaciones SET fiscal_id = $2, desde = $3, hasta = $4, updated_at = NOW()
        WHERE id = $1
        RETURNING id, mesa_id, fiscal_id, desde, hasta`,
       [id, fiscalId, desde, hasta],

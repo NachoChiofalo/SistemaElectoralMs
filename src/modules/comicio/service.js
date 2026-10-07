@@ -6,6 +6,7 @@
 const { errores } = require('../../core/errors');
 
 const TIPOS_ELECCION = ['provincial', 'municipal', 'nacional'];
+const COLORES_FUERZA = 8; // cantidad de tokens --ds-fuerza-1..8 en design-system.css
 
 function validarDatosComicio({ nombre, tipoEleccion }) {
   if (!nombre || typeof nombre !== 'string' || !nombre.trim()) {
@@ -13,6 +14,18 @@ function validarDatosComicio({ nombre, tipoEleccion }) {
   }
   if (!TIPOS_ELECCION.includes(tipoEleccion)) {
     throw errores.solicitudInvalida(`tipoEleccion invalido: tiene que ser uno de ${TIPOS_ELECCION.join(', ')}`);
+  }
+}
+
+function validarDatosFuerza({ nombre, sigla, color }) {
+  if (!nombre || typeof nombre !== 'string' || !nombre.trim()) {
+    throw errores.solicitudInvalida('El nombre de la fuerza es obligatorio');
+  }
+  if (sigla !== undefined && sigla !== null && typeof sigla !== 'string') {
+    throw errores.solicitudInvalida('La sigla de la fuerza tiene que ser texto');
+  }
+  if (!Number.isInteger(color) || color < 1 || color > COLORES_FUERZA) {
+    throw errores.solicitudInvalida(`El color tiene que ser un entero entre 1 y ${COLORES_FUERZA}`);
   }
 }
 
@@ -29,13 +42,65 @@ class ComicioService {
     this.auditoria = auditoria;
   }
 
+  // ---- Fuerzas ----
+
+  async crearFuerza(req, datos) {
+    validarDatosFuerza(datos);
+    const fuerza = await this.repo.crearFuerza(datos);
+
+    await this.auditoria.registrarDeRequest(req, {
+      operacion: 'CREAR',
+      entidad: 'fuerza',
+      entidad_id: fuerza.id,
+      datos_nuevos: fuerza,
+    });
+
+    return fuerza;
+  }
+
+  async listarFuerzas() {
+    return this.repo.listarFuerzas();
+  }
+
+  async actualizarFuerza(req, id, datos) {
+    const existente = await this.repo.fuerzaPorId(id);
+    if (!existente) throw errores.noEncontrado('Fuerza no encontrada');
+
+    validarDatosFuerza(datos);
+    const fuerza = await this.repo.actualizarFuerza(id, datos);
+
+    await this.auditoria.registrarDeRequest(req, {
+      operacion: 'EDITAR',
+      entidad: 'fuerza',
+      entidad_id: id,
+      datos_anteriores: existente,
+      datos_nuevos: fuerza,
+    });
+
+    return fuerza;
+  }
+
+  async eliminarFuerza(req, id) {
+    const existente = await this.repo.fuerzaPorId(id);
+    if (!existente) throw errores.noEncontrado('Fuerza no encontrada');
+
+    await this.repo.eliminarFuerza(id);
+
+    await this.auditoria.registrarDeRequest(req, {
+      operacion: 'ELIMINAR',
+      entidad: 'fuerza',
+      entidad_id: id,
+      datos_anteriores: existente,
+    });
+  }
+
   // ---- Comicios ----
 
-  async crearComicio(req, datos, listaIds) {
+  async crearComicio(req, datos, fuerzaIds) {
     validarDatosComicio(datos);
-    await this._validarListas(listaIds);
+    await this._validarFuerzas(fuerzaIds);
 
-    const comicio = await this.repo.crearComicio(datos, listaIds);
+    const comicio = await this.repo.crearComicio(datos, fuerzaIds);
 
     await this.auditoria.registrarDeRequest(req, {
       operacion: 'CREAR',
@@ -58,14 +123,14 @@ class ComicioService {
     });
   }
 
-  async actualizarComicio(req, id, datos, listaIds) {
+  async actualizarComicio(req, id, datos, fuerzaIds) {
     const existente = await this.repo.porIdComicio(id);
     if (!existente) throw errores.noEncontrado('Comicio no encontrado');
 
     validarDatosComicio(datos);
-    await this._validarListas(listaIds);
+    await this._validarFuerzas(fuerzaIds);
 
-    await this.repo.actualizarComicio(id, datos, listaIds);
+    await this.repo.actualizarComicio(id, datos, fuerzaIds);
     const actualizado = await this.repo.porIdComicio(id);
 
     await this.auditoria.registrarDeRequest(req, {
@@ -93,14 +158,14 @@ class ComicioService {
     });
   }
 
-  async _validarListas(listaIds) {
-    if (!Array.isArray(listaIds) || listaIds.length === 0) {
-      throw errores.solicitudInvalida('El comicio necesita al menos una lista participante');
+  async _validarFuerzas(fuerzaIds) {
+    if (!Array.isArray(fuerzaIds) || fuerzaIds.length === 0) {
+      throw errores.solicitudInvalida('El comicio necesita al menos una fuerza participante');
     }
-    const existentes = await this.repo.listasExistentes(listaIds);
-    const faltantes = listaIds.filter((id) => !existentes.includes(id));
+    const existentes = await this.repo.fuerzasExistentes(fuerzaIds);
+    const faltantes = fuerzaIds.filter((id) => !existentes.includes(id));
     if (faltantes.length > 0) {
-      throw errores.solicitudInvalida(`Las listas ${faltantes.join(', ')} no existen`);
+      throw errores.solicitudInvalida(`Las fuerzas ${faltantes.join(', ')} no existen`);
     }
   }
 
@@ -110,10 +175,27 @@ class ComicioService {
     const comicio = await this.repo.porIdComicio(comicioId);
     if (!comicio) throw errores.noEncontrado('Comicio no encontrado');
 
-    const { desde, hasta } = await this._validarRango(comicioId, numero, desdeDni, hastaDni, null);
+    if (!Number.isInteger(numero) || numero <= 0) {
+      throw errores.solicitudInvalida('El numero de mesa tiene que ser un entero positivo');
+    }
 
-    const mesa = await this.repo.crearMesa(comicioId, { numero, desdeDni, hastaDni });
-    const cantidadVotantes = await this.repo.contarVotantesEnRango(desde, hasta);
+    // La validacion del rango (si se manda) y el INSERT corren en la misma
+    // transaccion, bajo el lock de este comicio: dos POST concurrentes con rangos que
+    // se cruzan no pueden pasar los dos el chequeo de solapamiento antes de que
+    // cualquiera de los dos inserte (ver G1).
+    let rango = null;
+    const mesa = await this.repo.db.transaccion(async (cliente) => {
+      await this.repo.lockComicio(cliente, comicioId);
+      if (desdeDni || hastaDni) {
+        rango = await this._validarRango(cliente, comicioId, desdeDni, hastaDni, null);
+      }
+      return this.repo.crearMesa(cliente, comicioId, { numero, desdeDni, hastaDni });
+    });
+
+    // Fuera de la transaccion, ya comprometida: contarVotantesEnRango no depende de lo
+    // que se acaba de escribir, y leerla por el pool antes de este punto violaria la
+    // regla de CLAUDE.md de no leer por el pool dentro de una transaccion.
+    const cantidadVotantes = rango ? await this.repo.contarVotantesEnRango(rango.desde, rango.hasta) : null;
 
     await this.auditoria.registrarDeRequest(req, {
       operacion: 'CREAR',
@@ -129,10 +211,20 @@ class ComicioService {
     const existente = await this.repo.mesaPorId(mesaId);
     if (!existente || existente.comicio_id !== comicioId) throw errores.noEncontrado('Mesa no encontrada');
 
-    const { desde, hasta } = await this._validarRango(comicioId, numero, desdeDni, hastaDni, mesaId);
+    if (!Number.isInteger(numero) || numero <= 0) {
+      throw errores.solicitudInvalida('El numero de mesa tiene que ser un entero positivo');
+    }
 
-    const mesa = await this.repo.actualizarMesa(mesaId, { numero, desdeDni, hastaDni });
-    const cantidadVotantes = await this.repo.contarVotantesEnRango(desde, hasta);
+    let rango = null;
+    const mesa = await this.repo.db.transaccion(async (cliente) => {
+      await this.repo.lockComicio(cliente, comicioId);
+      if (desdeDni || hastaDni) {
+        rango = await this._validarRango(cliente, comicioId, desdeDni, hastaDni, mesaId);
+      }
+      return this.repo.actualizarMesa(cliente, mesaId, { numero, desdeDni, hastaDni });
+    });
+
+    const cantidadVotantes = rango ? await this.repo.contarVotantesEnRango(rango.desde, rango.hasta) : null;
 
     await this.auditoria.registrarDeRequest(req, {
       operacion: 'EDITAR',
@@ -159,12 +251,22 @@ class ComicioService {
     });
   }
 
-  async _validarRango(comicioId, numero, desdeDni, hastaDni, excluirMesaId) {
-    if (!Number.isInteger(numero) || numero <= 0) {
-      throw errores.solicitudInvalida('El numero de mesa tiene que ser un entero positivo');
+  /**
+   * El rango es opcional, pero si se manda uno de los dos DNI hay que mandar el otro.
+   * `cliente`: corre dentro de la transaccion de `crearMesa`/`actualizarMesa`, con el
+   * lock de `lockComicio` ya tomado -- el chequeo de solapamiento y el INSERT/UPDATE
+   * que sigue tienen que ver el mismo estado, o dos requests concurrentes podrian pasar
+   * los dos el chequeo antes de que cualquiera escriba (ver G1).
+   */
+  async _validarRango(cliente, comicioId, desdeDni, hastaDni, excluirMesaId) {
+    if (!desdeDni || !hastaDni) {
+      throw errores.solicitudInvalida('El rango de padrón necesita los dos DNI (desde y hasta), o ninguno');
     }
 
-    const [desde, hasta] = await Promise.all([this.repo.votante(desdeDni), this.repo.votante(hastaDni)]);
+    const [desde, hasta] = await Promise.all([
+      this.repo.votante(desdeDni, cliente),
+      this.repo.votante(hastaDni, cliente),
+    ]);
     if (!desde) throw errores.solicitudInvalida(`No existe un votante con DNI ${desdeDni}`);
     if (!hasta) throw errores.solicitudInvalida(`No existe un votante con DNI ${hastaDni}`);
 
@@ -172,7 +274,7 @@ class ComicioService {
       throw errores.solicitudInvalida('El DNI "hasta" no puede ir antes que el DNI "desde" en el orden del padrón');
     }
 
-    const solapadas = await this.repo.mesasSolapadas(comicioId, desde, hasta, excluirMesaId);
+    const solapadas = await this.repo.mesasSolapadas(comicioId, desde, hasta, excluirMesaId, cliente);
     if (solapadas.length > 0) {
       throw errores.conflicto(
         `El rango se solapa con la mesa ${solapadas[0].numero}`,
@@ -185,24 +287,31 @@ class ComicioService {
 
   // ---- Votos ----
 
-  async cargarVotos(req, comicioId, mesaId, { blancos, nulos, porLista }) {
+  async cargarVotos(req, comicioId, mesaId, { blancos, nulos, porFuerza }) {
     const mesa = await this.repo.mesaPorId(mesaId);
     if (!mesa || mesa.comicio_id !== comicioId) throw errores.noEncontrado('Mesa no encontrada');
 
     this._validarCantidad(blancos, 'blancos');
     this._validarCantidad(nulos, 'nulos');
 
-    if (!Array.isArray(porLista)) throw errores.solicitudInvalida('porLista tiene que ser un array');
+    if (!Array.isArray(porFuerza)) throw errores.solicitudInvalida('porFuerza tiene que ser un array');
 
-    const listasDelComicio = (await this.repo.listasDeComicio(comicioId)).map((l) => l.id);
-    for (const voto of porLista) {
-      if (!listasDelComicio.includes(voto.listaId)) {
-        throw errores.solicitudInvalida(`La lista ${voto.listaId} no participa de este comicio`);
+    const fuerzasDelComicio = (await this.repo.fuerzasDeComicio(comicioId)).map((f) => f.id);
+    const vistas = new Set();
+    for (const voto of porFuerza) {
+      // La misma fuerza dos veces violaria la clave primaria compuesta recien en el
+      // INSERT, y volveria como un 500 en vez de un 400 (BE-028).
+      if (vistas.has(voto.fuerzaId)) {
+        throw errores.solicitudInvalida(`La fuerza ${voto.fuerzaId} aparece mas de una vez`);
       }
-      this._validarCantidad(voto.cantidad, `voto de la lista ${voto.listaId}`);
+      vistas.add(voto.fuerzaId);
+      if (!fuerzasDelComicio.includes(voto.fuerzaId)) {
+        throw errores.solicitudInvalida(`La fuerza ${voto.fuerzaId} no participa de este comicio`);
+      }
+      this._validarCantidad(voto.cantidad, `voto de la fuerza ${voto.fuerzaId}`);
     }
 
-    const resultado = await this.repo.reemplazarVotos(mesaId, { blancos, nulos, porLista });
+    const resultado = await this.repo.reemplazarVotos(mesaId, { blancos, nulos, porFuerza });
 
     await this.auditoria.registrarDeRequest(req, {
       operacion: 'EDITAR',
@@ -235,4 +344,4 @@ class ComicioService {
   }
 }
 
-module.exports = { ComicioService, TIPOS_ELECCION };
+module.exports = { ComicioService, TIPOS_ELECCION, COLORES_FUERZA };

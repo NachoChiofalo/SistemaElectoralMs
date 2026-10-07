@@ -16,15 +16,6 @@ const CAMPOS_ORDEN = {
   sexo: 'v.sexo',
 };
 
-const COLUMNAS_EXPORT = `
-  v.dni, v.apellido, v.nombre, v.anio_nac, v.domicilio,
-  v.tipo_ejemplar, v.circuito, v.sexo, v.edad,
-  r.opcion_politica, r.observacion, r.fecha_relevamiento,
-  r.fecha_modificacion, r.es_nuevo_votante, r.esta_fallecido,
-  r.es_empleado_municipal, r.recibe_ayuda_social,
-  r.observaciones_detalle, r.fecha_detalle, r.telefono
-`;
-
 /** Bloque de agregados de voto, identico en las cuatro consultas de resultados. */
 const AGREGADOS_VOTO = `
   COUNT(*)                                              AS total_votantes,
@@ -138,21 +129,17 @@ class PadronRepository {
     return total;
   }
 
+  /**
+   * Alta de un votante. Devuelve `null` si el DNI ya existe: antes era un upsert que
+   * reescribia domicilio/circuito/tipo_ejemplar de un votante real sin version ni aviso
+   * (BE-005). Corregir un dato existente es otra operacion, con su propio control.
+   */
   insertarVotante(votante) {
     return this.db.unaFila(
       `INSERT INTO padron.votantes
          (dni, anio_nac, apellido, nombre, domicilio, tipo_ejemplar, circuito, sexo, edad)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       ON CONFLICT (dni) DO UPDATE SET
-         anio_nac      = EXCLUDED.anio_nac,
-         apellido      = EXCLUDED.apellido,
-         nombre        = EXCLUDED.nombre,
-         domicilio     = EXCLUDED.domicilio,
-         tipo_ejemplar = EXCLUDED.tipo_ejemplar,
-         circuito      = EXCLUDED.circuito,
-         sexo          = EXCLUDED.sexo,
-         edad          = EXCLUDED.edad,
-         updated_at    = CURRENT_TIMESTAMP
+       ON CONFLICT (dni) DO NOTHING
        RETURNING dni, anio_nac, apellido, nombre, domicilio, tipo_ejemplar, circuito, sexo, edad`,
       [
         votante.dni, votante.anio_nac, votante.apellido, votante.nombre,
@@ -433,6 +420,31 @@ class PadronRepository {
     );
   }
 
+  /**
+   * Apellidos que comparten al menos `minimo` votantes. Consultas agregadas: el HAVING y
+   * el LIMIT los aplica Postgres, no el servicio.
+   */
+  async estadisticasPorFamilia(minimo, limite) {
+    const [familias, resumen] = await Promise.all([
+      this.db.filas(
+        `SELECT v.apellido, ${AGREGADOS_VOTO}
+         FROM padron.votantes v
+         LEFT JOIN padron.relevamientos r ON v.dni = r.dni
+         GROUP BY v.apellido
+         HAVING COUNT(*) >= $1
+         ORDER BY COUNT(*) DESC, v.apellido
+         LIMIT $2`,
+        [minimo, limite],
+      ),
+      this.db.unaFila(
+        `SELECT COUNT(*)::int AS apellidos, COALESCE(SUM(n), 0)::int AS personas
+         FROM (SELECT COUNT(*) AS n FROM padron.votantes GROUP BY apellido HAVING COUNT(*) >= $1) t`,
+        [minimo],
+      ),
+    ]);
+    return { familias, resumen };
+  }
+
   estadisticasCondicionesDetalladas() {
     return this.db.unaFila(
       `SELECT
@@ -485,13 +497,6 @@ class PadronRepository {
    * Cursor sobre las filas a exportar. Devuelve un stream en lugar de un array para
    * que exportar el padron completo no cargue la tabla entera en memoria.
    */
-  streamExportacion(soloRelevados) {
-    const join = soloRelevados ? 'INNER JOIN' : 'LEFT JOIN';
-    return `SELECT ${COLUMNAS_EXPORT}
-            FROM padron.votantes v
-            ${join} padron.relevamientos r ON v.dni = r.dni
-            ORDER BY v.apellido ASC, v.nombre ASC`;
-  }
 }
 
 module.exports = { PadronRepository, CAMPOS_ORDEN };

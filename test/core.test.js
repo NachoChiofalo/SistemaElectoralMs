@@ -195,6 +195,7 @@ test('el manejador de errores traduce codigos de PostgreSQL a HTTP', () => {
     [{ code: '23503' }, 400],
     [{ code: '22P02' }, 400],
     [{ code: '57014' }, 503],
+    [{ code: '23P01' }, 409],
     [{ code: 'ECONNREFUSED' }, 503],
     [errores.noEncontrado(), 404],
     [new Error('bug inesperado'), 500],

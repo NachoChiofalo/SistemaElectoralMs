@@ -23,7 +23,7 @@ class ListasRepository {
     });
   }
 
-  /** Lista con sus candidatos ordenados, o null si no existe. */
+  /** Lista con sus candidatos (y suplentes) ordenados, o null si no existe. */
   async porId(id) {
     const lista = await this.db.unaFila(
       'SELECT id, nombre, tipo_eleccion, cantidad_lugares, created_at FROM elecciones.listas WHERE id = $1',
@@ -31,55 +31,61 @@ class ListasRepository {
     );
     if (!lista) return null;
 
-    const candidatos = await this.db.filas(
-      'SELECT id, nombre, orden FROM elecciones.candidatos WHERE lista_id = $1 ORDER BY orden',
-      [id],
-    );
-
-    return { ...lista, candidatos };
+    const candidatosPorLista = await this._candidatosDeListas([id]);
+    lista.candidatos = candidatosPorLista.get(id) || [];
+    return lista;
   }
 
-  /** Listado paginado, sin candidatos (se piden aparte con porId). */
+  /**
+   * Listado paginado, con los candidatos y suplentes completos de cada lista: la
+   * pantalla los muestra ahi mismo, sin pedir el detalle aparte. El volumen esperado
+   * (unas pocas listas por eleccion, con pocos candidatos cada una) es lo que hace que
+   * esto siga siendo tres consultas en total y no N+1: una para las listas de la
+   * pagina, una para todos sus candidatos y una para todos los suplentes de esos
+   * candidatos.
+   */
   async listar({ page, limit }) {
     const offset = (page - 1) * limit;
 
     const [registros, { total }] = await Promise.all([
-      // El conteo de candidatos por lista es barato: el volumen esperado es de unas
-      // pocas listas por eleccion, y candidatos_count evita que el listado tenga que
-      // traer los candidatos completos (eso es lo que hace porId, para una sola lista).
       this.db.filas(
-        `SELECT l.id, l.nombre, l.tipo_eleccion, l.cantidad_lugares, l.created_at,
-                COUNT(c.id)::int AS candidatos_count
-         FROM elecciones.listas l
-         LEFT JOIN elecciones.candidatos c ON c.lista_id = l.id
-         GROUP BY l.id
-         ORDER BY l.created_at DESC, l.id DESC
+        `SELECT id, nombre, tipo_eleccion, cantidad_lugares, created_at
+         FROM elecciones.listas
+         ORDER BY created_at DESC, id DESC
          LIMIT $1 OFFSET $2`,
         [limit, offset],
       ),
       this.db.unaFila('SELECT COUNT(*)::int AS total FROM elecciones.listas'),
     ]);
 
+    const candidatosPorLista = await this._candidatosDeListas(registros.map((l) => l.id));
+    for (const lista of registros) {
+      lista.candidatos = candidatosPorLista.get(lista.id) || [];
+    }
+
     return { registros, total, page, limit };
   }
 
-  /** Actualiza nombre/tipo/cantidad de lugares. No toca candidatos. */
-  async actualizarDatos(id, { nombre, tipoEleccion, cantidadLugares }) {
-    return this.db.unaFila(
-      `UPDATE elecciones.listas
-       SET nombre = $2, tipo_eleccion = $3, cantidad_lugares = $4
-       WHERE id = $1
-       RETURNING id, nombre, tipo_eleccion, cantidad_lugares, created_at`,
-      [id, nombre, tipoEleccion, cantidadLugares],
-    );
-  }
-
-  /** Reemplaza el set completo de candidatos de una lista, en una transaccion. */
-  async reemplazarCandidatos(listaId, candidatos) {
+  /**
+   * Actualiza nombre/tipo/cantidad de lugares y reemplaza el set completo de candidatos
+   * (con sus suplentes) en UNA transaccion: si el reemplazo falla, los datos de la lista
+   * tampoco cambian (BE-011). Antes eran dos transacciones y un corte entre ambas dejaba
+   * metadata nueva con candidatos viejos.
+   */
+  async actualizarCompleta(id, { nombre, tipoEleccion, cantidadLugares }, candidatos) {
     return this.db.transaccion(async (cliente) => {
-      await cliente.query('DELETE FROM elecciones.candidatos WHERE lista_id = $1', [listaId]);
-      await this._insertarCandidatos(cliente, listaId, candidatos);
-      return this._ordenados(candidatos);
+      const { rows: [lista] } = await cliente.query(
+        `UPDATE elecciones.listas
+         SET nombre = $2, tipo_eleccion = $3, cantidad_lugares = $4
+         WHERE id = $1
+         RETURNING id, nombre, tipo_eleccion, cantidad_lugares, created_at`,
+        [id, nombre, tipoEleccion, cantidadLugares],
+      );
+      // El ON DELETE CASCADE de `suplentes` se lleva puesto a los suplentes de los
+      // candidatos borrados: no hace falta un DELETE aparte para ellos.
+      await cliente.query('DELETE FROM elecciones.candidatos WHERE lista_id = $1', [id]);
+      await this._insertarCandidatos(cliente, id, candidatos);
+      return { lista, candidatos: this._ordenados(candidatos) };
     });
   }
 
@@ -91,15 +97,68 @@ class ListasRepository {
 
   async _insertarCandidatos(cliente, listaId, candidatos) {
     for (const candidato of candidatos) {
+      const { rows: [fila] } = await cliente.query(
+        `INSERT INTO elecciones.candidatos (lista_id, nombre, orden, notas)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id`,
+        [listaId, candidato.nombre, candidato.orden, candidato.notas ?? null],
+      );
+      await this._insertarSuplentes(cliente, fila.id, candidato.suplentes || []);
+    }
+  }
+
+  async _insertarSuplentes(cliente, candidatoId, suplentes) {
+    for (const suplente of suplentes) {
       await cliente.query(
-        'INSERT INTO elecciones.candidatos (lista_id, nombre, orden) VALUES ($1, $2, $3)',
-        [listaId, candidato.nombre, candidato.orden],
+        'INSERT INTO elecciones.suplentes (candidato_id, nombre, orden) VALUES ($1, $2, $3)',
+        [candidatoId, suplente.nombre, suplente.orden],
       );
     }
   }
 
+  /** Mapa lista_id -> candidatos (con sus suplentes), para varias listas a la vez. */
+  async _candidatosDeListas(listaIds) {
+    const mapa = new Map();
+    if (listaIds.length === 0) return mapa;
+
+    const candidatos = await this.db.filas(
+      `SELECT id, lista_id, nombre, orden, notas FROM elecciones.candidatos
+       WHERE lista_id = ANY($1) ORDER BY orden`,
+      [listaIds],
+    );
+
+    const suplentesPorCandidato = await this._suplentesDeCandidatos(candidatos.map((c) => c.id));
+
+    for (const candidato of candidatos) {
+      candidato.suplentes = suplentesPorCandidato.get(candidato.id) || [];
+      if (!mapa.has(candidato.lista_id)) mapa.set(candidato.lista_id, []);
+      mapa.get(candidato.lista_id).push(candidato);
+    }
+    return mapa;
+  }
+
+  /** Mapa candidato_id -> suplentes, para varios candidatos a la vez. */
+  async _suplentesDeCandidatos(candidatoIds) {
+    const mapa = new Map();
+    if (candidatoIds.length === 0) return mapa;
+
+    const suplentes = await this.db.filas(
+      `SELECT id, candidato_id, nombre, orden FROM elecciones.suplentes
+       WHERE candidato_id = ANY($1) ORDER BY orden`,
+      [candidatoIds],
+    );
+
+    for (const suplente of suplentes) {
+      if (!mapa.has(suplente.candidato_id)) mapa.set(suplente.candidato_id, []);
+      mapa.get(suplente.candidato_id).push(suplente);
+    }
+    return mapa;
+  }
+
   _ordenados(candidatos) {
-    return [...candidatos].sort((a, b) => a.orden - b.orden);
+    return [...candidatos]
+      .sort((a, b) => a.orden - b.orden)
+      .map((c) => ({ ...c, suplentes: [...(c.suplentes || [])].sort((a, b) => a.orden - b.orden) }));
   }
 }
 

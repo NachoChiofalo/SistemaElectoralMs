@@ -1,7 +1,7 @@
 {
   "name": "sistema-electoral",
   "version": "2.0.0",
-  "description": "Sistema Electoral - monolito modular (padron, autenticacion y resultados)",
+  "description": "ÁGORA - monolito modular (padron, autenticacion y resultados)",
   "main": "src/server.js",
   "engines": {
     "node": ">=20 <23"
@@ -36,7 +36,7 @@
     "padron",
     "monolito-modular"
   ],
-  "author": "Sistema Electoral",
+  "author": "ÁGORA",
   "license": "MIT",
   "overrides": {
     "qs": "^6.16.0"

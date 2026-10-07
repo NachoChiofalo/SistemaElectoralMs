@@ -19,6 +19,10 @@ const OPCIONES_COMUNES = {
   audience: config.jwt.audiencia,
 };
 
+// Se firma y se verifica con HS256 explicito: sin `algorithms`, verify() acepta lo que
+// diga el header del token (BE-012).
+const ALGORITMO = 'HS256';
+
 /**
  * Emite un access token. El jti identifica la sesion: es lo que se compara contra
  * active_sessions y lo que se agrega a token_blacklist en el logout.
@@ -33,7 +37,7 @@ function firmar(usuario, jti = crypto.randomUUID()) {
       jti,
     },
     config.jwt.secreto,
-    { ...OPCIONES_COMUNES, expiresIn: config.jwt.expiracion },
+    { ...OPCIONES_COMUNES, algorithm: ALGORITMO, expiresIn: config.jwt.expiracion },
   );
 
   return { token, jti };
@@ -44,6 +48,15 @@ function nuevoRefreshToken() {
 }
 
 /**
+ * Hash del refresh token para persistirlo. Es un valor de alta entropia generado por
+ * el propio servidor, no una contrasena elegida por una persona: alcanza con SHA-256,
+ * sin el costo de bcrypt en cada /refresh.
+ */
+function hashRefreshToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+/**
  * Verifica firma, vigencia, issuer y audience. No toca la base: la validez de la
  * SESION (revocacion, sesion unica, inactividad) la resuelve core/security/sessions.
  *
@@ -51,7 +64,7 @@ function nuevoRefreshToken() {
  */
 function verificar(token) {
   try {
-    return jwt.verify(token, config.jwt.secreto, OPCIONES_COMUNES);
+    return jwt.verify(token, config.jwt.secreto, { ...OPCIONES_COMUNES, algorithms: [ALGORITMO] });
   } catch (error) {
     if (error.name === 'TokenExpiredError') throw errores.noAutenticado('Token expirado');
     if (error.name === 'JsonWebTokenError') throw errores.noAutenticado('Token invalido');
@@ -59,9 +72,20 @@ function verificar(token) {
   }
 }
 
-/** Lee los claims sin validar la firma. Solo para el logout, que acepta tokens vencidos. */
-function decodificar(token) {
-  return jwt.decode(token);
+/**
+ * Verifica firma, issuer y audience igual que verificar(), pero sin exigir vigencia.
+ * Solo para el logout: una sesion ya vencida tiene que poder cerrarse, pero el token
+ * presentado tiene que ser uno que el servidor firmo alguna vez, no cualquier JSON con
+ * forma de JWT.
+ *
+ * @throws {AppError} 401 si la firma, el issuer o la audience no son validos.
+ */
+function verificarIgnorandoExpiracion(token) {
+  try {
+    return jwt.verify(token, config.jwt.secreto, { ...OPCIONES_COMUNES, algorithms: [ALGORITMO], ignoreExpiration: true });
+  } catch (error) {
+    throw errores.noAutenticado('Token invalido');
+  }
 }
 
 /** Extrae el token del header Authorization, o null si no hay uno utilizable. */
@@ -72,4 +96,11 @@ function extraerDeHeader(req) {
   return token || null;
 }
 
-module.exports = { firmar, verificar, decodificar, extraerDeHeader, nuevoRefreshToken };
+module.exports = {
+  firmar,
+  verificar,
+  verificarIgnorandoExpiracion,
+  extraerDeHeader,
+  nuevoRefreshToken,
+  hashRefreshToken,
+};

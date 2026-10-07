@@ -20,6 +20,19 @@ function bool(value, porDefecto) {
   return value === 'true' || value === '1';
 }
 
+/**
+ * `trust proxy` de Express: un numero es "cantidad de saltos", pero una variable de
+ * entorno siempre llega como string -- y Express trata un string como lista de IPs/CIDR,
+ * no como cantidad de saltos (BE-003). Se convierte aca lo que es numerico o booleano;
+ * el resto ('loopback', '10.0.0.0/8') se deja pasar tal cual.
+ */
+function trustProxy(value, porDefecto) {
+  if (value === undefined || value === '') return porDefecto;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return /^\d+$/.test(value) ? Number.parseInt(value, 10) : value;
+}
+
 function entero(value, porDefecto) {
   const n = Number.parseInt(value, 10);
   return Number.isFinite(n) ? n : porDefecto;
@@ -126,10 +139,10 @@ const config = {
 
   http: {
     // Detras del proxy de Render/nginx hace falta para que req.ip sea el real.
-    trustProxy: process.env.TRUST_PROXY === undefined ? 1 : process.env.TRUST_PROXY,
+    trustProxy: trustProxy(process.env.TRUST_PROXY, 1),
     origenesCors: [
-      'http://localhost:3000',
-      'http://localhost:8080',
+      // Solo en desarrollo (BE-034): en produccion estos origenes no corresponden a nadie.
+      ...(esProduccion ? [] : ['http://localhost:3000', 'http://localhost:8080']),
       process.env.FRONTEND_URL,
       process.env.CORS_ORIGIN,
       process.env.PUBLIC_EXTERNAL_URL,
@@ -139,8 +152,13 @@ const config = {
       activo: bool(process.env.RATE_LIMIT_ENABLED, true),
       ventanaMs: entero(process.env.RATE_LIMIT_WINDOW_MS, 15 * MINUTO),
       max: entero(process.env.RATE_LIMIT_MAX, 1000),
+      // Intentos de login fallidos por IP + usuario dentro de la misma ventana (BE-004/006).
+      loginMax: entero(process.env.RATE_LIMIT_LOGIN_MAX, 10),
     },
     limiteBody: process.env.BODY_LIMIT || '10mb',
+    // Tiempo maximo para recibir un request completo (BE-037). Node 20 deja 5 minutos; la
+    // subida de un CSV grande es lo mas lento que se espera, por eso no baja de 2.
+    requestTimeoutMs: entero(process.env.REQUEST_TIMEOUT_MS, 120_000),
     cacheEstaticosMs: entero(process.env.STATIC_CACHE_MS, 3600_000),
   },
 

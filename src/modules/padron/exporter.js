@@ -23,7 +23,12 @@ const ENCABEZADOS = [
 
 function escapar(valor) {
   if (valor === null || valor === undefined) return '';
-  const texto = String(valor);
+  let texto = String(valor);
+  // Una celda que empieza con = + - @ (o tab/CR) la interpreta Excel como formula: un
+  // apellido u observacion cargados a mano podrian ejecutar algo al abrir el CSV
+  // (BE-020). Se antepone una comilla simple, salvo que sea un numero o telefono, que
+  // no puede contener una formula util y que no hay que alterar.
+  if (/^[=+\-@\t\r]/.test(texto) && !/^[+-]?[\d\s().-]+$/.test(texto)) texto = `'${texto}`;
   if (/[",\n\r]/.test(texto)) return `"${texto.replace(/"/g, '""')}"`;
   return texto;
 }
@@ -61,6 +66,23 @@ async function exportar(db, res, soloRelevados) {
   res.write('﻿');
   res.write(`${ENCABEZADOS.join(',')}\n`);
 
+  let escritas = 0;
+  try {
+    escritas = await escribirLotes(db, res, join);
+  } catch (error) {
+    // Los headers y parte del CSV ya salieron: no se puede responder con un JSON de
+    // error. Cortar la conexion es la unica forma de que el cliente se entere de que el
+    // archivo quedo incompleto, en vez de guardar un CSV truncado como si estuviera bien
+    // (BE-008).
+    res.destroy(error);
+    throw error;
+  }
+
+  res.end();
+  return escritas;
+}
+
+async function escribirLotes(db, res, join) {
   let escritas = 0;
   // Cursor keyset: (apellido, nombre, dni) es unico porque dni es la clave primaria.
   // Con OFFSET, la ultima pagina obligaria a Postgres a recorrer toda la tabla.
@@ -103,7 +125,6 @@ async function exportar(db, res, soloRelevados) {
     if (filas.length < TAMANO_LOTE) break;
   }
 
-  res.end();
   return escritas;
 }
 

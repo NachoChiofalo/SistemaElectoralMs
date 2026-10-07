@@ -14,7 +14,7 @@ const assert = require('node:assert/strict');
 const express = require('express');
 
 const { manejadorErrores, manejadorNoEncontrado } = require('../src/core/errors');
-const { ListasService, TOPE_CANDIDATOS } = require('../src/modules/listas/service');
+const { ListasService, TOPE_CANDIDATOS, TOPE_SUPLENTES, TOPE_NOTAS } = require('../src/modules/listas/service');
 const construirRutas = require('../src/modules/listas/routes');
 
 const DATOS_VALIDOS = { nombre: 'Lista 1', tipoEleccion: 'municipal', cantidadLugares: 5 };
@@ -41,14 +41,11 @@ function repoFalso(inicial = null) {
         : [];
       return { registros, total: guardada ? 1 : 0, page, limit };
     },
-    async actualizarDatos(id, datos) {
-      guardada = { ...guardada, ...datos, id };
-      return guardada;
-    },
-    async reemplazarCandidatos(id, candidatos) {
+    async actualizarCompleta(id, datos, candidatos) {
       const ordenados = [...candidatos].sort((a, b) => a.orden - b.orden);
-      guardada = { ...guardada, candidatos: ordenados };
-      return ordenados;
+      guardada = { ...guardada, ...datos, id, candidatos: ordenados };
+      const { candidatos: _, ...lista } = guardada;
+      return { lista, candidatos: ordenados };
     },
     async eliminar(id) {
       const existia = guardada && guardada.id === id;
@@ -143,6 +140,45 @@ test(`mas de ${TOPE_CANDIDATOS} candidatos da 400 y no se trunca`, async () => {
   const { repo, auditoria } = repoFalso();
   const servicio = new ListasService(repo, auditoria);
   const candidatos = Array.from({ length: TOPE_CANDIDATOS + 1 }, (_, i) => ({ nombre: `C${i}`, orden: i + 1 }));
+
+  await assert.rejects(servicio.crear({}, DATOS_VALIDOS, candidatos), (error) => error.status === 400);
+});
+
+test('candidato con suplentes validos se acepta', async () => {
+  const { repo, auditoria } = repoFalso();
+  const servicio = new ListasService(repo, auditoria);
+  const candidatos = [
+    { nombre: 'Ana', orden: 1, notas: 'confirmar DNI', suplentes: [{ nombre: 'Sup 1', orden: 1 }, { nombre: 'Sup 2', orden: 2 }] },
+    { nombre: 'Beto', orden: 2 },
+  ];
+
+  const lista = await servicio.crear({}, DATOS_VALIDOS, candidatos);
+  assert.deepEqual(lista.candidatos[0].suplentes.map((s) => s.nombre), ['Sup 1', 'Sup 2']);
+});
+
+test('suplentes con orden duplicado da 400', async () => {
+  const { repo, auditoria } = repoFalso();
+  const servicio = new ListasService(repo, auditoria);
+  const candidatos = [
+    { nombre: 'Ana', orden: 1, suplentes: [{ nombre: 'Sup 1', orden: 1 }, { nombre: 'Sup 2', orden: 1 }] },
+  ];
+
+  await assert.rejects(servicio.crear({}, DATOS_VALIDOS, candidatos), (error) => error.status === 400);
+});
+
+test(`mas de ${TOPE_SUPLENTES} suplentes en un candidato da 400`, async () => {
+  const { repo, auditoria } = repoFalso();
+  const servicio = new ListasService(repo, auditoria);
+  const suplentes = Array.from({ length: TOPE_SUPLENTES + 1 }, (_, i) => ({ nombre: `S${i}`, orden: i + 1 }));
+  const candidatos = [{ nombre: 'Ana', orden: 1, suplentes }];
+
+  await assert.rejects(servicio.crear({}, DATOS_VALIDOS, candidatos), (error) => error.status === 400);
+});
+
+test('notas que no son texto da 400', async () => {
+  const { repo, auditoria } = repoFalso();
+  const servicio = new ListasService(repo, auditoria);
+  const candidatos = [{ nombre: 'Ana', orden: 1, notas: 123 }];
 
   await assert.rejects(servicio.crear({}, DATOS_VALIDOS, candidatos), (error) => error.status === 400);
 });
@@ -261,6 +297,55 @@ test('GET /api/listas respeta el techo del limite', async () => {
     const body = await res.json();
     assert.equal(res.status, 200);
     assert.equal(body.paginacion.registrosPorPagina, 100);
+  } finally {
+    server.close();
+  }
+});
+
+test(`notas de mas de ${TOPE_NOTAS} caracteres dan 400 (BE-030)`, async () => {
+  const { repo, auditoria } = repoFalso();
+  const servicio = new ListasService(repo, auditoria);
+  const candidatos = [{ nombre: 'Ana', orden: 1, notas: 'x'.repeat(TOPE_NOTAS + 1) }];
+
+  await assert.rejects(servicio.crear({}, DATOS_VALIDOS, candidatos), (error) => error.status === 400);
+});
+
+test('PUT /api/listas/:id con listas.edit actualiza y responde 200 (BE-031)', async () => {
+  const servicio = servicioReal();
+  const creada = await servicio.crear({}, DATOS_VALIDOS, CANDIDATOS_VALIDOS);
+  const app = appConUsuario(servicio, ['listas.edit']);
+  const server = app.listen(0);
+  try {
+    const res = await fetch(`http://127.0.0.1:${server.address().port}/api/listas/${creada.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...DATOS_VALIDOS, nombre: 'Renombrada', candidatos: CANDIDATOS_VALIDOS }),
+    });
+    const body = await res.json();
+
+    assert.equal(res.status, 200);
+    assert.equal(body.data.nombre, 'Renombrada');
+  } finally {
+    server.close();
+  }
+});
+
+test('PUT y DELETE /api/listas/:id con solo listas.view dan 403 (BE-031)', async () => {
+  const servicio = servicioReal();
+  const creada = await servicio.crear({}, DATOS_VALIDOS, CANDIDATOS_VALIDOS);
+  const app = appConUsuario(servicio, ['listas.view']);
+  const server = app.listen(0);
+  try {
+    const url = `http://127.0.0.1:${server.address().port}/api/listas/${creada.id}`;
+    const put = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...DATOS_VALIDOS, candidatos: CANDIDATOS_VALIDOS }),
+    });
+    const del = await fetch(url, { method: 'DELETE' });
+
+    assert.equal(put.status, 403);
+    assert.equal(del.status, 403);
   } finally {
     server.close();
   }

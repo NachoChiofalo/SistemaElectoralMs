@@ -6,21 +6,56 @@ function extraerDatosComicio(body) {
   return { nombre: body.nombre, tipoEleccion: body.tipoEleccion };
 }
 
-function extraerListaIds(body) {
-  if (!Array.isArray(body.listaIds)) return body.listaIds;
-  return body.listaIds.map(Number);
+function extraerFuerzaIds(body) {
+  if (!Array.isArray(body.fuerzaIds)) return body.fuerzaIds;
+  return body.fuerzaIds.map(Number);
+}
+
+function extraerDatosFuerza(body) {
+  return {
+    nombre: body.nombre,
+    sigla: body.sigla || null,
+    // Ausente = el color por defecto; un valor invalido ('abc', 99) NO se corrige en
+    // silencio a 1: lo rechaza validarDatosFuerza con un 400 (BE-048).
+    color: body.color === undefined || body.color === null || body.color === '' ? 1 : Number(body.color),
+    listaId: body.listaId ? Number(body.listaId) : null,
+  };
 }
 
 function extraerDatosMesa(body) {
   return {
     numero: Number(body.numero),
-    desdeDni: body.desdeDni,
-    hastaDni: body.hastaDni,
+    // El rango es opcional: DNI vacio o ausente se manda como null, no como "".
+    desdeDni: body.desdeDni || null,
+    hastaDni: body.hastaDni || null,
   };
 }
 
 function construirRutas(servicio) {
   const router = express.Router();
+
+  // ---- Fuerzas ----
+  // Van antes de comicio.view/:id para que "/fuerzas" no matchee la ruta :id.
+
+  router.get('/fuerzas', requirePermission('comicio.view'), asyncHandler(async (req, res) => {
+    const fuerzas = await servicio.listarFuerzas();
+    res.json({ success: true, data: fuerzas });
+  }));
+
+  router.post('/fuerzas', requirePermission('comicio.edit'), asyncHandler(async (req, res) => {
+    const fuerza = await servicio.crearFuerza(req, extraerDatosFuerza(req.body));
+    res.status(201).json({ success: true, data: fuerza });
+  }));
+
+  router.put('/fuerzas/:id', requirePermission('comicio.edit'), asyncHandler(async (req, res) => {
+    const fuerza = await servicio.actualizarFuerza(req, Number(req.params.id), extraerDatosFuerza(req.body));
+    res.json({ success: true, data: fuerza });
+  }));
+
+  router.delete('/fuerzas/:id', requirePermission('comicio.edit'), asyncHandler(async (req, res) => {
+    await servicio.eliminarFuerza(req, Number(req.params.id));
+    res.json({ success: true });
+  }));
 
   // ---- Comicios ----
 
@@ -44,7 +79,7 @@ function construirRutas(servicio) {
   }));
 
   router.post('/', requirePermission('comicio.edit'), asyncHandler(async (req, res) => {
-    const comicio = await servicio.crearComicio(req, extraerDatosComicio(req.body), extraerListaIds(req.body));
+    const comicio = await servicio.crearComicio(req, extraerDatosComicio(req.body), extraerFuerzaIds(req.body));
     res.status(201).json({ success: true, data: comicio });
   }));
 
@@ -53,7 +88,7 @@ function construirRutas(servicio) {
       req,
       Number(req.params.id),
       extraerDatosComicio(req.body),
-      extraerListaIds(req.body),
+      extraerFuerzaIds(req.body),
     );
     res.json({ success: true, data: comicio });
   }));
@@ -103,9 +138,9 @@ function construirRutas(servicio) {
     const votos = await servicio.cargarVotos(req, Number(req.params.id), Number(req.params.mesaId), {
       blancos: Number(req.body.blancos),
       nulos: Number(req.body.nulos),
-      porLista: Array.isArray(req.body.porLista)
-        ? req.body.porLista.map((v) => ({ listaId: Number(v.listaId), cantidad: Number(v.cantidad) }))
-        : req.body.porLista,
+      porFuerza: Array.isArray(req.body.porFuerza)
+        ? req.body.porFuerza.map((v) => ({ fuerzaId: Number(v.fuerzaId), cantidad: Number(v.cantidad) }))
+        : req.body.porFuerza,
     });
     res.json({ success: true, data: votos });
   }));

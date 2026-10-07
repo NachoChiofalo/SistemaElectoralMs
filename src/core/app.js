@@ -101,6 +101,9 @@ function crearApp(modulos) {
         'frame-ancestors': ["'none'"],
       },
     },
+    // COEP desactivada a proposito (BE-035): exigirla obliga a que todo recurso cross-origin
+    // declare CORP, y este frontend no carga ninguno (default-src 'self'). No aporta nada
+    // aca y puede romper una descarga si algun dia se suma un recurso de otro origen.
     crossOriginEmbedderPolicy: false,
   }));
   app.use(compression());
@@ -109,6 +112,10 @@ function crearApp(modulos) {
 
   // El parseo de body ahora es global: sin proxy, ningun router necesita el stream
   // crudo salvo la subida de CSV, que multer intercepta antes.
+  // Las rutas de auth reciben dos strings: no necesitan el limite de 10 MB que justifica
+  // la importacion de CSV, y este parser corre antes de autenticar a nadie (BE-036). El
+  // primer parser que ve el body gana, asi que va antes del global.
+  app.use('/api/auth', express.json({ limit: '16kb' }));
   app.use(express.json({ limit: config.http.limiteBody }));
   app.use(express.urlencoded({ extended: true, limit: config.http.limiteBody }));
 
