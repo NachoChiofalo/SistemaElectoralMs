@@ -14,6 +14,14 @@ const { descripcion, ...opcionesPool } = config.db;
 
 const pool = new Pool(opcionesPool);
 
+// Zona horaria de la sesion fija en UTC (DB-004): DATE(created_at), los literales de fecha sin
+// huso y CURRENT_DATE no dependen de como este configurado el servidor de la base. Se usa un SET
+// y no el parametro de arranque `options`, que los poolers rechazan. Las consultas del usuario
+// se encolan detras de este SET en la misma conexion.
+pool.on('connect', (cliente) => {
+  cliente.query("SET TIME ZONE 'UTC'").catch((error) => logger.warn('No se pudo fijar la zona horaria de la sesion', error));
+});
+
 // Un error en una conexion ociosa no debe tumbar el proceso: pg la descarta y abre otra.
 pool.on('error', (error) => {
   logger.error('Error en una conexion ociosa del pool', error);

@@ -393,6 +393,46 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     assert.equal(await tiene('administrador'), 1);
   });
 
+  await t.test('las fechas de auth y padron son TIMESTAMPTZ y el rol del usuario es obligatorio (DB-004, DB-018)', async () => {
+    const sinZona = await db.filas(
+      `SELECT table_schema || '.' || table_name || '.' || column_name AS col
+         FROM information_schema.columns
+        WHERE data_type = 'timestamp without time zone'
+          AND table_schema IN ('public', 'padron')`,
+    );
+    assert.deepEqual(sinZona.map((f) => f.col), [], 'no deberia quedar ningun TIMESTAMP sin zona en auth ni padron');
+
+    await assert.rejects(
+      () => db.query("INSERT INTO usuarios (username, password_hash, nombre_completo) VALUES ('sin-rol', 'x', 'Sin Rol')"),
+      (error) => error.code === '23502',
+      'un usuario sin rol deberia violar el NOT NULL',
+    );
+  });
+
+  await t.test('los rangos etarios salen de anio_nac, no de la edad guardada en el archivo (DB-005)', async () => {
+    const { PadronRepository } = require('../src/modules/padron/repository');
+    const repo = new PadronRepository(db);
+    const anioActual = new Date().getFullYear();
+
+    const contar = async () => {
+      const por = {};
+      for (const f of await repo.estadisticasPorRangoEtario()) por[f.rango_etario] = Number(f.total_votantes);
+      return por;
+    };
+    const antes = await contar();
+
+    // edad = 99 es la que "dice el archivo"; por anio_nac tiene 40 y cae en 31-45, no en 60+.
+    await db.query(
+      `INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre, edad)
+       VALUES ('90000001', $1, 'EdadVieja', 'Prueba', 99)`, [anioActual - 40],
+    );
+    const despues = await contar();
+    await db.query("DELETE FROM padron.votantes WHERE dni = '90000001'");
+
+    assert.equal((despues['31-45'] || 0) - (antes['31-45'] || 0), 1, 'debe sumar al rango 31-45');
+    assert.equal((despues['60+'] || 0) - (antes['60+'] || 0), 0, 'no debe sumar a 60+ por la edad guardada');
+  });
+
   await t.test('sesion unica: un login nuevo invalida el refresh token anterior y se guarda hasheado (G3, 003)', async () => {
     const bcrypt = require('bcryptjs');
     const AuthRepository = require('../src/modules/auth/repository');

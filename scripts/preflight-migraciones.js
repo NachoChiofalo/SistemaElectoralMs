@@ -28,6 +28,7 @@ const CHEQUEOS = [
   ['listas/005 suplentes.orden < 1', 'SELECT COUNT(*) FROM elecciones.suplentes WHERE orden < 1'],
   ['padron/006 anio_nac fuera de 1900-2100', 'SELECT COUNT(*) FROM padron.votantes WHERE anio_nac NOT BETWEEN 1900 AND 2100'],
   ['padron/006 edad fuera de 0-130', 'SELECT COUNT(*) FROM padron.votantes WHERE edad NOT BETWEEN 0 AND 130'],
+  ['auth/008 [BLOQUEA] usuarios sin rol (el NOT NULL fallaria)', 'SELECT COUNT(*) FROM usuarios WHERE rol_id IS NULL'],
   // Estos dos SI frenan el arranque: un EXCLUDE no admite NOT VALID y escanea las filas existentes.
   ['fiscales/002 [BLOQUEA] pares de asignaciones solapadas en una misma mesa', `SELECT COUNT(*) FROM elecciones.fiscal_asignaciones a JOIN elecciones.fiscal_asignaciones b ON a.id < b.id AND a.mesa_id = b.mesa_id AND a.desde < b.hasta AND b.desde < a.hasta`],
   ['fiscales/002 [BLOQUEA] pares de asignaciones solapadas de un mismo fiscal', `SELECT COUNT(*) FROM elecciones.fiscal_asignaciones a JOIN elecciones.fiscal_asignaciones b ON a.id < b.id AND a.fiscal_id = b.fiscal_id AND a.desde < b.hasta AND b.desde < a.hasta`],
@@ -52,6 +53,22 @@ const CHEQUEOS = [
         console.log(`SKIP  ${nombre}: ${e.message}`);
       }
     }
+    // DB-004: auth/007 y padron/007 interpretan las fechas guardadas como UTC. Esto lo muestra para
+    // que lo compares a ojo: to_char evita que el driver las reinterprete con la zona de TU maquina.
+    const unaVez = async (etiqueta, sql) => {
+      try {
+        console.log(`      ${etiqueta}: ${(await cliente.query(sql)).rows[0].v}`);
+      } catch (e) {
+        console.log(`      ${etiqueta}: (no disponible: ${e.message})`);
+      }
+    };
+    console.log('\nZona horaria (DB-004):');
+    await unaVez('timezone de la base', "SELECT current_setting('TimeZone') AS v");
+    await unaVez('ahora en UTC', "SELECT to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS') AS v");
+    await unaVez('ultima actividad de sesion guardada', "SELECT to_char(MAX(last_activity), 'YYYY-MM-DD HH24:MI:SS') AS v FROM active_sessions");
+    await unaVez('ultima modificacion de un relevamiento', "SELECT to_char(MAX(fecha_modificacion), 'YYYY-MM-DD HH24:MI:SS') AS v FROM padron.relevamientos");
+    console.log('      Si la ultima actividad que recuerdes coincide con la hora UTC (en Argentina, UTC = hora local + 3), se guarda en UTC y la migracion es correcta.');
+
     const tam = await cliente.query("SELECT COUNT(*) FROM padron.votantes");
     console.log(`\nVotantes: ${tam.rows[0].count} (padron/005 crea un indice; con decenas de miles sigue siendo rapido)`);
   } finally {

@@ -390,13 +390,19 @@ class PadronRepository {
        FROM (
          SELECT v.*,
                 CASE
-                  WHEN v.edad BETWEEN 18 AND 30 THEN '18-30'
-                  WHEN v.edad BETWEEN 31 AND 45 THEN '31-45'
-                  WHEN v.edad BETWEEN 46 AND 60 THEN '46-60'
-                  WHEN v.edad > 60              THEN '60+'
+                  WHEN v.edad_vigente BETWEEN 18 AND 30 THEN '18-30'
+                  WHEN v.edad_vigente BETWEEN 31 AND 45 THEN '31-45'
+                  WHEN v.edad_vigente BETWEEN 46 AND 60 THEN '46-60'
+                  WHEN v.edad_vigente > 60              THEN '60+'
                   ELSE 'Sin definir'
                 END AS rango_etario
-         FROM padron.votantes v
+         -- La edad se deriva de anio_nac y no de la columna edad, que viene del archivo con su
+         -- fecha de corte y queda vieja entre importaciones (DB-005). Ano de calendario menos ano
+         -- de nacimiento: puede diferir en uno de la edad oficial.
+         FROM (
+           SELECT *, (EXTRACT(YEAR FROM CURRENT_DATE)::int - anio_nac) AS edad_vigente
+           FROM padron.votantes
+         ) v
        ) v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni
        GROUP BY rango_etario

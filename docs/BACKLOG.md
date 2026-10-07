@@ -30,6 +30,16 @@ ronda, corridas a mano con `npm run migrate`).
 Quedan para vos: G2 (CASCADE→RESTRICT cambia qué se puede borrar), DB-007, DB-010 (hay que
 mirar el rol real de la conexión), 018, 014 y 002.
 
+**2026-10-07 (decisiones de base de datos) — DB-004, 005 y 018 hechos; DB-015 decidido que no.**
+DB-004: `auth/007` y `padron/007` convierten las 15 columnas `TIMESTAMP` a `TIMESTAMPTZ`
+interpretando lo guardado como UTC (verificado: 18:00 queda 18:00 UTC aun con la sesión en otra
+zona, y correrla dos veces no mueve nada), y cada conexión del pool fija `TIME ZONE 'UTC'`.
+**Antes de migrar, mirar la sección "Zona horaria" del preflight**: la última actividad guardada
+tiene que coincidir con la hora UTC actual. DB-005: los rangos etarios de Resultados salen de
+`anio_nac` (año actual menos año de nacimiento); la columna `edad` queda para la exportación.
+DB-018: `auth/008` hace `rol_id NOT NULL` (el preflight cuenta las cuentas sin rol). DB-015: el
+email no se hace único hasta que exista una feature que lo use (reset de contraseña).
+
 **2026-10-07 (decisiones de permisos) — BE-015, 021, 024 y 040 cerrados.** BE-015: gestión de
 usuarios y roles queda sólo del rol administrador, `admin.users`/`admin.roles` ya no se declaran.
 BE-024: exportar el padrón es sólo del administrador; la migración `auth/006` le quita
@@ -458,7 +468,7 @@ el 500 no controlado y el riesgo de dato corrupto.
 | ⬛ BE-007 | Enumeración de usuarios por canal de tiempo | Seguridad | Backend |
 | ⬛ BE-008 | Exportador de padrón sin manejo de errores de conexión a mitad de stream | Bug | Backend |
 | ⬛ BE-011 | `PUT /listas/:id` no atómico entre metadata y candidatos | Bug | Backend |
-| DB-004 | `TIMESTAMP` sin timezone inconsistente en módulos viejos vs. nuevos | Diseño/Tipos | Backend, Base de datos |
+| ⬛ DB-004 | `TIMESTAMP` sin timezone inconsistente en módulos viejos vs. nuevos | Diseño/Tipos | Backend, Base de datos |
 | DB-010 | Posible uso de rol superusuario de Supabase para la conexión de la app | Seguridad | Backend, Base de datos |
 
 ---
@@ -739,9 +749,9 @@ actual.
 | ⬛ DB-011 | Falta índice compuesto `(apellido, nombre, dni)` en `padron.votantes` | Performance | Base de datos |
 | ⬛ DB-012 | Índice redundante `idx_votantes_apellido` | Performance | Base de datos |
 | DB-014 | `actualizado_por` sin FK, decisión no documentada en esquema | Diseño | Backend, Base de datos |
-| DB-015 | `email` sin `UNIQUE` en `usuarios` | Diseño | Base de datos |
+| ⬛ DB-015 | `email` sin `UNIQUE` en `usuarios` | Diseño | Base de datos |
 | DB-017 | Falta índices compuestos para filtros combinados de auditoría | Performance | Base de datos |
-| DB-018 | `usuarios.rol_id` nullable sin `NOT NULL` | Diseño | Base de datos |
+| ⬛ DB-018 | `usuarios.rol_id` nullable sin `NOT NULL` | Diseño | Base de datos |
 | ⬛ DB-020 | `color` de fuerza sin `CHECK` a nivel de esquema | Diseño | Base de datos |
 | ⬛ DB-021 | Índices redundantes con PK compuesta en tablas de comicio | Performance/Mantenibilidad | Base de datos |
 | ⬛ DB-023 | Sin `created_at`/`updated_at` en tablas núcleo electoral | Mantenibilidad/Diseño | Base de datos |
