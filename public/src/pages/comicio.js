@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ? userInfo.data.permisos
             : [];
 
-        if (!permisos.includes('comicio.view')) {
+        if (!permisos.includes('comicio.view') && !permisos.includes('fiscales.view')) {
             document.getElementById('comicio-container').innerHTML = `
                 <div class="comicio-empty" style="padding: 60px 20px;">
                     <i class="fas fa-lock"></i>
@@ -25,7 +25,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        await window.comicioComponent.init('comicio-container');
+        await window.comicioComponent.init('comicio-container', {
+            comicioView: permisos.includes('comicio.view'),
+            comicioEdit: permisos.includes('comicio.edit'),
+            fiscalesView: permisos.includes('fiscales.view'),
+            fiscalesEdit: permisos.includes('fiscales.edit'),
+        });
     } catch (error) {
         console.error('Error iniciando página de comicio:', error);
         const container = document.getElementById('comicio-container');

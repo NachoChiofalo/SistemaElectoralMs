@@ -390,63 +390,6 @@ body {
     gap: 1rem;
 }
 
-/* La cifra es el dato; la tarjeta sólo la contiene. Antes cada una levitaba al pasar
-   el mouse y tenía sombra propia, lo que hacía que cinco números compitieran entre sí
-   y con la tabla. Ahora se apoyan en un borde y no se mueven. */
-.stat-card {
-    background: var(--padron-card);
-    padding: 1.125rem 1.25rem;
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-md);
-    display: flex;
-    align-items: center;
-    gap: 0.875rem;
-    transition: border-color var(--ds-transition-base);
-}
-
-.stat-card:hover {
-    border-color: var(--ds-border-default);
-}
-
-.stat-icon {
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    color: var(--ds-text-muted);
-    flex-shrink: 0;
-}
-
-/* Sólo las tres fuerzas conservan color: ahí el color es dato. */
-.stat-card.pj .stat-icon { color: var(--padron-pj); }
-.stat-card.ucr .stat-icon { color: var(--padron-ucr); }
-.stat-card.indeciso .stat-icon { color: var(--padron-indeciso); }
-.stat-card.completados .stat-icon { color: var(--ds-primary-600); }
-
-.stat-content {
-    flex: 1;
-}
-
-.stat-number {
-    font-size: var(--ds-font-3xl);
-    font-weight: var(--ds-weight-semibold);
-    color: var(--ds-text-primary);
-    line-height: 1.1;
-    letter-spacing: var(--ds-tracking-tight);
-    font-variant-numeric: tabular-nums;
-}
-
-.stat-label {
-    font-size: var(--ds-font-xs);
-    color: var(--ds-text-muted);
-    margin-top: 0.25rem;
-    text-transform: uppercase;
-    letter-spacing: var(--ds-tracking-wide);
-    font-weight: var(--ds-weight-medium);
-}
-
 .stat-progress {
     margin-top: 0.5rem;
     display: flex;
@@ -1902,18 +1845,6 @@ select.form-input {
         min-width: 44px;
     }
 
-    .stat-card {
-        padding: 1rem;
-    }
-    
-    .stat-card .stat-number {
-        font-size: 1.8rem;
-    }
-    
-    .stat-card .stat-label {
-        font-size: 0.85rem;
-    }
-
     .tabla-padron th,
     .tabla-padron td {
         padding: 0.5rem 0.25rem;
@@ -2535,4 +2466,10 @@ select.form-input {
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+}
+
+/* Refresco en curso (FE-025): atenuada, no deshabilitada, para no perder el scroll. */
+.tabla-cargando {
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
 }

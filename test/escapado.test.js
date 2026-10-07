@@ -87,6 +87,10 @@ const INTERPOLACIONES_PROHIBIDAS = [
   ['DetalleVotanteComponent.js', '${votante.dni}'],
   ['DetalleVotanteComponent.js', '${votante.circuito}'],
   ['NavbarComponent.js', '${username}'],
+  ['PadronComponent.js', '<option value="${c}">${c}</option>'],
+  ['PadronComponent.js', '<option value="${opt.value}">'],
+  ['ResultadosComponent.js', "'<td>' + c.circuito + '</td>'"],
+  ['ResultadosComponent.js', "'<p>' + mensaje + '</p>"],
 ];
 
 for (const [archivo, expresion] of INTERPOLACIONES_PROHIBIDAS) {

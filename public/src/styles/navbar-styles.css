@@ -23,24 +23,28 @@
 .navbar-brand {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: var(--ds-text-primary);
-    font-weight: var(--ds-weight-semibold);
-    font-size: var(--ds-font-base);
-    letter-spacing: var(--ds-tracking-tight);
     flex-shrink: 0;
     padding-right: 20px;
     margin-right: 4px;
     border-right: 1px solid var(--ds-border-light);
 }
 
-.navbar-brand i {
-    font-size: 1.15rem;
-    color: var(--ds-primary-600);
+.navbar-logo {
+    display: block;
+    height: 26px;
+    width: auto;
 }
 
-.brand-text {
-    white-space: nowrap;
+/* El logo es un PNG con tinta oscura fija sobre transparencia: en modo oscuro se
+   invierte para que siga leyéndose sobre la barra oscura. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .navbar-logo {
+        filter: invert(1);
+    }
+}
+
+:root[data-theme="dark"] .navbar-logo {
+    filter: invert(1);
 }
 
 /* Collapse container - flex on desktop */
@@ -268,8 +272,8 @@
         font-size: 0.85rem;
     }
 
-    .brand-text {
-        display: none;
+    .navbar-logo {
+        height: 22px;
     }
 }
 
@@ -285,15 +289,6 @@
         justify-content: space-between;
         padding: 12px 16px;
         gap: 10px;
-    }
-
-    .navbar-brand {
-        font-size: 1rem;
-    }
-
-    .brand-text {
-        display: inline;
-        font-size: 0.95rem;
     }
 
     .navbar-mobile-actions {
@@ -430,12 +425,8 @@
         padding: 10px 12px;
     }
 
-    .navbar-brand {
-        font-size: 0.9rem;
-    }
-
-    .navbar-brand i {
-        font-size: 1.1rem;
+    .navbar-logo {
+        height: 20px;
     }
 
     .navbar-collapse {

@@ -16,6 +16,9 @@ class PadronComponent {
         // DNI de la ficha que se está pidiendo al servidor, para descartar la respuesta
         // de un clic que quedó viejo.
         this.fichaPedida = null;
+        // Numero de la ultima peticion de tabla: una respuesta vieja que llega tarde no
+        // pisa a una mas nueva (FE-008), mismo criterio que fichaPedida.
+        this.peticionTabla = 0;
         this.rateLimit = {
             retries: 0,
             timerId: null,
@@ -72,6 +75,10 @@ class PadronComponent {
         } catch (error) {
             console.error('❌ Error al inicializar eventos:', error);
         }
+
+        // El dashboard del encargado de relevamiento linkea aca con
+        // "?sinRelevar=1" para arrancar directo en la lista de pendientes.
+        this.aplicarFiltroDesdeUrl();
 
         console.log('📊 Cargando datos...');
         try {
@@ -194,14 +201,14 @@ class PadronComponent {
                         Cargando...
                     </div>
                     <div class="tabla-acciones">
-                        <label>Mostrar</label>
+                        <label for="registros-por-pagina">Mostrar</label>
                         <select id="registros-por-pagina">
                             <option value="25">25</option>
                             <option value="50" selected>50</option>
                             <option value="100">100</option>
                             <option value="200">200</option>
                         </select>
-                        <label>registros</label>
+                        <label for="registros-por-pagina">registros</label>
                     </div>
                 </div>
 
@@ -554,6 +561,7 @@ class PadronComponent {
      * Actualizar tabla de votantes
      */
     async actualizarTabla() {
+        const peticion = ++this.peticionTabla;
         try {
             this.mostrarCargando(true);
             
@@ -567,6 +575,7 @@ class PadronComponent {
             };
 
             const respuesta = await window.apiService.obtenerVotantes(parametros);
+            if (peticion !== this.peticionTabla) return false;
 
             if (!respuesta || !Array.isArray(respuesta.data)) {
                 if (respuesta?.rateLimited) {
@@ -585,10 +594,14 @@ class PadronComponent {
             }
             
             const detallesIncluidos = respuesta?.detallesIncluidos === true;
+            // El backend siempre manda los detalles con includeDetalles: si esto aparece, el
+            // fallback N+1 de abajo esta corriendo y conviene saber por que (FE-032).
+            if (!detallesIncluidos) console.warn('El backend no incluyo los detalles: se pide uno por uno (N+1).');
             const votantesConDetalles = detallesIncluidos
                 ? respuesta.data
                 : await this.enriquecerConDetalles(respuesta.data);
-            
+            if (peticion !== this.peticionTabla) return false;
+
             this.renderizarTabla(votantesConDetalles);
             this.renderizarPaginacion(respuesta.paginacion);
             this.actualizarInfoTabla(respuesta.paginacion);
@@ -596,10 +609,11 @@ class PadronComponent {
             return true;
             
         } catch (error) {
+            if (peticion !== this.peticionTabla) return false;
             this.mostrarError(`Error al cargar votantes: ${error.message}`);
             return false;
         } finally {
-            this.mostrarCargando(false);
+            if (peticion === this.peticionTabla) this.mostrarCargando(false);
         }
     }
 
@@ -819,7 +833,7 @@ class PadronComponent {
         `;
 
         document.body.appendChild(panel);
-        document.querySelector(`tr[data-dni="${dni}"]`)?.classList.add('fila-abierta');
+        document.querySelector(`tr[data-dni="${CSS.escape(String(dni))}"]`)?.classList.add('fila-abierta');
 
         // El foco entra al panel para que se pueda cargar sin tocar el mouse, y Escape
         // lo cierra, que es lo que espera cualquiera frente a algo que se abre encima.
@@ -964,7 +978,7 @@ class PadronComponent {
 
     /** Marca una fila como tocada por otra persona. No toca su contenido. */
     marcarFilaCambiada(dni, usuario) {
-        const fila = document.querySelector(`tr[data-dni="${dni}"]`);
+        const fila = document.querySelector(`tr[data-dni="${CSS.escape(String(dni))}"]`);
         if (!fila) return;
 
         fila.classList.add('fila-cambiada');
@@ -1233,7 +1247,7 @@ class PadronComponent {
     async cambiarOpcionPolitica(dni, opcionPolitica) {
         try {
             // Actualizar vista inmediatamente (feedback visual)
-            const fila = document.querySelector(`tr[data-dni="${dni}"]`);
+            const fila = document.querySelector(`tr[data-dni="${CSS.escape(String(dni))}"]`);
             if (fila) {
                 // Desseleccionar todos los labels de opciones políticas
                 fila.querySelectorAll('.radio-label').forEach(label => {
@@ -1241,7 +1255,7 @@ class PadronComponent {
                 });
 
                 // Seleccionar el label clickeado
-                const inputSeleccionado = fila.querySelector(`input[name="opcion_${dni}"][value="${opcionPolitica}"]`);
+                const inputSeleccionado = fila.querySelector(`input[name="${CSS.escape('opcion_' + dni)}"][value="${CSS.escape(String(opcionPolitica))}"]`);
                 if (inputSeleccionado) {
                     inputSeleccionado.checked = true;
                     inputSeleccionado.closest('.radio-label').classList.add('selected');
@@ -1277,7 +1291,7 @@ class PadronComponent {
         } catch (error) {
             this.mostrarError(`Error al actualizar relevamiento: ${error.message}`);
             // Revertir cambio visual en caso de error
-            this.actualizarTabla();
+            await this.actualizarTabla();
         }
     }
 
@@ -1323,6 +1337,20 @@ class PadronComponent {
     /**
      * Aplicar filtros
      */
+    /**
+     * Preselecciona el filtro "sin relevar" cuando se llega con "?sinRelevar=1"
+     * en la URL, para que el link del dashboard abra directo en la lista de
+     * pendientes sin que haya que tocar el checkbox a mano.
+     */
+    aplicarFiltroDesdeUrl() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('sinRelevar') !== '1') return;
+
+        const checkbox = document.getElementById('filtro-sin-relevamiento');
+        if (checkbox) checkbox.checked = true;
+        this.estado.filtros = { ...this.estado.filtros, sinRelevamiento: true };
+    }
+
     aplicarFiltros() {
         this.estado.filtros = {
             busqueda: document.getElementById('filtro-busqueda').value,
@@ -1377,7 +1405,7 @@ class PadronComponent {
             const selectCircuito = document.getElementById('filtro-circuito');
             const circuitos = Array.isArray(filtros?.circuitos) ? filtros.circuitos : [];
             selectCircuito.innerHTML = '<option value="">Todos los circuitos</option>' +
-                circuitos.map(c => `<option value="${c}">${c}</option>`).join('');
+                circuitos.map(c => `<option value="${escaparHtml(c)}">${escaparHtml(c)}</option>`).join('');
             return true;
         } catch (error) {
             console.error('Error al cargar filtros:', error);
@@ -1427,11 +1455,11 @@ class PadronComponent {
         const selectCircuito = document.getElementById('nuevo-circuito');
         const filtroCircuito = document.getElementById('filtro-circuito');
         if (filtroCircuito && selectCircuito) {
-            selectCircuito.innerHTML = '<option value="">Seleccionar circuito</option>';
+            selectCircuito.replaceChildren(new Option('Seleccionar circuito', ''));
             Array.from(filtroCircuito.options).forEach(opt => {
-                if (opt.value) {
-                    selectCircuito.innerHTML += `<option value="${opt.value}">${opt.textContent}</option>`;
-                }
+                // Option() asigna texto y valor sin parsear HTML: un circuito con
+                // comillas o `<` no puede salirse del <option> (FE-004).
+                if (opt.value) selectCircuito.appendChild(new Option(opt.textContent, opt.value));
             });
         }
 
@@ -1480,8 +1508,8 @@ class PadronComponent {
                 dniValidationIcon.classList.add('is-invalid');
                 dniHelper.textContent = 'Solo se permiten números';
                 dniHelper.classList.add('helper-error');
-            } else if (val.length < 7) {
-                dniHelper.textContent = `${val.length} dígitos — mínimo 7`;
+            } else if (val.length < 7 || val.length > 8) {
+                dniHelper.textContent = `${val.length} dígitos — debe tener 7 u 8`;
             } else {
                 dniInput.classList.add('input-valid');
                 dniValidationIcon.classList.add('is-valid');
@@ -1587,9 +1615,9 @@ class PadronComponent {
             return;
         }
 
-        if (!/^\d+$/.test(dni)) {
+        if (!/^\d{7,8}$/.test(dni)) {
             document.getElementById('nuevo-dni').classList.add('input-invalid');
-            errorText.textContent = 'El DNI debe contener solo números';
+            errorText.textContent = 'El DNI debe contener 7 u 8 números';
             errorDiv.style.display = 'flex';
             document.getElementById('nuevo-dni').focus();
             return;
@@ -1729,7 +1757,13 @@ class PadronComponent {
 
     mostrarCargando(mostrar) {
         this.estado.cargando = mostrar;
-        // Aquí se podría agregar un spinner o indicador de carga
+        // Antes era un stub (FE-025): ahora la tabla se atenua y se anuncia como ocupada,
+        // para que un refresco lento no parezca una pantalla congelada.
+        const tabla = this.elementos.tbody?.closest('table');
+        if (tabla) {
+            tabla.setAttribute('aria-busy', mostrar ? 'true' : 'false');
+            tabla.classList.toggle('tabla-cargando', mostrar);
+        }
     }
 
     mostrarBannerRateLimit(mensaje, mostrarBoton = true) {

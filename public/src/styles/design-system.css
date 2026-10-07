@@ -1,6 +1,10 @@
 /* ==========================================================================
-   SISTEMA ELECTORAL — DESIGN SYSTEM
+   ÁGORA — DESIGN SYSTEM
    Guía de estilo y tokens de diseño para todo el ecosistema
+
+   La identidad completa (paleta con sus cinco valores, tipografía, uso del ícono
+   y del wordmark) está documentada en `docs/IDENTIDAD.md`. Este archivo es su
+   única implementación: cualquier cambio de marca se hace acá y ahí, juntos.
    ========================================================================== */
 
 /* ==================== 1. TIPOGRAFÍA (Inter) ====================
@@ -30,8 +34,8 @@
     --ds-primary-300: #a3a3a3;
     --ds-primary-400: #737373;
     --ds-primary-500: #404040;
-    --ds-primary-600: #262626;
-    --ds-primary-700: #171717;
+    --ds-primary-600: #343434;
+    --ds-primary-700: #1c1c1c;
     --ds-primary-800: #0f0f0f;
     --ds-primary-900: #000000;
 
@@ -47,8 +51,8 @@
     --ds-secondary-500: #737373;
     --ds-secondary-600: #525252;
     --ds-secondary-700: #404040;
-    --ds-secondary-800: #262626;
-    --ds-secondary-900: #171717;
+    --ds-secondary-800: #343434;
+    --ds-secondary-900: #1c1c1c;
 
     /* —— Acento secundario ——
        Era dorado. Hoy duplica la rampa de acento a propósito: mantener dos escalas
@@ -60,8 +64,8 @@
     --ds-accent-300: #a3a3a3;
     --ds-accent-400: #737373;
     --ds-accent-500: #404040;
-    --ds-accent-600: #262626;
-    --ds-accent-700: #171717;
+    --ds-accent-600: #343434;
+    --ds-accent-700: #1c1c1c;
 
     /* —— Estados semánticos —— */
     --ds-success-50:  #ecfdf5;
@@ -102,6 +106,22 @@
     --ds-party-indeciso:       #737373;
     --ds-party-indeciso-light: #f5f5f5;
 
+    /* —— Colores de fuerzas de comicio ——
+       Paleta categórica fija para distinguir fuerzas políticas en gráficos y métricas
+       de Resultados. Deliberadamente separada de --ds-party-*: esa es del padrón
+       (opción política relevada persona a persona, siempre PJ/UCR/Indeciso), esta es
+       de comicio (cualquier cantidad de fuerzas, definidas por quien carga el sistema).
+       Cruzarlas mezclaría dos conceptos que 017 ya marcó como distintos. Cada fuerza
+       elige una de estas ocho al crearse; no hay selector de color libre. */
+    --ds-fuerza-1: #2563eb;
+    --ds-fuerza-2: #dc2626;
+    --ds-fuerza-3: #059669;
+    --ds-fuerza-4: #d49726;
+    --ds-fuerza-5: #7c3aed;
+    --ds-fuerza-6: #0891b2;
+    --ds-fuerza-7: #db2777;
+    --ds-fuerza-8: #57534e;
+
     /* —— Texto sobre fondo teñido ——
        Los badges y los íconos de estadística pintan un fondo tenue del color que
        representan y escriben encima con ese mismo color, más oscuro. En claro eso sale
@@ -115,18 +135,18 @@
        que darse vuelta. Son dos necesidades distintas y por eso son dos tokens. */
     --ds-on-primary: #ffffff;
 
-    --ds-primary-on-tint: #171717;
+    --ds-primary-on-tint: #1c1c1c;
     --ds-success-on-tint: #059669;
     --ds-warning-on-tint: #b37d1a;
     --ds-danger-on-tint:  #dc2626;
     --ds-info-on-tint:    #2563eb;
-    --ds-accent-on-tint:  #171717;
+    --ds-accent-on-tint:  #1c1c1c;
 
     /* —— Superficies ——
        Planas y muy cercanas entre sí: la jerarquía la dan los bordes y el espacio, no
        la sombra ni el color. La página es apenas más oscura que la tarjeta, lo justo
        para que la tarjeta se recorte. */
-    --ds-bg-page:    #fafafa;
+    --ds-bg-page:    #fafaf9;
     --ds-bg-card:    #ffffff;
     --ds-bg-elevated: #ffffff;
     --ds-bg-subtle:  #f5f5f5;
@@ -140,9 +160,9 @@
     --ds-border-strong: #a1a1a1;
 
     /* —— Texto ——
-       Casi negro para el contenido, no negro puro: sobre blanco el #171717 se lee igual
+       Casi negro para el contenido, no negro puro: sobre blanco el #1c1c1c se lee igual
        de nítido y vibra menos. */
-    --ds-text-primary:   #171717;
+    --ds-text-primary:   #1c1c1c;
     --ds-text-secondary: #525252;
     --ds-text-muted:     #a1a1a1;
     --ds-text-inverse:   #ffffff;
@@ -165,7 +185,7 @@
     --ds-shadow-md:  none;
     --ds-shadow-lg:  0 8px 24px -8px rgba(0, 0, 0, 0.12);
     --ds-shadow-xl:  0 16px 40px -12px rgba(0, 0, 0, 0.16);
-    --ds-shadow-focus: 0 0 0 3px rgba(23, 23, 23, 0.18);
+    --ds-shadow-focus: 0 0 0 3px rgba(28, 28, 28, 0.18);
 
     /* —— Radios —— */
     --ds-radius-sm:  6px;
@@ -209,6 +229,12 @@
     --ds-tracking-tight:  -0.02em;
     --ds-tracking-normal: 0;
     --ds-tracking-wide:   0.04em;
+
+    /* Sólo para el wordmark "ÁGORA" en mayúsculas cuando se escribe como texto (no
+       la imagen del logo, que ya trae su propio tracking horneado). +1.5% es lo que
+       pide la identidad para que las mayúsculas no se sientan apretadas; nada más
+       en la interfaz usa este token. */
+    --ds-tracking-brand: 0.015em;
 
     /* —— Pesos ——
        Nombrados para que la jerarquía sea una decisión y no un número al azar en cada
@@ -800,20 +826,23 @@ textarea::placeholder {
    indirección habría que mantener la paleta sincronizada en dos lugares. */
 
 :root {
-    /* —— Superficies: neutras, no navy. La elevación es luminosidad, no sombra —— */
-    --modo-oscuro-bg-page:     #0a0a0a;
-    --modo-oscuro-bg-card:     #141414;
-    --modo-oscuro-bg-elevated: #1c1c1c;
-    --modo-oscuro-bg-subtle:   #1c1c1c;
-    --modo-oscuro-bg-muted:    #262626;
+    /* —— Superficies: "negro carbón", no negro puro. #0a0a0a vibraba demasiado
+       contra el blanco cálido del modo claro; #202020 es el fondo alternativo
+       de la identidad y deja más margen para que la tarjeta se recorte arriba
+       sin recurrir a una sombra. La elevación sigue siendo luminosidad. —— */
+    --modo-oscuro-bg-page:     #202020;
+    --modo-oscuro-bg-card:     #2a2a2a;
+    --modo-oscuro-bg-elevated: #323232;
+    --modo-oscuro-bg-subtle:   #323232;
+    --modo-oscuro-bg-muted:    #3c3c3c;
 
     /* —— Bordes: sobre fondo oscuro separan mejor que cualquier sombra —— */
-    --modo-oscuro-border-light:   #262626;
-    --modo-oscuro-border-default: #333333;
-    --modo-oscuro-border-strong:  #525252;
+    --modo-oscuro-border-light:   #3a3a3a;
+    --modo-oscuro-border-default: #454545;
+    --modo-oscuro-border-strong:  #5c5c5c;
 
-    /* —— Texto: blanco puro sobre negro vibra; #ededed descansa la vista —— */
-    --modo-oscuro-text-primary:   #ededed;
+    /* —— Texto: blanco puro, la "versión invertida" de la identidad —— */
+    --modo-oscuro-text-primary:   #ffffff;
     --modo-oscuro-text-secondary: #a1a1a1;
     --modo-oscuro-text-muted:     #737373;
 
@@ -822,29 +851,39 @@ textarea::placeholder {
     --modo-oscuro-party-ucr:      #f87171;
     --modo-oscuro-party-indeciso: #a1a1a1;
 
+    /* —— Fuerzas de comicio, aclaradas igual que los partidos —— */
+    --modo-oscuro-fuerza-1: #60a5fa;
+    --modo-oscuro-fuerza-2: #f87171;
+    --modo-oscuro-fuerza-3: #6ee7b7;
+    --modo-oscuro-fuerza-4: #fcd34d;
+    --modo-oscuro-fuerza-5: #c4b5fd;
+    --modo-oscuro-fuerza-6: #67e8f9;
+    --modo-oscuro-fuerza-7: #f9a8d4;
+    --modo-oscuro-fuerza-8: #a8a29e;
+
     /* —— Texto sobre tinte: acá el par se da vuelta y el texto pasa a ser el claro —— */
-    --modo-oscuro-primary-on-tint: #ededed;
+    --modo-oscuro-primary-on-tint: #ffffff;
     --modo-oscuro-success-on-tint: #6ee7b7;
     --modo-oscuro-warning-on-tint: #fcd34d;
     --modo-oscuro-danger-on-tint:  #fca5a5;
     --modo-oscuro-info-on-tint:    #93c5fd;
-    --modo-oscuro-accent-on-tint:  #ededed;
+    --modo-oscuro-accent-on-tint:  #ffffff;
 
     /* —— Tintes: los -50/-100 se usan como fondo de badges y en claro son casi
            blancos. Acá son navys apenas teñidos del color que representan. —— */
-    --modo-oscuro-primary-50:   #1f1f1f;
-    --modo-oscuro-primary-100:  #2b2b2b;
-    --modo-oscuro-primary-200:  #383838;
+    --modo-oscuro-primary-50:   #292929;
+    --modo-oscuro-primary-100:  #353535;
+    --modo-oscuro-primary-200:  #424242;
     /* El acento se invierte: en claro va de claro a oscuro, en oscuro al reves. Un
-       boton primario grafito sobre un fondo #141414 seria invisible, y la barra de
-       avance tambien. */
+       boton primario grafito sobre un fondo #2a2a2a seria invisible, y la barra de
+       avance tambien. Blanco puro, la "version invertida" de la identidad. */
     --modo-oscuro-primary-500:  #8f8f8f;
     --modo-oscuro-primary-600:  #d4d4d4;
-    --modo-oscuro-primary-700:  #ededed;
+    --modo-oscuro-primary-700:  #ffffff;
     /* Y si el acento pasa a ser claro, su texto pasa a ser oscuro. */
-    --modo-oscuro-on-primary:   #141414;
-    --modo-oscuro-secondary-100: #1c1c1c;
-    --modo-oscuro-secondary-200: #262626;
+    --modo-oscuro-on-primary:   #1c1c1c;
+    --modo-oscuro-secondary-100: #262626;
+    --modo-oscuro-secondary-200: #303030;
     --modo-oscuro-success-50:   #0f2820;
     --modo-oscuro-success-100:  #14342a;
     --modo-oscuro-success-200:  #1b4738;
@@ -856,14 +895,14 @@ textarea::placeholder {
 
     /* —— Gradientes: los de claro se confunden con el fondo, van un tono arriba —— */
     --modo-oscuro-gradient-primary: #525252;
-    --modo-oscuro-gradient-navbar:  #141414;
-    --modo-oscuro-gradient-subtle:  #1c1c1c;
+    --modo-oscuro-gradient-navbar:  #2a2a2a;
+    --modo-oscuro-gradient-subtle:  #323232;
 
     --modo-oscuro-gradient-modulo-padron:     #525252;
     --modo-oscuro-gradient-modulo-resultados: #404040;
-    --modo-oscuro-gradient-modulo-usuarios:   #333333;
-    --modo-oscuro-gradient-modulo-auditoria:  #2b2b2b;
-    --modo-oscuro-gradient-modulo-pendiente:  #262626;
+    --modo-oscuro-gradient-modulo-usuarios:   #3a3a3a;
+    --modo-oscuro-gradient-modulo-auditoria:  #333333;
+    --modo-oscuro-gradient-modulo-pendiente:  #2a2a2a;
 
     /* —— Sombras: sobre oscuro casi no se ven; se compensan con más opacidad —— */
     --modo-oscuro-shadow-xs: none;
@@ -871,7 +910,7 @@ textarea::placeholder {
     --modo-oscuro-shadow-md: none;
     --modo-oscuro-shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
     --modo-oscuro-shadow-xl: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
-    --modo-oscuro-shadow-focus: 0 0 0 3px rgba(237, 237, 237, 0.25);
+    --modo-oscuro-shadow-focus: 0 0 0 3px rgba(255, 255, 255, 0.25);
 }
 
 /* La lista de asignaciones se repite en los dos selectores porque uno vive dentro de
@@ -898,6 +937,15 @@ textarea::placeholder {
         --ds-party-pj:       var(--modo-oscuro-party-pj);
         --ds-party-ucr:      var(--modo-oscuro-party-ucr);
         --ds-party-indeciso: var(--modo-oscuro-party-indeciso);
+
+        --ds-fuerza-1: var(--modo-oscuro-fuerza-1);
+        --ds-fuerza-2: var(--modo-oscuro-fuerza-2);
+        --ds-fuerza-3: var(--modo-oscuro-fuerza-3);
+        --ds-fuerza-4: var(--modo-oscuro-fuerza-4);
+        --ds-fuerza-5: var(--modo-oscuro-fuerza-5);
+        --ds-fuerza-6: var(--modo-oscuro-fuerza-6);
+        --ds-fuerza-7: var(--modo-oscuro-fuerza-7);
+        --ds-fuerza-8: var(--modo-oscuro-fuerza-8);
 
         --ds-primary-on-tint: var(--modo-oscuro-primary-on-tint);
         --ds-success-on-tint: var(--modo-oscuro-success-on-tint);
@@ -963,6 +1011,15 @@ textarea::placeholder {
     --ds-party-pj:       var(--modo-oscuro-party-pj);
     --ds-party-ucr:      var(--modo-oscuro-party-ucr);
     --ds-party-indeciso: var(--modo-oscuro-party-indeciso);
+
+    --ds-fuerza-1: var(--modo-oscuro-fuerza-1);
+    --ds-fuerza-2: var(--modo-oscuro-fuerza-2);
+    --ds-fuerza-3: var(--modo-oscuro-fuerza-3);
+    --ds-fuerza-4: var(--modo-oscuro-fuerza-4);
+    --ds-fuerza-5: var(--modo-oscuro-fuerza-5);
+    --ds-fuerza-6: var(--modo-oscuro-fuerza-6);
+    --ds-fuerza-7: var(--modo-oscuro-fuerza-7);
+    --ds-fuerza-8: var(--modo-oscuro-fuerza-8);
 
     --ds-primary-on-tint: var(--modo-oscuro-primary-on-tint);
     --ds-success-on-tint: var(--modo-oscuro-success-on-tint);

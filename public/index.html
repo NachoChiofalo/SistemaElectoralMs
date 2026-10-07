@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Sistema Electoral - Administración</title>
+    <title>ÁGORA - Administración</title>
+    <link rel="icon" type="image/png" href="/assets/images/agora-icon.png">
     <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
     <!-- Antes del primer pintado: si se aplicara despues, el tema oscuro destellaria en blanco. -->
     <script src="src/tema.js?v=2e769770"></script>
     <script src="src/lib/escapar.js?v=e0153e84"></script>
     <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
-    <link rel="stylesheet" href="src/styles/icons.css?v=f81c8db4">
-    <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
-    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
-    <link rel="stylesheet" href="src/styles/padron-styles.css?v=19eacf86">
+    <link rel="stylesheet" href="src/styles/icons.css?v=c0044f27">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=5ce2bb19">
+    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=482f8826">
+    <link rel="stylesheet" href="src/styles/padron-styles.css?v=6b58f8b3">
     <link rel="stylesheet" href="src/styles/detalle-votante-styles.css?v=388ab44b">
-    <link rel="stylesheet" href="src/styles/login-styles.css?v=5343e6d7">
+    <link rel="stylesheet" href="src/styles/login-styles.css?v=ef38c012">
     <style>
         /* Touch-friendly improvements */
         .nav-btn, .logout-btn {
@@ -91,12 +92,12 @@
         .padron-nav-btn-results {
             background: var(--ds-gradient-primary);
             color: var(--ds-text-inverse);
-            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.25);
+            box-shadow: 0 2px 10px color-mix(in srgb, var(--ds-primary-600) 25%, transparent);
         }
 
         .padron-nav-btn-results:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 20px color-mix(in srgb, var(--ds-primary-600) 40%, transparent);
         }
 
         @media (max-width: 768px) {
@@ -148,12 +149,12 @@
     </main>
 
     <!-- Scripts -->
-    <script src="src/components/NavbarComponent.js?v=c5802d6f"></script>
-    <script src="src/services/ApiService.js?v=7ba51a16"></script>
-    <script src="src/services/AuthService.js?v=dbc5042e"></script>
-    <script src="src/components/LoginComponent.js?v=4dd0f130"></script>
+    <script src="src/components/NavbarComponent.js?v=25f40c30"></script>
+    <script src="src/services/ApiService.js?v=1ccf812f"></script>
+    <script src="src/services/AuthService.js?v=c07d343e"></script>
+    <script src="src/components/LoginComponent.js?v=7c2aaaef"></script>
     <script src="src/components/DetalleVotanteComponent.js?v=4daf6b49"></script>
-    <script src="src/components/PadronComponent.js?v=17ced371"></script>
+    <script src="src/components/PadronComponent.js?v=fea18deb"></script>
     <script src="src/app.js?v=73e4e7eb"></script>
     <script src="src/pages/index.js?v=c26eddf5"></script>
 </body>

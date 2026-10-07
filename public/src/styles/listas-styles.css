@@ -108,117 +108,6 @@
     font-weight: 500;
 }
 
-/* Tabla */
-.listas-tabla-container {
-    background: var(--ds-bg-card);
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-lg);
-    overflow: hidden;
-    box-shadow: var(--ds-shadow-sm);
-}
-
-.listas-tabla {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.listas-tabla thead {
-    background: linear-gradient(135deg, rgba(72, 101, 129, 0.06) 0%, rgba(36, 59, 83, 0.06) 100%);
-}
-
-.listas-tabla th {
-    padding: 14px 16px;
-    text-align: left;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--ds-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 2px solid var(--ds-border-light);
-    white-space: nowrap;
-}
-
-.listas-tabla td {
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    color: var(--ds-text-primary);
-    border-bottom: 1px solid var(--ds-border-light);
-    vertical-align: middle;
-}
-
-.listas-tabla tbody tr {
-    transition: background-color var(--ds-transition-fast) ease;
-}
-
-.listas-tabla tbody tr:hover {
-    background-color: rgba(72, 101, 129, 0.04);
-}
-
-.listas-tabla tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.lista-nombre {
-    font-weight: 600;
-    color: var(--ds-text-primary);
-}
-
-/* Badge de tipo de eleccion */
-.tipo-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: var(--ds-radius-full);
-    font-size: 0.78rem;
-    font-weight: 600;
-    white-space: nowrap;
-    background-color: rgba(72, 101, 129, 0.12);
-    color: var(--ds-primary-on-tint);
-}
-
-/* Action buttons (tabla) */
-.acciones-cell {
-    display: flex;
-    gap: 6px;
-}
-
-.btn-accion {
-    width: 34px;
-    height: 34px;
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-md);
-    background: var(--ds-bg-card);
-    color: var(--ds-text-secondary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.82rem;
-    transition: all var(--ds-transition-fast) ease;
-}
-
-.btn-accion:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: var(--ds-shadow-sm);
-}
-
-.btn-accion:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-}
-
-.btn-editar:hover {
-    background-color: rgba(72, 101, 129, 0.1);
-    color: var(--ds-primary-on-tint);
-    border-color: var(--ds-primary-200);
-}
-
-.btn-eliminar:hover:not(:disabled) {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: var(--ds-danger-on-tint);
-    border-color: var(--ds-danger-100);
-}
-
 /* Loading & Empty states */
 .listas-loading {
     display: flex;
@@ -228,6 +117,9 @@
     padding: 60px 20px;
     color: var(--ds-text-muted);
     font-size: 0.95rem;
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-lg);
 }
 
 .listas-loading i {
@@ -242,6 +134,9 @@
     justify-content: center;
     padding: 60px 20px;
     color: var(--ds-text-muted);
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-lg);
 }
 
 .listas-empty i {
@@ -255,123 +150,150 @@
     margin: 0;
 }
 
-/* ==================== Modal ==================== */
+/* ==================== Tarjetas de lista (edicion inline) ==================== */
 
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(16, 42, 67, 0.5);
-    backdrop-filter: blur(4px);
+.listas-cards {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.modal-content {
+.lista-card {
     background: var(--ds-bg-card);
-    border-radius: var(--ds-radius-xl);
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--ds-shadow-xl);
-    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-lg);
+    box-shadow: var(--ds-shadow-sm);
+    padding: 20px;
+    transition: border-color var(--ds-transition-fast) ease;
 }
 
-.modal-lg {
-    max-width: 640px;
+.lista-card-sucia {
+    border-color: var(--ds-warning-500);
 }
 
-.modal-header {
+.lista-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--ds-border-light);
 }
 
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--ds-text-primary);
+.lista-card-datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex: 1;
+    min-width: 260px;
+}
+
+.lista-card-datos .lista-input-nombre {
+    flex: 2 1 220px;
+    font-weight: 600;
+}
+
+.lista-card-datos .lista-input-tipo {
+    flex: 1 1 140px;
+    cursor: pointer;
+}
+
+.lista-card-datos .lista-input-lugares {
+    flex: 0 1 110px;
+}
+
+.lista-card-acciones {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
 }
 
-.modal-header h3 i {
-    color: var(--ds-primary-500);
+.lista-estado {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ds-warning-600);
+    white-space: nowrap;
 }
 
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--ds-text-muted);
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: color var(--ds-transition-fast) ease;
-}
-
-.modal-close:hover {
-    color: var(--ds-text-primary);
-}
-
-.modal-body {
-    padding: 24px;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding-top: 20px;
-    border-top: 1px solid var(--ds-border-light);
-    margin-top: 8px;
-}
-
-.modal-footer .btn {
+.btn-guardar-lista {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 20px;
-    border: none;
+    padding: 8px 16px;
+    border: 1px solid var(--ds-border-default);
     border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
+    background: var(--ds-bg-page);
+    color: var(--ds-text-secondary);
+    font-size: 0.86rem;
     font-weight: 600;
     cursor: pointer;
     transition: all var(--ds-transition-fast) ease;
 }
 
-.modal-footer .btn-primary {
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
+.btn-guardar-lista:hover:not(:disabled) {
+    background: var(--ds-bg-subtle);
+    border-color: var(--ds-border-strong);
 }
 
-.modal-footer .btn-primary:hover {
-    box-shadow: var(--ds-shadow-md);
-}
-
-.modal-footer .btn-primary:disabled {
-    opacity: 0.6;
+.btn-guardar-lista:disabled {
+    opacity: 0.7;
     cursor: not-allowed;
 }
 
-.modal-footer .btn-secondary,
-.btn-secondary {
-    background: var(--ds-bg-page);
-    color: var(--ds-text-secondary);
-    border: 1px solid var(--ds-border-default);
+/* El boton de guardar es neutro en reposo y se pone verde recien cuando hay cambios
+   sin guardar: si estuviera siempre verde, el color dejaria de avisar algo. */
+.lista-card-sucia .btn-guardar-lista {
+    background: var(--ds-success-600);
+    color: var(--ds-text-inverse);
+    border-color: var(--ds-success-600);
 }
 
-.modal-footer .btn-secondary:hover,
-.btn-secondary:hover {
+.lista-card-sucia .btn-guardar-lista:hover:not(:disabled) {
+    background: var(--ds-success-700);
+    border-color: var(--ds-success-700);
+}
+
+/* ==================== Acciones e items compartidos ==================== */
+
+.btn-accion {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-md);
     background: var(--ds-bg-card);
-    border-color: var(--ds-text-muted);
+    color: var(--ds-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+    transition: all var(--ds-transition-fast) ease;
+}
+
+.btn-accion:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--ds-shadow-sm);
+}
+
+.btn-accion:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.btn-accion-activa {
+    background-color: rgba(72, 101, 129, 0.1);
+    color: var(--ds-primary-on-tint);
+    border-color: var(--ds-primary-200);
+}
+
+.btn-eliminar:hover:not(:disabled) {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--ds-danger-on-tint);
+    border-color: var(--ds-danger-100);
 }
 
 .btn-sm {
@@ -384,44 +306,44 @@
     gap: 6px;
 }
 
+.btn-secondary {
+    background: var(--ds-bg-page);
+    color: var(--ds-text-secondary);
+    border: 1px solid var(--ds-border-default);
+}
+
+.btn-secondary:hover {
+    background: var(--ds-bg-card);
+    border-color: var(--ds-text-muted);
+}
+
 /* ==================== Forms ==================== */
 
 .form-group {
-    margin-bottom: 16px;
-}
-
-.form-row {
-    display: flex;
-    gap: 16px;
-}
-
-.form-row .form-group {
-    flex: 1;
-    min-width: 0;
+    margin-bottom: 12px;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 6px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--ds-text-secondary);
 }
 
-.required {
-    color: var(--ds-danger-500);
-}
-
 .form-input {
-    width: 100%;
-    padding: 10px 14px;
+    padding: 9px 12px;
     border: 1px solid var(--ds-border-default);
     border-radius: var(--ds-radius-md);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: var(--ds-text-primary);
     background: var(--ds-bg-card);
     transition: all var(--ds-transition-fast) ease;
     box-sizing: border-box;
+}
+
+.lista-card-datos .form-input {
+    width: auto;
 }
 
 .form-input:focus {
@@ -438,6 +360,13 @@ select.form-input {
     cursor: pointer;
 }
 
+textarea.form-input {
+    width: 100%;
+    min-height: 60px;
+    resize: vertical;
+    font-family: inherit;
+}
+
 .form-error {
     background-color: rgba(239, 68, 68, 0.08);
     border: 1px solid rgba(239, 68, 68, 0.2);
@@ -445,32 +374,14 @@ select.form-input {
     padding: 10px 14px;
     border-radius: var(--ds-radius-md);
     font-size: 0.85rem;
-    margin-top: 8px;
+    margin-bottom: 14px;
 }
 
-/* ==================== Editor de candidatos ==================== */
-
-.candidatos-editor {
-    margin-bottom: 16px;
-}
-
-.candidatos-editor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.candidatos-editor-header label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--ds-text-secondary);
-    margin: 0;
-}
+/* ==================== Candidatos ==================== */
 
 .candidatos-lista {
     list-style: none;
-    margin: 0;
+    margin: 0 0 12px;
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -478,6 +389,13 @@ select.form-input {
 }
 
 .candidato-fila {
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-bg-page);
+    padding: 8px;
+}
+
+.candidato-fila-principal {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -488,7 +406,7 @@ select.form-input {
     width: 26px;
     height: 26px;
     border-radius: var(--ds-radius-full);
-    background: var(--ds-bg-page);
+    background: var(--ds-bg-subtle);
     color: var(--ds-text-secondary);
     font-size: 0.78rem;
     font-weight: 700;
@@ -497,7 +415,14 @@ select.form-input {
     justify-content: center;
 }
 
-.candidato-fila .form-input {
+.candidato-orden-sm {
+    width: 22px;
+    height: 22px;
+    font-size: 0.72rem;
+}
+
+.candidato-fila-principal .form-input,
+.suplente-fila .form-input {
     flex: 1;
     min-width: 0;
 }
@@ -514,11 +439,37 @@ select.form-input {
     font-size: 0.75rem;
 }
 
-.candidatos-vacio {
-    display: none;
-    margin: 8px 0 0;
-    font-size: 0.85rem;
-    color: var(--ds-text-muted);
+/* ==================== Detalle de candidato (notas + suplentes) ==================== */
+
+.candidato-detalle {
+    margin: 10px 0 2px 36px;
+    padding: 12px;
+    background: var(--ds-bg-card);
+    border: 1px dashed var(--ds-border-default);
+    border-radius: var(--ds-radius-md);
+}
+
+.suplentes-editor label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ds-text-secondary);
+}
+
+.suplentes-lista {
+    list-style: none;
+    margin: 0 0 8px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.suplente-fila {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* ==================== Toast ==================== */
@@ -558,18 +509,6 @@ select.form-input {
 .toast-error { background: var(--ds-danger-600); }
 .toast-info { background: var(--ds-info-600); }
 
-/* ==================== Animations ==================== */
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 /* ==================== Responsive ==================== */
 
 @media (max-width: 768px) {
@@ -577,10 +516,11 @@ select.form-input {
     .listas-filtros { flex-direction: column; align-items: stretch; }
     .filtro-select { min-width: unset; width: 100%; }
     .filtro-stats { margin-left: 0; }
-    .listas-tabla-container { overflow-x: auto; }
-    .listas-tabla { min-width: 640px; }
-    .form-row { flex-direction: column; gap: 0; }
-    .modal-content { margin: 16px; max-height: calc(100vh - 32px); }
+    .lista-card-datos { flex-direction: column; align-items: stretch; }
+    .lista-card-datos .form-input { width: 100%; }
+    .lista-card-header { flex-direction: column; align-items: stretch; }
+    .lista-card-acciones { justify-content: flex-end; }
+    .candidato-detalle { margin-left: 0; }
     .toast-container { left: 16px; right: 16px; }
     .toast { max-width: unset; }
 }
@@ -591,7 +531,6 @@ select.form-input {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .modal-overlay, .modal-content, .toast { animation: none; }
     .toast { transition: opacity 0.15s ease; transform: none; }
     .toast-visible { transform: none; }
     .btn-accion:hover, .listas-actions .btn-primary:hover { transform: none; }

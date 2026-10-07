@@ -26,8 +26,7 @@ class ApiService {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            timeout: this.timeout
+            }
         };
 
         // Agregar token de autenticación si está disponible
@@ -35,7 +34,13 @@ class ApiService {
             defaultOptions.headers['Authorization'] = `Bearer ${this.authToken}`;
         }
 
-        const finalOptions = { ...defaultOptions, ...options };
+        // `timeout` no es una opcion de fetch: se aplica con un AbortController (FE-027).
+        // Una peticion puntual lenta, como importar un CSV, lo sube con options.timeout.
+        const { timeout: timeoutPropio, ...opcionesFetch } = options;
+        const finalOptions = { ...defaultOptions, ...opcionesFetch };
+        const controlador = new AbortController();
+        const temporizador = setTimeout(() => controlador.abort(), timeoutPropio ?? this.timeout);
+        finalOptions.signal = controlador.signal;
 
         try {
             console.log(`🌐 API Request: ${finalOptions.method} ${url}`);
@@ -46,12 +51,15 @@ class ApiService {
                 if (response.status === 401) {
                     // Token expirado o inválido - redirigir automáticamente
                     console.warn('🔒 Token expirado - redirigiendo a login');
+                    // logout() es el unico que redirige (FE-046): antes lo hacian los dos.
                     if (window.authService) {
                         await window.authService.logout();
-                        // Redirigir a la página principal (que mostrará el login)
+                    } else {
                         window.location.href = '/';
                     }
-                    return; // No lanzar error, solo redirigir
+                    // Devuelve un objeto y no undefined: los llamadores hacen `response.success`
+                    // y un undefined lanzaba un TypeError engañoso justo al expirar (FE-014).
+                    return { success: false, sesionExpirada: true, message: 'Sesión expirada' };
                 }
 
                 // 404 esperado para detalle-votante cuando no existe aún
@@ -121,7 +129,12 @@ class ApiService {
             return data;
         } catch (error) {
             console.error('❌ Error en API:', error);
+            if (error.name === 'AbortError') {
+                throw new Error('La solicitud tardó demasiado y se canceló. Probá de nuevo.');
+            }
             throw error;
+        } finally {
+            clearTimeout(temporizador);
         }
     }
 
@@ -228,6 +241,8 @@ class ApiService {
 
         return await this.request('/api/padron/importar-csv', {
             method: 'POST',
+            // Un padron entero tarda mas que los 10 s de una consulta comun.
+            timeout: 300000,
             headers: {
                 // No establecer Content-Type para FormData
             },
@@ -308,6 +323,17 @@ class ApiService {
      */
     async obtenerEstadisticasPorRangoEtario() {
         return await this.request('/api/padron/resultados/por-rango-etario');
+    }
+
+    /**
+     * Apellidos que se repiten en el padron (019). `minimo` y `limite` son opcionales.
+     */
+    async obtenerEstadisticasPorFamilia({ minimo, limite } = {}) {
+        const parametros = new URLSearchParams();
+        if (minimo) parametros.set('minimo', minimo);
+        if (limite) parametros.set('limite', limite);
+        const consulta = parametros.toString();
+        return await this.request(`/api/padron/resultados/por-familia${consulta ? `?${consulta}` : ''}`);
     }
 
     /**
@@ -427,6 +453,22 @@ class ApiService {
     }
 
     // ==================== METODOS DE COMICIO ====================
+
+    async obtenerFuerzas() {
+        return await this.request('/api/comicio/fuerzas');
+    }
+
+    async crearFuerza(data) {
+        return await this.request('/api/comicio/fuerzas', { method: 'POST', body: JSON.stringify(data) });
+    }
+
+    async actualizarFuerza(id, data) {
+        return await this.request(`/api/comicio/fuerzas/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    }
+
+    async eliminarFuerza(id) {
+        return await this.request(`/api/comicio/fuerzas/${id}`, { method: 'DELETE' });
+    }
 
     async obtenerComicios(parametros = {}) {
         const queryParams = new URLSearchParams();

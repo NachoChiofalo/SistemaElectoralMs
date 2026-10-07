@@ -1,3 +1,5 @@
+/* Las reglas de UI compartida (modal, formulario, toast) que estaban copiadas aqui byte a byte
+   viven en comicio-styles.css, que comicio.html carga antes que esta hoja (FE-024). */
 /* ==================== Fiscales ==================== */
 
 .fiscales-header {
@@ -133,44 +135,6 @@
     font-weight: 600;
 }
 
-/* Acciones */
-.acciones-cell {
-    display: flex;
-    gap: 6px;
-}
-
-.btn-accion {
-    width: 34px;
-    height: 34px;
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-md);
-    background: var(--ds-bg-card);
-    color: var(--ds-text-secondary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.82rem;
-    transition: all var(--ds-transition-fast) ease;
-}
-
-.btn-accion:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: var(--ds-shadow-sm);
-}
-
-.btn-editar:hover {
-    background-color: rgba(72, 101, 129, 0.1);
-    color: var(--ds-primary-on-tint);
-    border-color: var(--ds-primary-200);
-}
-
-.btn-eliminar:hover {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: var(--ds-danger-on-tint);
-    border-color: var(--ds-danger-100);
-}
-
 /* Loading & Empty */
 .fiscales-loading {
     display: flex;
@@ -207,112 +171,6 @@
     margin: 0;
 }
 
-/* ==================== Modal ==================== */
-
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(16, 42, 67, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease;
-}
-
-.modal-content {
-    background: var(--ds-bg-card);
-    border-radius: var(--ds-radius-xl);
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--ds-shadow-xl);
-    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.modal-sm {
-    max-width: 420px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--ds-border-light);
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--ds-text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.modal-header h3 i {
-    color: var(--ds-primary-500);
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--ds-text-muted);
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: color var(--ds-transition-fast) ease;
-}
-
-.modal-close:hover {
-    color: var(--ds-text-primary);
-}
-
-.modal-body {
-    padding: 24px;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding-top: 20px;
-    border-top: 1px solid var(--ds-border-light);
-    margin-top: 8px;
-}
-
-.modal-footer .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--ds-transition-fast) ease;
-}
-
-.modal-footer .btn-primary {
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
-}
-
-.modal-footer .btn-primary:hover {
-    box-shadow: var(--ds-shadow-md);
-}
-
-.modal-footer .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
 .modal-footer .btn-secondary {
     background: var(--ds-bg-page);
     color: var(--ds-text-secondary);
@@ -324,122 +182,11 @@
     border-color: var(--ds-text-muted);
 }
 
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 0.82rem;
-    border-radius: var(--ds-radius-md);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* ==================== Forms ==================== */
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-row {
-    display: flex;
-    gap: 16px;
-}
-
-.form-row .form-group {
-    flex: 1;
-    min-width: 0;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--ds-text-secondary);
-}
-
-.required {
-    color: var(--ds-danger-500);
-}
-
-.form-input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid var(--ds-border-default);
-    border-radius: var(--ds-radius-md);
-    font-size: 0.9rem;
-    color: var(--ds-text-primary);
-    background: var(--ds-bg-card);
-    transition: all var(--ds-transition-fast) ease;
-    box-sizing: border-box;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: var(--ds-primary-500);
-    box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.1);
-}
-
 .form-input:disabled {
     background-color: var(--ds-bg-page);
     color: var(--ds-text-muted);
     cursor: not-allowed;
 }
-
-.form-input::placeholder {
-    color: var(--ds-text-muted);
-}
-
-select.form-input {
-    cursor: pointer;
-}
-
-.form-error {
-    background-color: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    color: var(--ds-danger-on-tint);
-    padding: 10px 14px;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.85rem;
-    margin-top: 8px;
-}
-
-/* ==================== Toast ==================== */
-
-.toast-container {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.toast {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--ds-text-inverse);
-    box-shadow: var(--ds-shadow-lg);
-    transform: translateX(120%);
-    opacity: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 360px;
-}
-
-.toast-visible {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.toast-success { background: var(--ds-success-600); }
-.toast-error { background: var(--ds-danger-600); }
-.toast-info { background: var(--ds-info-600); }
 
 /* ==================== Animations ==================== */
 
@@ -451,6 +198,120 @@ select.form-input {
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== Calendario (grilla de horarios por mesa) ====================
+   Vista de solo lectura, estilo Google Calendar: una fila por mesa, el eje horizontal es
+   08:00-18:00. Los bloques se posicionan por porcentaje (JS calcula left/width sobre
+   600 minutos), no por drag-and-drop -- crear/editar una franja sigue siendo el
+   formulario simple del modal de asignacion. Un solo color de bloque (acento neutro):
+   con N fiscales no hay una paleta fija que darle a cada uno sin salirse del design
+   system, así que el texto adentro del bloque es lo que identifica a la persona. */
+
+.calendario-container {
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-lg);
+    padding: 16px;
+    overflow-x: auto;
+}
+
+.calendario-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 640px;
+}
+
+.calendario-fila {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.calendario-mesa-label {
+    flex: 0 0 80px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ds-text-secondary);
+}
+
+.calendario-timeline {
+    position: relative;
+    flex: 1;
+    height: 34px;
+    background: var(--ds-bg-page);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-sm);
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--ds-border-light) 0,
+        var(--ds-border-light) 1px,
+        transparent 1px,
+        transparent 10%
+    );
+}
+
+.calendario-fila-encabezado .calendario-timeline {
+    height: auto;
+    border: none;
+    background: none;
+    display: flex;
+}
+
+.calendario-hora {
+    flex: 1;
+    font-size: 0.72rem;
+    color: var(--ds-text-muted);
+    text-align: left;
+}
+
+.calendario-bloque {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    background: var(--ds-primary-500);
+    color: var(--ds-text-inverse);
+    border-radius: var(--ds-radius-sm);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* ==================== Formulario inline de asignación ====================
+   Vive en el mismo modal que la tabla de franjas de la mesa (nunca un segundo modal
+   encima): agregar y editar son el mismo formulario, que cambia de titulo/boton segun
+   si hay una franja en edicion. */
+
+.asignacion-form-inline {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ds-border-light);
+}
+
+.asignacion-form-inline h4 {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ds-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.asignacion-form-inline h4 i {
+    color: var(--ds-primary-500);
+}
+
+.asignacion-form-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 /* ==================== Responsive ==================== */

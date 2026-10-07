@@ -166,7 +166,7 @@ test('los estilos usan tokens y no colores sueltos', () => {
   // design-system.css queda afuera porque ahi los literales SON la definicion de los
   // tokens. root-redirect.html y las paginas de desarrollo (debug, test-*) no cargan
   // ninguna hoja a proposito, asi que un var(--ds-*) ahi no resolveria a nada.
-  const EXENTOS = /design-system\.css|icons\.css|fonts\.css|root-redirect\.html|debug\.html|test-[a-z]+\.html/;
+  const EXENTOS = /design-system\.css|icons\.css|fonts\.css|root-redirect\.html/;
 
   // Un color dentro de rgba() translucida o de una sombra es un efecto, no identidad.
   const sinEfectos = css => css

@@ -49,7 +49,7 @@ class ResultadosComponent {
         }
 
         if (typeof Chart === 'undefined') {
-            this.mostrarError('Chart.js no esta disponible. Verifique que este incluido en el HTML.');
+            this.mostrarError('El modulo de graficos (microchart.js) no esta disponible. Verifique que este incluido en el HTML.');
             return false;
         }
 
@@ -144,6 +144,17 @@ class ResultadosComponent {
                     <div class="tabla-container" id="stats-circuito"></div>
                 </section>
 
+                <!-- Apellidos repetidos (019): se carga a pedido, no con la pantalla. -->
+                <section class="bloque" id="bloque-familias">
+                    <h3 class="bloque-titulo">Apellidos repetidos</h3>
+                    <p class="bloque-ayuda">Apellidos que comparten varios votantes: sirve para relevar a más
+                        de una persona por visita. Un apellido común (Gómez, Pérez) no implica parentesco.</p>
+                    <button type="button" class="btn btn-secondary" id="btn-cargar-familias">
+                        <i class="fas fa-users"></i> Ver apellidos repetidos
+                    </button>
+                    <div class="tabla-container" id="stats-familias"></div>
+                </section>
+
                 <!-- 3. Quién: los cortes demográficos, juntos porque se comparan -->
                 <section class="bloque">
                     <h3 class="bloque-titulo">Por sexo y edad</h3>
@@ -202,6 +213,7 @@ class ResultadosComponent {
     }
 
     inicializarEventos() {
+        document.getElementById('btn-cargar-familias')?.addEventListener('click', () => this.cargarFamilias());
         const btnActualizar = document.getElementById('btn-actualizar-resultados');
         const btnExportarToggle = document.getElementById('btn-exportar-toggle');
         const btnExportarJson = document.getElementById('btn-exportar-json');
@@ -233,11 +245,14 @@ class ResultadosComponent {
             });
         }
 
-        // Cerrar dropdown al hacer click fuera
-        document.addEventListener('click', () => {
+        // Cerrar dropdown al hacer click fuera. Se guarda la referencia para no acumular
+        // un listener nuevo en `document` por cada reinicializacion (FE-016).
+        if (this.cerrarMenuExportar) document.removeEventListener('click', this.cerrarMenuExportar);
+        this.cerrarMenuExportar = () => {
             const menu = document.getElementById('export-menu');
             if (menu) menu.classList.remove('show');
-        });
+        };
+        document.addEventListener('click', this.cerrarMenuExportar);
 
     }
 
@@ -267,7 +282,7 @@ class ResultadosComponent {
                 window.apiService.obtenerEstadisticasPorSexo(),
                 window.apiService.obtenerEstadisticasPorRangoEtario(),
                 window.apiService.obtenerEstadisticasCondicionesDetalladas(),
-                window.apiService.request('/api/padron/resultados/por-circuito'),
+                window.apiService.obtenerEstadisticasPorCircuito(),
             ]);
 
             this.datos.general = general.data;
@@ -420,7 +435,15 @@ class ResultadosComponent {
     mostrarComparadorBarras() {
         const data = this.datos.general;
         const container = document.getElementById('comparador-barras');
-        const totalRelevados = parseInt(data.total_relevados) || 1;
+        const totalRelevados = parseInt(data.total_relevados) || 0;
+
+        // Sin relevamientos no hay con que comparar: antes el `|| 1` mostraba "PJ lidera con
+        // 0.0%" como si fuera un resultado (FE-019).
+        if (totalRelevados === 0) {
+            container.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> Todavía no hay votantes relevados para comparar</div>';
+            return;
+        }
+
         const pjPct = ((parseInt(data.votos_pj) || 0) / totalRelevados * 100).toFixed(1);
         const ucrPct = ((parseInt(data.votos_ucr) || 0) / totalRelevados * 100).toFixed(1);
         const indPct = ((parseInt(data.votos_indeciso) || 0) / totalRelevados * 100).toFixed(1);
@@ -500,7 +523,7 @@ class ResultadosComponent {
                     <tr>
                         <td>Sin Relevar</td>
                         <td>${this.formatNumber(noRelevados)}</td>
-                        <td>${(100 - parseFloat(data.porcentaje_participacion)).toFixed(2)}%</td>
+                        <td>${(100 - (parseFloat(data.porcentaje_participacion) || 0)).toFixed(2)}%</td>
                     </tr>
                     <tr class="row-pj">
                         <td>PJ</td>
@@ -660,6 +683,26 @@ class ResultadosComponent {
         });
     }
 
+    /**
+     * Muestra "Sin datos" junto al canvas en vez de reemplazarlo. Antes se pisaba
+     * `parentElement.innerHTML`, el canvas desaparecia del DOM y el grafico no volvia
+     * nunca mas, aunque un refresco posterior si trajera datos (FE-011).
+     *
+     * @returns {boolean} true si no hay datos y el grafico no debe dibujarse.
+     */
+    alternarSinDatos(canvas, vacio) {
+        let aviso = canvas.parentElement.querySelector('.no-data');
+        if (vacio && !aviso) {
+            aviso = document.createElement('div');
+            aviso.className = 'no-data';
+            aviso.innerHTML = '<i class="fas fa-info-circle"></i> Sin datos disponibles';
+            canvas.parentElement.appendChild(aviso);
+        }
+        if (aviso) aviso.style.display = vacio ? '' : 'none';
+        canvas.style.display = vacio ? 'none' : '';
+        return vacio;
+    }
+
     crearGraficoEmpleadosPolitica() {
         const canvas = document.getElementById('chart-empleados-politica');
         if (!canvas) return;
@@ -672,10 +715,7 @@ class ResultadosComponent {
         const ucr = parseInt(data.empleados_ucr) || 0;
         const ind = parseInt(data.empleados_indeciso) || 0;
 
-        if (pj + ucr + ind === 0) {
-            canvas.parentElement.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> Sin datos disponibles</div>';
-            return;
-        }
+        if (this.alternarSinDatos(canvas, pj + ucr + ind === 0)) return;
 
         this.graficos.empleadosPolitica = new Chart(ctx, {
             type: 'doughnut',
@@ -719,10 +759,7 @@ class ResultadosComponent {
         const ucr = parseInt(data.ayuda_social_ucr) || 0;
         const ind = parseInt(data.ayuda_social_indeciso) || 0;
 
-        if (pj + ucr + ind === 0) {
-            canvas.parentElement.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> Sin datos disponibles</div>';
-            return;
-        }
+        if (this.alternarSinDatos(canvas, pj + ucr + ind === 0)) return;
 
         this.graficos.ayudaPolitica = new Chart(ctx, {
             type: 'doughnut',
@@ -763,6 +800,46 @@ class ResultadosComponent {
      * circuito— es una cantidad exacta, no una proporcion, y una barra obliga a estimar
      * a ojo lo que el numero dice directo.
      */
+    /** Pide los apellidos repetidos recien cuando se aprieta el boton (019). */
+    async cargarFamilias() {
+        const boton = document.getElementById('btn-cargar-familias');
+        const contenedor = document.getElementById('stats-familias');
+        if (!contenedor) return;
+
+        boton.disabled = true;
+        try {
+            const respuesta = await window.apiService.obtenerEstadisticasPorFamilia();
+            const { familias, resumen } = respuesta?.data || { familias: [], resumen: {} };
+
+            if (!familias.length) {
+                contenedor.innerHTML = '<div class="no-data">No hay apellidos repetidos.</div>';
+                return;
+            }
+
+            contenedor.innerHTML =
+                `<p class="bloque-ayuda">${this.formatNumber(resumen.apellidos)} apellidos se repiten, ` +
+                `con ${this.formatNumber(resumen.personas)} personas en total. Se muestran los ${familias.length} más numerosos.</p>` +
+                '<table class="tabla-datos"><thead><tr>' +
+                '<th>Apellido</th><th>Integrantes</th><th>Relevados</th><th>PJ</th><th>UCR</th><th>Indecisos</th>' +
+                '</tr></thead><tbody>' +
+                familias.map(f =>
+                    '<tr>' +
+                    '<td>' + escaparHtml(f.apellido) + '</td>' +
+                    '<td>' + this.formatNumber(f.total_votantes) + '</td>' +
+                    '<td>' + this.formatNumber(f.total_relevados) + '</td>' +
+                    '<td>' + this.formatNumber(f.votos_pj) + '</td>' +
+                    '<td>' + this.formatNumber(f.votos_ucr) + '</td>' +
+                    '<td>' + this.formatNumber(f.votos_indeciso) + '</td>' +
+                    '</tr>'
+                ).join('') +
+                '</tbody></table>';
+        } catch (error) {
+            contenedor.innerHTML = '<div class="no-data">' + escaparHtml('No se pudo cargar: ' + error.message) + '</div>';
+        } finally {
+            boton.disabled = false;
+        }
+    }
+
     mostrarTablaCircuito() {
         const contenedor = document.getElementById('stats-circuito');
         const bloque = document.getElementById('bloque-circuito');
@@ -786,7 +863,7 @@ class ResultadosComponent {
             '</tr></thead><tbody>' +
             conAvance.map(c =>
                 '<tr>' +
-                '<td>' + c.circuito + '</td>' +
+                '<td>' + escaparHtml(c.circuito) + '</td>' +
                 '<td>' + this.formatNumber(c.total) + '</td>' +
                 '<td>' + this.formatNumber(c.relevados) + '</td>' +
                 '<td>' + c.pct + '%</td>' +
@@ -803,8 +880,12 @@ class ResultadosComponent {
         const data = this.datos.porSexo;
 
         // Calcular indicadores de tendencia
-        const pjPcts = data.map(i => parseFloat(i.porcentaje_pj) || 0);
-        const tendenciaPJ = pjPcts.length >= 2 ? (pjPcts[0] > pjPcts[1] ? 'M' : 'F') : null;
+        // Se busca cada sexo por su campo: asumir que el array viene [M, F] rompia la
+        // tendencia si el servidor devolvia otro orden o solo uno de los dos (FE-042).
+        const pctDe = (sexo) => parseFloat(data.find(i => i.sexo === sexo)?.porcentaje_pj);
+        const pctM = pctDe('M');
+        const pctF = pctDe('F');
+        const tendenciaPJ = Number.isFinite(pctM) && Number.isFinite(pctF) ? (pctM > pctF ? 'M' : 'F') : null;
 
         const tabla = data.map(item => {
             return '<tr>' +
@@ -1066,7 +1147,7 @@ class ResultadosComponent {
             errorContainer.innerHTML = '<div class="error-message">' +
                 '<i class="fas fa-exclamation-triangle"></i>' +
                 '<h3>Error</h3>' +
-                '<p>' + mensaje + '</p></div>';
+                '<p>' + escaparHtml(mensaje) + '</p></div>';
             errorContainer.style.display = 'block';
         }
         const loading = document.getElementById('resultados-loading');

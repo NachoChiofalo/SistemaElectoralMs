@@ -3,22 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirigiendo... - Sistema Electoral</title>
+    <title>Redirigiendo... - ÁGORA</title>
+    <link rel="icon" type="image/png" href="/assets/images/agora-icon.png">
     <!-- Esta página no carga ninguna hoja de estilo, a propósito: redirige en el acto y
          bajar el design system para mostrar un destello sería trabajo tirado. Por eso
          los valores van literales acá y no como var(--ds-*), que no resolverían. Si se
-         cambia el navy institucional, este es el único lugar que hay que tocar a mano. -->
+         cambia la identidad (ver docs/IDENTIDAD.md), este es el único lugar que hay que
+         tocar a mano: acá el fondo alternativo #202020 y el blanco de la "versión
+         invertida" van literales, sin degradado -- los degradados institucionales ya
+         no existen en ningún otro lado de la interfaz. -->
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #334e68 0%, #243b53 50%, #102a43 100%);
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #202020;
             margin: 0;
             padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            color: white;
+            color: #ffffff;
             text-align: center;
         }
         .loading {
@@ -39,11 +43,16 @@
     <div>
         <!-- Sin icons.css cargado, un <i class="fas"> no dibujaba nada. El SVG va inline. -->
         <div class="logo" aria-hidden="true">
-            <svg width="56" height="56" viewBox="0 0 576 512" fill="currentColor">
-                <path d="M96 80c0-26.5 21.5-48 48-48H432c26.5 0 48 21.5 48 48V384H96V80zm313 47c-9.4-9.4-24.6-9.4-33.9 0l-111 111-47-47c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l64 64c9.4 9.4 24.6 9.4 33.9 0L409 161c9.4-9.4 9.4-24.6 0-33.9zM0 336c0-26.5 21.5-48 48-48H64V416H512V288h16c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V336z"/>
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="2" width="6" height="8" rx="1"/>
+                <path d="M10.5 6 11.5 7 13.5 4.7"/>
+                <path d="M4 10h5M15 10h5"/>
+                <path d="M4 10 7 20h10l3-10"/>
+                <path d="M7.5 14q4.5 2.5 9 0"/>
+                <path d="M7.5 17q4.5 2.5 9 0"/>
             </svg>
         </div>
-        <h2>Sistema Electoral</h2>
+        <h2>ÁGORA</h2>
         <p class="loading">Redirigiendo al dashboard...</p>
     </div>
     

@@ -153,8 +153,10 @@ class AuthService {
                 
                 // Configurar token en API service
                 this.api.setAuthToken(this.token);
-                
-                // Reiniciar verificación periódica
+
+                // Reiniciar verificación periódica (limpiar antes: si ya había una
+                // corriendo, este intervalo se acumula en vez de reemplazarla)
+                this.stopTokenVerification();
                 this.startTokenVerification();
                 
                 return response.data;

@@ -160,6 +160,8 @@
         width: ancho,
         height: Math.max(alto - altoLeyenda, 1),
         role: 'img',
+        // Sin nombre, un lector de pantalla anuncia solo "imagen" (FE-020).
+        'aria-label': this.config.options?.plugins?.title?.text || `Gráfico de ${this.config.type || 'datos'}`,
       });
       this.raiz.insertBefore(this.svg, this.pista);
 
@@ -342,7 +344,7 @@
     dibujarBarras({ ancho, alto }) {
       const horizontal = this.config.options?.indexAxis === 'y';
       const { labels = [], datasets = [] } = this.config.data || {};
-      if (labels.length === 0 || datasets.length === 0) return;
+      if (labels.length === 0 || datasets.length === 0) return this.dibujarSinDatos({ ancho, alto });
 
       const series = datasets.map(dataset => ({
         dataset,

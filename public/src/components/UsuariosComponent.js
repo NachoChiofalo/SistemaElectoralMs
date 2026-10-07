@@ -86,11 +86,11 @@ class UsuariosComponent {
             </div>
 
             <!-- Modal Crear/Editar Usuario -->
-            <div id="modal-usuario" class="modal-overlay" style="display: none;">
+            <div id="modal-usuario" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-usuario-titulo">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 id="modal-usuario-titulo"><i class="fas fa-user-plus"></i> Nuevo Usuario</h3>
-                        <button class="modal-close" id="modal-usuario-close">&times;</button>
+                        <button class="modal-close" id="modal-usuario-close" aria-label="Cerrar">&times;</button>
                     </div>
                     <form id="form-usuario" class="modal-body">
                         <input type="hidden" id="form-usuario-id" value="">
@@ -101,8 +101,8 @@ class UsuariosComponent {
                         <div class="form-group" id="form-password-group">
                             <label for="form-password">Contrase\u00f1a <span class="required">*</span></label>
                             <div class="password-input-wrapper">
-                                <input type="password" id="form-password" class="form-input" placeholder="M\u00ednimo 6 caracteres" required minlength="6" autocomplete="new-password">
-                                <button type="button" class="password-toggle" id="toggle-password">
+                                <input type="password" id="form-password" class="form-input" placeholder="M\u00ednimo 8 caracteres" required minlength="8" maxlength="72" autocomplete="new-password">
+                                <button type="button" class="password-toggle" id="toggle-password" aria-label="Mostrar u ocultar la contrase\u00f1a">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
@@ -133,11 +133,11 @@ class UsuariosComponent {
             </div>
 
             <!-- Modal Resetear Contrase\u00f1a -->
-            <div id="modal-password" class="modal-overlay" style="display: none;">
+            <div id="modal-password" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-password-titulo">
                 <div class="modal-content modal-sm">
                     <div class="modal-header">
-                        <h3><i class="fas fa-key"></i> Resetear Contrase\u00f1a</h3>
-                        <button class="modal-close" id="modal-password-close">&times;</button>
+                        <h3 id="modal-password-titulo"><i class="fas fa-key"></i> Resetear Contrase\u00f1a</h3>
+                        <button class="modal-close" id="modal-password-close" aria-label="Cerrar">&times;</button>
                     </div>
                     <form id="form-password-reset" class="modal-body">
                         <input type="hidden" id="reset-user-id" value="">
@@ -145,8 +145,8 @@ class UsuariosComponent {
                         <div class="form-group">
                             <label for="reset-new-password">Nueva Contrase\u00f1a <span class="required">*</span></label>
                             <div class="password-input-wrapper">
-                                <input type="password" id="reset-new-password" class="form-input" placeholder="M\u00ednimo 6 caracteres" required minlength="6" autocomplete="new-password">
-                                <button type="button" class="password-toggle" id="toggle-reset-password">
+                                <input type="password" id="reset-new-password" class="form-input" placeholder="M\u00ednimo 8 caracteres" required minlength="8" maxlength="72" autocomplete="new-password">
+                                <button type="button" class="password-toggle" id="toggle-reset-password" aria-label="Mostrar u ocultar la contrase\u00f1a">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
@@ -441,8 +441,8 @@ class UsuariosComponent {
                 this.mostrarFormError('form-error', 'El usuario debe tener al menos 3 caracteres');
                 return;
             }
-            if (!data.password || data.password.length < 6) {
-                this.mostrarFormError('form-error', 'La contrase\u00f1a debe tener al menos 6 caracteres');
+            if (!data.password || data.password.length < 8) {
+                this.mostrarFormError('form-error', 'La contrase\u00f1a debe tener al menos 8 caracteres');
                 return;
             }
         }
@@ -507,8 +507,8 @@ class UsuariosComponent {
         const userId = document.getElementById('reset-user-id').value;
         const newPassword = document.getElementById('reset-new-password').value;
 
-        if (!newPassword || newPassword.length < 6) {
-            this.mostrarFormError('reset-error', 'La contrase\u00f1a debe tener al menos 6 caracteres');
+        if (!newPassword || newPassword.length < 8) {
+            this.mostrarFormError('reset-error', 'La contrase\u00f1a debe tener al menos 8 caracteres');
             return;
         }
 

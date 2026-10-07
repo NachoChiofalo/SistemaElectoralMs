@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comicio - Sistema Electoral</title>
+    <title>Comicio - ÁGORA</title>
+    <link rel="icon" type="image/png" href="/assets/images/agora-icon.png">
 
     <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
@@ -11,14 +12,16 @@
     <script src="src/tema.js?v=2e769770"></script>
     <script src="src/lib/escapar.js?v=e0153e84"></script>
     <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
-    <link rel="stylesheet" href="src/styles/icons.css?v=f81c8db4">
+    <link rel="stylesheet" href="src/styles/icons.css?v=c0044f27">
 
     <!-- Design System -->
-    <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=5ce2bb19">
 
     <!-- Estilos -->
-    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
-    <link rel="stylesheet" href="src/styles/comicio-styles.css?v=a926ad20">
+    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=482f8826">
+    <link rel="stylesheet" href="src/styles/comicio-styles.css?v=0576d5c9">
+    <link rel="stylesheet" href="src/styles/fiscales-styles.css?v=22d4d97c">
+    <link rel="stylesheet" href="src/styles/microchart.css?v=aadaea89">
 
     <style>
         body {
@@ -41,16 +44,17 @@
     <div id="navbar-container"></div>
 
     <main class="page-container">
-        <div id="comicio-container">
+        <div id="comicio-container" aria-live="polite">
             <!-- ComicioComponent se renderiza aqui -->
         </div>
     </main>
 
     <!-- Scripts -->
-    <script src="src/components/NavbarComponent.js?v=c5802d6f"></script>
-    <script src="src/services/ApiService.js?v=7ba51a16"></script>
-    <script src="src/services/AuthService.js?v=dbc5042e"></script>
-    <script src="src/components/ComicioComponent.js?v=5dd7555b"></script>
-    <script src="src/pages/comicio.js?v=2e5e8917"></script>
+    <script src="src/components/NavbarComponent.js?v=25f40c30"></script>
+    <script src="src/services/ApiService.js?v=1ccf812f"></script>
+    <script src="src/services/AuthService.js?v=c07d343e"></script>
+    <script src="src/lib/microchart.js?v=265cf6c7"></script>
+    <script src="src/components/ComicioComponent.js?v=33fcc332"></script>
+    <script src="src/pages/comicio.js?v=e3fd7721"></script>
 </body>
 </html>

@@ -6,77 +6,61 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--ds-gradient-navbar);
+    background: var(--ds-bg-subtle);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--ds-font-family);
     z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .login-card {
     background: var(--ds-bg-card);
-    border-radius: var(--ds-radius-xl);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-lg);
+    box-shadow: var(--ds-shadow-lg);
     width: 100%;
-    max-width: 420px;
-    padding: 0;
-    overflow: hidden;
-    animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-16px) scale(0.97);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    max-width: 400px;
+    padding: 40px 32px 32px;
+    box-sizing: border-box;
+    animation: ds-fadeIn 300ms var(--ds-transition-smooth) both;
 }
 
 .login-header {
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
-    padding: 32px 30px;
     text-align: center;
+    margin-bottom: 28px;
 }
 
-.login-header h1 {
-    color: var(--ds-text-inverse);
-    margin: 0 0 8px 0;
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-.login-header h1 i {
-    margin-right: 8px;
-    color: var(--ds-accent-400);
-}
-
-.login-header h2 {
-    color: var(--ds-text-inverse);
-    margin: 0 0 8px 0;
-    font-size: 1.1rem;
-    font-weight: 400;
-    opacity: 0.9;
-}
-
-.login-header p {
-    color: var(--ds-text-inverse);
+.login-header .login-logo {
     margin: 0;
-    font-size: 0.9rem;
-    opacity: 0.8;
+}
+
+.login-header .login-logo img {
+    max-width: 100%;
+    width: 260px;
+    height: auto;
+}
+
+/* El logo es un PNG con tinta oscura fija sobre transparencia: en modo oscuro se
+   invierte para que siga leyéndose sobre la tarjeta oscura. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .login-header .login-logo img {
+        filter: invert(1);
+    }
+}
+
+:root[data-theme="dark"] .login-header .login-logo img {
+    filter: invert(1);
 }
 
 .login-form {
-    padding: 30px;
+    padding: 0;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .form-group label {
@@ -89,7 +73,7 @@
 
 .form-group label i {
     margin-right: 6px;
-    color: var(--ds-primary-500);
+    color: var(--ds-text-muted);
     width: 16px;
     text-align: center;
 }
@@ -101,6 +85,8 @@
     border-radius: var(--ds-radius-md);
     font-size: 1rem;
     font-family: var(--ds-font-family);
+    color: var(--ds-text-primary);
+    background: var(--ds-bg-card);
     transition: border-color var(--ds-transition-base), box-shadow var(--ds-transition-base);
     box-sizing: border-box;
 }
@@ -108,7 +94,7 @@
 .form-group input:focus {
     outline: none;
     border-color: var(--ds-primary-500);
-    box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.15);
+    box-shadow: var(--ds-shadow-focus);
 }
 
 .form-group input::placeholder {
@@ -117,31 +103,25 @@
 
 .login-btn {
     width: 100%;
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
+    background: var(--ds-primary-600);
+    color: var(--ds-on-primary);
     border: none;
-    padding: 14px 20px;
+    padding: 13px 20px;
     border-radius: var(--ds-radius-md);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: transform var(--ds-transition-base), box-shadow var(--ds-transition-smooth);
-    margin-bottom: 16px;
+    transition: background-color var(--ds-transition-base);
+    margin-bottom: 4px;
 }
 
 .login-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(72, 101, 129, 0.35);
-}
-
-.login-btn:active {
-    transform: translateY(0);
+    background: var(--ds-primary-700);
 }
 
 .login-btn:disabled {
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
 }
 
 .login-btn i {
@@ -160,82 +140,14 @@
     animation: ds-fadeIn 300ms ease both;
 }
 
-.login-footer {
-    background: var(--ds-bg-subtle);
-    padding: 20px 30px;
-    border-top: 1px solid var(--ds-border-light);
-}
-
-.credentials-info h4 {
-    color: var(--ds-text-secondary);
-    margin: 0 0 16px 0;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.credentials-info h4 i {
-    margin-right: 6px;
-    color: var(--ds-info-500);
-}
-
-.credential-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-    font-size: 0.8rem;
-    border-bottom: 1px solid var(--ds-border-light);
-}
-
-.credential-item:last-child {
-    border-bottom: none;
-}
-
-.credential-item strong {
-    color: var(--ds-text-secondary);
-    font-weight: 500;
-    flex: 1;
-}
-
-.credential-item span {
-    background: var(--ds-border-light);
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-family: 'Courier New', monospace;
-    color: var(--ds-secondary-500);
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.credential-item span:hover {
-    background: var(--ds-border-default);
-}
-
 /* Responsive */
 @media (max-width: 480px) {
-    .login-container {
-        padding: 20px;
-    }
-    
     .login-card {
         max-width: none;
-        margin: 0;
+        padding: 32px 24px 24px;
     }
-    
-    .login-header {
-        padding: 20px;
-    }
-    
-    .login-header h1 {
-        font-size: 1.5rem;
-    }
-    
-    .login-form {
-        padding: 20px;
-    }
-    
-    .login-footer {
-        padding: 16px 20px;
+
+    .login-header .login-logo img {
+        width: 200px;
     }
 }

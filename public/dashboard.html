@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistema Electoral</title>
+    <title>Dashboard - ÁGORA</title>
+    <link rel="icon" type="image/png" href="/assets/images/agora-icon.png">
     
     <!-- Tipografia e iconos, servidos desde este mismo origen -->
     <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
@@ -12,14 +13,14 @@
     <script src="src/tema.js?v=2e769770"></script>
     <script src="src/lib/escapar.js?v=e0153e84"></script>
     <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
-    <link rel="stylesheet" href="src/styles/icons.css?v=f81c8db4">
+    <link rel="stylesheet" href="src/styles/icons.css?v=c0044f27">
     
     <!-- Design System -->
-    <link rel="stylesheet" href="src/styles/design-system.css?v=6d516238">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=5ce2bb19">
     
     <!-- Estilos -->
-    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=23619bcd">
-    <link rel="stylesheet" href="src/styles/padron-styles.css?v=19eacf86">
+    <link rel="stylesheet" href="src/styles/navbar-styles.css?v=482f8826">
+    <link rel="stylesheet" href="src/styles/padron-styles.css?v=6b58f8b3">
     
     <style>
         /* ==================================================================
@@ -147,6 +148,45 @@
             margin: 0;
         }
 
+        /* ==================== INTENCIÓN DE VOTO ====================
+           Tres píldoras, no un gráfico: en esta pantalla ya hay una cifra grande
+           dominando el bloque, y un gráfico de torta al lado compite por atención
+           con el porcentaje de relevamiento, que es la respuesta principal. Los
+           colores de partido son los únicos que puede llevar esta interfaz. */
+        .intencion-voto {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .intencion-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            background: var(--ds-bg-subtle);
+            border-radius: var(--ds-radius-full);
+            font-size: var(--ds-font-sm);
+            color: var(--ds-text-secondary);
+        }
+
+        .intencion-pill strong {
+            color: var(--ds-text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .intencion-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .intencion-dot.pj { background: var(--ds-party-pj); }
+        .intencion-dot.ucr { background: var(--ds-party-ucr); }
+        .intencion-dot.indeciso { background: var(--ds-party-indeciso); }
+
         /* ==================== TÍTULOS DE SECCIÓN ==================== */
         .titulo-seccion {
             margin: 0 0 2px;
@@ -226,6 +266,130 @@
             text-align: right;
             font-weight: var(--ds-weight-medium);
             font-variant-numeric: tabular-nums;
+        }
+
+        /* ==================== ACTIVIDAD RECIENTE Y COMICIO ====================
+           Mismo molde de tarjeta que "Avance por circuito": estas dos secciones
+           se ocultan solas (:empty) cuando el permiso no alcanza o no hay nada
+           que mostrar, así que no dejan un hueco vacío en la pantalla. */
+        .actividad-reciente,
+        .comicio-widget,
+        .condiciones-pendientes {
+            background: var(--ds-bg-card);
+            border: 1px solid var(--ds-border-light);
+            border-radius: var(--ds-radius-md);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+
+        .actividad-reciente:empty,
+        .comicio-widget:empty,
+        .condiciones-pendientes:empty {
+            display: none;
+        }
+
+        .actividad-lista {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .actividad-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--ds-border-light);
+            font-size: var(--ds-font-sm);
+        }
+
+        .actividad-item:last-child {
+            border-bottom: none;
+        }
+
+        .actividad-texto strong {
+            font-weight: var(--ds-weight-medium);
+        }
+
+        .actividad-fecha {
+            color: var(--ds-text-muted);
+            font-size: var(--ds-font-xs);
+            white-space: nowrap;
+        }
+
+        .ver-todo {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: var(--ds-font-sm);
+            color: var(--ds-primary-600);
+            text-decoration: none;
+        }
+
+        .ver-todo:hover {
+            text-decoration: underline;
+        }
+
+        .comicio-avance {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .comicio-avance .situacion-barra {
+            flex: 1;
+        }
+
+        .comicio-cifra {
+            font-size: var(--ds-font-sm);
+            color: var(--ds-text-secondary);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .condiciones-total {
+            margin: 4px 0 0;
+            font-size: var(--ds-font-2xl);
+            font-weight: var(--ds-weight-semibold);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .condiciones-total span {
+            font-size: var(--ds-font-sm);
+            font-weight: var(--ds-weight-normal);
+            color: var(--ds-text-muted);
+            margin-left: 6px;
+        }
+
+        /* ==================== CTA "SEGUIR RELEVANDO" ====================
+           Único elemento grande de la vista del encargado: su trabajo es una
+           tarea repetitiva, no un panel para leer, así que el acceso directo a
+           continuar pesa más que cualquier estadística. */
+        .cta-relevar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 24px;
+            background: var(--ds-primary-600);
+            color: var(--ds-on-primary);
+            border-radius: var(--ds-radius-md);
+            text-decoration: none;
+            font-size: var(--ds-font-lg);
+            font-weight: var(--ds-weight-semibold);
+            margin-bottom: 20px;
+            transition: background-color var(--ds-transition-fast);
+        }
+
+        .cta-relevar:hover {
+            background: var(--ds-primary-700);
+        }
+
+        .cta-relevar span {
+            flex: 1;
+        }
+
+        .cta-relevar i:first-child {
+            font-size: 1.3rem;
         }
 
         /* ==================== MÓDULOS ====================
@@ -367,16 +531,48 @@
             <p class="inicio-fecha" id="inicio-fecha"></p>
         </header>
 
-        <!-- Situación: una cifra grande y tres apoyos. La jerarquía es de tamaño, no de
-             color, y por eso el porcentaje domina sin necesidad de un azulejo. -->
-        <section class="situacion" id="situacion" aria-label="Estado del relevamiento">
-            <div class="situacion-cargando">Cargando…</div>
-        </section>
+        <!-- Administrador y consultor: la foto completa del relevamiento, la
+             actividad del equipo y el estado del comicio si hay uno cargado.
+             Oculta por defecto: dashboard.js decide cuál de las dos vistas
+             mostrar según el rol y recién ahí saca el "hidden". -->
+        <div id="vista-admin-consultor" hidden>
+            <!-- Situación: una cifra grande y tres apoyos. La jerarquía es de tamaño,
+                 no de color, y por eso el porcentaje domina sin necesidad de un
+                 azulejo. -->
+            <section class="situacion" id="situacion" aria-label="Estado del relevamiento">
+                <div class="situacion-cargando">Cargando…</div>
+            </section>
 
-        <!-- Dónde falta trabajo. Es el corte por circuito, que existía en la API
-             (`/api/padron/resultados/por-circuito`) y no se mostraba en ninguna
-             pantalla: es el único que dice en qué zona hay que ir a relevar. -->
-        <section class="por-circuito" id="por-circuito" aria-label="Avance por circuito"></section>
+            <!-- Dónde falta trabajo. Es el corte por circuito, que existía en la API
+                 (`/api/padron/resultados/por-circuito`) y no se mostraba en ninguna
+                 pantalla: es el único que dice en qué zona hay que ir a relevar. -->
+            <section class="por-circuito" id="por-circuito" aria-label="Avance por circuito"></section>
+
+            <!-- Sólo con admin.system: quién tocó qué, para no tener que abrir
+                 Auditoría a mirar si pasó algo. -->
+            <section class="actividad-reciente" id="actividad-reciente" aria-label="Actividad reciente"></section>
+
+            <!-- Sólo con comicio.view, y sólo si hay al menos un comicio cargado. -->
+            <section class="comicio-widget" id="comicio-widget" aria-label="Estado del comicio"></section>
+        </div>
+
+        <!-- Encargado de relevamiento: no tiene resultados.view, así que no puede ver
+             nada de lo de arriba (son endpoints de /resultados/*). Su vista es su
+             propio avance, sourced en /api/padron/estadisticas, que sí le
+             corresponde, y un acceso directo a seguir cargando. -->
+        <div id="vista-encargado" hidden>
+            <section class="situacion" id="situacion-encargado" aria-label="Mi avance de relevamiento">
+                <div class="situacion-cargando">Cargando…</div>
+            </section>
+
+            <section class="condiciones-pendientes" id="condiciones-pendientes" aria-label="Condiciones especiales"></section>
+
+            <a class="cta-relevar" href="index.html?sinRelevar=1">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Seguir relevando</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
 
         <!-- Grid de Módulos del Sistema -->
         <section class="modulos" aria-label="Módulos del sistema">
@@ -386,9 +582,9 @@
     </main>
 
     <!-- Scripts -->
-    <script src="src/components/NavbarComponent.js?v=c5802d6f"></script>
-    <script src="src/services/ApiService.js?v=7ba51a16"></script>
-    <script src="src/services/AuthService.js?v=dbc5042e"></script>
-    <script src="src/pages/dashboard.js?v=dae867c9"></script>
+    <script src="src/components/NavbarComponent.js?v=25f40c30"></script>
+    <script src="src/services/ApiService.js?v=1ccf812f"></script>
+    <script src="src/services/AuthService.js?v=c07d343e"></script>
+    <script src="src/pages/dashboard.js?v=8a3550b2"></script>
 </body>
 </html>

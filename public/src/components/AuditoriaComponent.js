@@ -3,14 +3,32 @@
 
 (function(global) {
 
+    /**
+     * Cada operacion que efectivamente se audita en el backend (ver
+     * `grep -rn "operacion:" src/modules`), no sólo las del padrón. Este mapa se había
+     * quedado en las siete originales de cuando auditoría sólo cubría el padrón: faltaban
+     * CREAR/EDITAR/ELIMINAR (listas, comicio, fiscales, fuerzas), LOGIN/LOGIN_FALLIDO/
+     * LOGOUT (sesión) y ACTIVAR/DESACTIVAR/MODIFICAR (usuarios) — esas filas se veían con
+     * el ícono genérico de fallback y no aparecían como opción en el filtro. 'EXPORTAR_CSV'
+     * también estaba mal escrito como 'EXPORTAR_DATOS' y nunca hacía match.
+     */
     const OPERACIONES = {
+        'CREAR': { label: 'Crear', icon: 'fa-plus', clase: 'crear-votante' },
+        'EDITAR': { label: 'Editar', icon: 'fa-edit', clase: 'actualizar-relevamiento' },
+        'ELIMINAR': { label: 'Eliminar', icon: 'fa-trash', clase: 'eliminar-detalle' },
         'CREAR_VOTANTE': { label: 'Crear Votante', icon: 'fa-user-plus', clase: 'crear-votante' },
         'ACTUALIZAR_RELEVAMIENTO': { label: 'Actualizar Relev.', icon: 'fa-edit', clase: 'actualizar-relevamiento' },
         'CREAR_DETALLE': { label: 'Crear Detalle', icon: 'fa-plus-circle', clase: 'crear-detalle' },
         'ACTUALIZAR_DETALLE': { label: 'Actualizar Detalle', icon: 'fa-pen', clase: 'actualizar-detalle' },
         'ELIMINAR_DETALLE': { label: 'Eliminar Detalle', icon: 'fa-trash', clase: 'eliminar-detalle' },
         'IMPORTAR_CSV': { label: 'Importar CSV', icon: 'fa-file-csv', clase: 'importar-csv' },
-        'EXPORTAR_DATOS': { label: 'Exportar Datos', icon: 'fa-download', clase: 'exportar-datos' }
+        'EXPORTAR_CSV': { label: 'Exportar CSV', icon: 'fa-download', clase: 'exportar-datos' },
+        'LOGIN': { label: 'Inicio de sesión', icon: 'fa-sign-in-alt', clase: 'crear-votante' },
+        'LOGIN_FALLIDO': { label: 'Login fallido', icon: 'fa-exclamation-triangle', clase: 'eliminar-detalle' },
+        'LOGOUT': { label: 'Cierre de sesión', icon: 'fa-sign-out-alt', clase: 'importar-csv' },
+        'MODIFICAR': { label: 'Modificar', icon: 'fa-edit', clase: 'actualizar-relevamiento' },
+        'ACTIVAR': { label: 'Activar', icon: 'fa-user-check', clase: 'crear-votante' },
+        'DESACTIVAR': { label: 'Desactivar', icon: 'fa-user-slash', clase: 'eliminar-detalle' },
     };
 
     class AuditoriaComponent {
@@ -102,30 +120,42 @@
             }
         }
 
+        /**
+         * Registros y estadisticas se piden por separado: las estadisticas no dependen
+         * de la pagina (`cambiarPagina` sólo re-pide el listado). Antes las dos siempre
+         * viajaban juntas, así que hojear páginas relanzaba las cinco agregaciones de
+         * `estadisticas()` sin que ninguno de sus números hubiera cambiado.
+         */
         async cargarDatos() {
-            try {
-                const [auditoriaRes, statsRes] = await Promise.all([
-                    window.apiService.obtenerAuditoria(this.filtros),
-                    window.apiService.obtenerEstadisticasAuditoria({
-                        fecha_desde: this.filtros.fecha_desde,
-                        fecha_hasta: this.filtros.fecha_hasta
-                    })
-                ]);
+            await Promise.all([this.cargarRegistros(), this.cargarEstadisticas()]);
+        }
 
+        async cargarRegistros() {
+            try {
+                const auditoriaRes = await window.apiService.obtenerAuditoria(this.filtros);
                 if (auditoriaRes && auditoriaRes.success) {
                     this.registros = auditoriaRes.data || [];
                     this.paginacion = auditoriaRes.paginacion || { paginaActual: 1, totalPaginas: 1, totalRegistros: 0 };
                 }
-
-                if (statsRes && statsRes.success) {
-                    this.estadisticas = statsRes.data;
-                }
-
-                this.renderStats();
                 this.renderTabla();
             } catch (error) {
                 console.error('Error cargando auditoria:', error);
                 this.renderError();
+            }
+        }
+
+        async cargarEstadisticas() {
+            try {
+                const statsRes = await window.apiService.obtenerEstadisticasAuditoria({
+                    fecha_desde: this.filtros.fecha_desde,
+                    fecha_hasta: this.filtros.fecha_hasta
+                });
+                if (statsRes && statsRes.success) {
+                    this.estadisticas = statsRes.data;
+                }
+                this.renderStats();
+            } catch (error) {
+                console.error('Error cargando estadisticas de auditoria:', error);
             }
         }
 
@@ -142,7 +172,6 @@
             if (!statsContainer || !this.estadisticas) return;
 
             const stats = this.estadisticas;
-            const totalUsuarios = stats.porUsuario ? stats.porUsuario.length : 0;
             const opMasFrecuente = stats.porTipo && stats.porTipo.length > 0
                 ? OPERACIONES[stats.porTipo[0].operacion]?.label || stats.porTipo[0].operacion
                 : 'N/A';
@@ -158,8 +187,8 @@
                 <div class="stat-card">
                     <div class="stat-icon usuarios"><i class="fas fa-users"></i></div>
                     <div class="stat-info">
-                        <div class="stat-value">${totalUsuarios}</div>
-                        <div class="stat-label">Usuarios activos</div>
+                        <div class="stat-value">${stats.usuariosActivos ?? 0}</div>
+                        <div class="stat-label">Usuarios activos ahora</div>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -388,7 +417,7 @@
             const nuevaPagina = this.paginacion.paginaActual + delta;
             if (nuevaPagina < 1 || nuevaPagina > this.paginacion.totalPaginas) return;
             this.filtros.page = nuevaPagina;
-            this.cargarDatos();
+            this.cargarRegistros();
         }
 
         renderError() {

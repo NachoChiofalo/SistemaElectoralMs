@@ -1,109 +1,4 @@
 // Configuración de módulos por rol
-const MODULES_CONFIG = {
-    administrador: [
-        {
-            id: 'padron',
-            title: 'Padrón Electoral',
-            description: 'Gestión completa del padrón electoral municipal con herramientas de relevamiento.',
-            icon: 'fa-users-cog',
-            href: 'index.html',
-            status: 'available',
-            features: [
-                'Consulta de votantes',
-                'Relevamiento de preferencias',
-                'Gestión de condiciones especiales',
-                'Exportación de datos'
-            ]
-        },
-        {
-            id: 'resultados',
-            title: 'Resultados y Estadísticas',
-            description: 'Análisis detallado de resultados del relevamiento con gráficos interactivos.',
-            icon: 'fa-chart-pie',
-            href: 'resultados.html',
-            status: 'available',
-            features: [
-                'Gráficos interactivos',
-                'Estadísticas por barrio',
-                'Análisis de tendencias',
-                'Reportes automáticos'
-            ]
-        },
-        {
-            id: 'listas',
-            title: 'Armado de Listas',
-            description: 'Borradores de listas electorales: candidatos, orden y tipo de elección.',
-            icon: 'fa-list-ol',
-            href: 'listas.html',
-            status: 'available',
-            features: [
-                'Alta de listas y candidatos',
-                'Orden de candidatos por posición',
-                'Edición y baja de borradores'
-            ]
-        },
-        {
-            id: 'fiscales',
-            title: 'Gestión de Fiscales',
-            description: 'Fiscales de mesa con calendario de franjas horarias por comicio.',
-            icon: 'fa-user-shield',
-            href: 'fiscales.html',
-            status: 'available',
-            features: [
-                'Registro de fiscales',
-                'Calendario por mesa (8 a 18hs)',
-                'Agenda del comicio por horario'
-            ]
-        },
-        {
-            id: 'comicio',
-            title: 'Gestión de Comicio',
-            description: 'Comicios, mesas con rango de padrón, carga de votos y métricas.',
-            icon: 'fa-building',
-            href: 'comicio.html',
-            status: 'available',
-            features: [
-                'Alta de comicio con listas',
-                'Mesas con rango de padrón',
-                'Carga de votos por mesa',
-                'Métricas del comicio'
-            ]
-        }
-    ],
-    encargado_relevamiento: [
-        {
-            id: 'padron',
-            title: 'Relevamiento de Padrón',
-            description: 'Acceso a las herramientas de relevamiento del padrón electoral.',
-            icon: 'fa-clipboard-check',
-            href: 'index.html',
-            status: 'available',
-            features: [
-                'Carga de relevamientos',
-                'Actualización de datos',
-                'Consulta de votantes',
-                'Reportes de progreso'
-            ]
-        }
-    ],
-    consultor: [
-        {
-            id: 'resultados',
-            title: 'Estadísticas y Reportes',
-            description: 'Consulta de estadísticas y análisis de datos electorales.',
-            icon: 'fa-chart-bar',
-            href: 'resultados.html',
-            status: 'available',
-            features: [
-                'Dashboards interactivos',
-                'Reportes estadísticos',
-                'Análisis de tendencias',
-                'Exportación de gráficos'
-            ]
-        }
-    ]
-};
-
 // Estado de la aplicación
 let currentUser = null;
 let currentUserRole = null;
@@ -235,11 +130,35 @@ async function loadDashboard() {
     const modules = getModulesForUser();
     renderModules(modules);
 
-    // Cargar estadísticas si tiene permisos para ver padrón
-    const hasAccessToPadron = hasPermission('padron.view');
-    if (hasAccessToPadron) {
-        await loadQuickStats();
+    // El encargado de relevamiento no tiene resultados.view -- los endpoints que
+    // arma la vista de administrador/consultor le devolverían 403 -- así que tiene
+    // su propia vista, con datos que sí le corresponden (padron.view).
+    if (currentUserRole === 'encargado_relevamiento') {
+        await loadVistaEncargado();
+    } else {
+        await loadVistaAdminConsultor();
     }
+}
+
+// Situación general, actividad del equipo y estado del comicio. Cada bloque se
+// gatea por su propio permiso, no por el rol: así administrador ve los tres y
+// consultor sólo el primero, sin tener que enumerar roles acá.
+async function loadVistaAdminConsultor() {
+    document.getElementById('vista-admin-consultor').hidden = false;
+
+    // En paralelo (FE-053): son bloques independientes y cada uno maneja su propio error.
+    await Promise.allSettled([
+        hasPermission('resultados.view') ? loadQuickStats() : null,
+        hasPermission('admin.system') ? loadActividadReciente() : null,
+        hasPermission('comicio.view') ? loadEstadoComicio() : null,
+    ]);
+}
+
+// Mi avance de relevamiento y acceso directo a seguir cargando.
+async function loadVistaEncargado() {
+    document.getElementById('vista-encargado').hidden = false;
+    await loadResumenEncargado();
+    await loadCondicionesPendientes();
 }
 
 // Obtener módulos basados en los permisos del usuario
@@ -274,29 +193,18 @@ function getModulesForUser() {
         });
     }
 
-    // Módulo Fiscales (futuro)
-    if (hasPermission('fiscales.view')) {
-        availableModules.push({
-            id: 'fiscales',
-            title: 'Gestión de Fiscales',
-            description: 'Administración de fiscales de mesa y coordinadores de comicio.',
-            icon: 'fa-user-shield',
-            href: 'fiscales.html',
-            status: 'coming-soon',
-            features: getFeaturesByPermissions('fiscales')
-        });
-    }
-
-    // Módulo Comicio (futuro)
-    if (hasPermission('comicio.view')) {
+    // Módulo Comicio: absorbe Fiscales (gestionar un comicio implica gestionar los
+    // fiscales de sus mesas). Entra con cualquiera de los dos permisos; las secciones
+    // de adentro se gatean cada una con el suyo.
+    if (hasPermission('comicio.view') || hasPermission('fiscales.view')) {
         availableModules.push({
             id: 'comicio',
             title: 'Gestión de Comicio',
-            description: 'Configuración y administración de lugares de votación y mesas electorales.',
+            description: 'Comicios, mesas, fiscales y su calendario, carga de votos y métricas.',
             icon: 'fa-building',
             href: 'comicio.html',
-            status: 'coming-soon',
-            features: getFeaturesByPermissions('comicio')
+            status: 'available',
+            features: [...getFeaturesByPermissions('comicio'), ...getFeaturesByPermissions('fiscales')]
         });
     }
 
@@ -397,13 +305,36 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// Cargar estadísticas rápidas
 /**
- * Situación del relevamiento.
+ * Tres píldoras de intención de voto (PJ/UCR/Indeciso), sobre el total ya
+ * relevado. Sin gráfico: esta pantalla ya tiene una cifra grande dominando el
+ * bloque de situación, y para el detalle está Resultados.
+ */
+function renderIntencionVoto({ pj, ucr, indeciso, totalRelevados }) {
+    const total = Math.max(Number(totalRelevados) || 0, 1);
+    const pct = valor => Math.round((Number(valor) || 0) / total * 100);
+
+    return `
+        <div class="intencion-voto">
+            <span class="intencion-pill"><span class="intencion-dot pj"></span>PJ <strong>${pct(pj)}%</strong></span>
+            <span class="intencion-pill"><span class="intencion-dot ucr"></span>UCR <strong>${pct(ucr)}%</strong></span>
+            <span class="intencion-pill"><span class="intencion-dot indeciso"></span>Indeciso <strong>${pct(indeciso)}%</strong></span>
+        </div>
+    `;
+}
+
+/**
+ * Situación del relevamiento, para administrador y consultor.
  *
  * Antes esta función devolvía datos inventados —1250 votantes, 890 relevados—
  * con un TODO al lado, y la sección que los mostraba estaba comentada. Ahora
  * consulta la misma API que el padrón.
+ *
+ * Requiere resultados.view, no padron.view: antes se gateaba con el permiso
+ * equivocado y para un consultor (que tiene resultados.view pero no
+ * padron.view) esto nunca fallaba porque nunca se llamaba a tiempo, pero para
+ * cualquier rol futuro con esa misma combinación de permisos el fetch de acá
+ * abajo hubiera vuelto 403.
  */
 async function loadQuickStats() {
     const contenedor = document.getElementById('situacion');
@@ -427,6 +358,7 @@ async function loadQuickStats() {
                          aria-valuemin="0" aria-valuemax="100" aria-label="Avance del relevamiento">
                         <div class="situacion-relleno" style="width: ${porcentaje}%"></div>
                     </div>
+                    ${renderIntencionVoto({ pj: d.votos_pj, ucr: d.votos_ucr, indeciso: d.votos_indeciso, totalRelevados: relevados })}
                 </div>
             </div>
             <dl class="situacion-cifras">
@@ -484,6 +416,167 @@ async function cargarPorCircuito() {
         `;
     } catch (error) {
         console.error('Error cargando el avance por circuito:', error);
+    }
+}
+
+// Etiquetas cortas para el widget del dashboard. El listado completo, con ícono y
+// clase por operación, vive en AuditoriaComponent.js -- acá alcanza con el texto.
+const ETIQUETA_OPERACION = {
+    CREAR_VOTANTE: 'dio de alta un votante',
+    ACTUALIZAR_RELEVAMIENTO: 'actualizó un relevamiento',
+    CREAR_DETALLE: 'cargó un detalle',
+    ACTUALIZAR_DETALLE: 'actualizó un detalle',
+    ELIMINAR_DETALLE: 'eliminó un detalle',
+    IMPORTAR_CSV: 'importó un CSV',
+    EXPORTAR_DATOS: 'exportó datos',
+};
+
+/**
+ * Actividad reciente, sólo para quien tiene admin.system.
+ *
+ * Usa el mismo registro que Auditoría (`/api/padron/auditoria`) pero muestra
+ * apenas las últimas 5 filas: es un vistazo de "¿pasó algo?", no un reemplazo
+ * de la pantalla completa, que sigue siendo el lugar para filtrar y exportar.
+ */
+async function loadActividadReciente() {
+    const contenedor = document.getElementById('actividad-reciente');
+    if (!contenedor) return;
+
+    try {
+        const respuesta = await window.apiService.request('/api/padron/auditoria?limit=5');
+        const registros = Array.isArray(respuesta?.data) ? respuesta.data : [];
+        if (registros.length === 0) return;
+
+        const fecha = valor => new Date(valor).toLocaleString('es-AR', {
+            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+        });
+
+        contenedor.innerHTML = `
+            <h2 class="titulo-seccion">Actividad reciente</h2>
+            <ul class="actividad-lista">
+                ${registros.map(r => `
+                    <li class="actividad-item">
+                        <span class="actividad-texto">
+                            <strong>${escaparHtml(r.usuario_nombre || r.usuario_username || 'Alguien')}</strong>
+                            ${ETIQUETA_OPERACION[r.operacion] || 'hizo un cambio'}
+                        </span>
+                        <span class="actividad-fecha">${fecha(r.created_at)}</span>
+                    </li>
+                `).join('')}
+            </ul>
+            <a class="ver-todo" href="auditoria.html">Ver auditoría completa →</a>
+        `;
+    } catch (error) {
+        console.error('Error cargando la actividad reciente:', error);
+    }
+}
+
+/**
+ * Estado del comicio más reciente, sólo para quien tiene comicio.view.
+ *
+ * No hay noción de "próximo" comicio -- la tabla no tiene fecha, sólo
+ * created_at -- así que se toma el último cargado, que es el que
+ * `listarComicios` ya devuelve primero.
+ */
+async function loadEstadoComicio() {
+    const contenedor = document.getElementById('comicio-widget');
+    if (!contenedor) return;
+
+    try {
+        const listado = await window.apiService.request('/api/comicio?limite=1');
+        const comicios = Array.isArray(listado?.data) ? listado.data : [];
+        if (comicios.length === 0) return;
+
+        const comicio = comicios[0];
+        const metricas = await window.apiService.request(`/api/comicio/${comicio.id}/metricas`);
+        const m = metricas?.data || {};
+        const mesasTotal = Number(m.mesasTotal) || 0;
+        const mesasConVotos = Number(m.mesasConVotos) || 0;
+        const pct = mesasTotal > 0 ? Math.round((mesasConVotos / mesasTotal) * 100) : 0;
+
+        contenedor.innerHTML = `
+            <h2 class="titulo-seccion">Comicio: ${escaparHtml(comicio.nombre)}</h2>
+            <p class="titulo-ayuda">Mesas con resultado cargado.</p>
+            <div class="comicio-avance">
+                <div class="situacion-barra">
+                    <div class="situacion-relleno" style="width: ${pct}%"></div>
+                </div>
+                <span class="comicio-cifra">${mesasConVotos} / ${mesasTotal} mesas (${pct}%)</span>
+            </div>
+            <a class="ver-todo" href="comicio.html">Ir a Comicio →</a>
+        `;
+    } catch (error) {
+        console.error('Error cargando el estado del comicio:', error);
+    }
+}
+
+/**
+ * Avance de relevamiento para el encargado, sourced en /api/padron/estadisticas
+ * (padron.view) en vez de /api/padron/resultados/estadisticas-avanzadas
+ * (resultados.view), que este rol no tiene.
+ *
+ * Sin intención de voto: a diferencia de administrador y consultor, el
+ * encargado no ve el desglose PJ/UCR/Indeciso en el dashboard.
+ */
+async function loadResumenEncargado() {
+    const contenedor = document.getElementById('situacion-encargado');
+    const numero = valor => Number(valor || 0).toLocaleString('es-AR');
+
+    try {
+        const respuesta = await window.apiService.request('/api/padron/estadisticas');
+        const d = respuesta?.data || {};
+
+        const total = Number(d.totalVotantes) || 0;
+        const relevados = Number(d.totalRelevamientos) || 0;
+        const pendientes = Number(d.sinRelevar) || Math.max(total - relevados, 0);
+        const porcentaje = Math.round(Number(d.porcentajeRelevados) || 0);
+
+        contenedor.innerHTML = `
+            <div class="situacion-principal">
+                <div class="situacion-porcentaje">${porcentaje}<span>%</span></div>
+                <div class="situacion-detalle">
+                    <p class="situacion-titulo">de tu padrón relevado</p>
+                    <div class="situacion-barra" role="progressbar" aria-valuenow="${porcentaje}"
+                         aria-valuemin="0" aria-valuemax="100" aria-label="Avance del relevamiento">
+                        <div class="situacion-relleno" style="width: ${porcentaje}%"></div>
+                    </div>
+                </div>
+            </div>
+            <dl class="situacion-cifras">
+                <div><dt>Relevados</dt><dd>${numero(relevados)}</dd></div>
+                <div><dt>Pendientes</dt><dd>${numero(pendientes)}</dd></div>
+                <div><dt>Padrón total</dt><dd>${numero(total)}</dd></div>
+            </dl>
+        `;
+    } catch (error) {
+        console.error('Error cargando el resumen de relevamiento:', error);
+        contenedor.innerHTML = '<p class="situacion-error">No se pudo cargar tu avance de relevamiento.</p>';
+    }
+}
+
+/**
+ * Cuántos relevamientos quedaron marcados con alguna condición especial
+ * (nuevo votante, fallecido, empleado municipal, ayuda social). Mismo
+ * endpoint que consulta Resultados, gateado por padron.view O resultados.view
+ * a propósito para que le sirva también al encargado.
+ */
+async function loadCondicionesPendientes() {
+    const contenedor = document.getElementById('condiciones-pendientes');
+    if (!contenedor) return;
+
+    try {
+        const respuesta = await window.apiService.request('/api/padron/estadisticas-condiciones-especiales');
+        const d = respuesta?.data || {};
+        const total = Number(d.total_con_condiciones_especiales) || 0;
+        if (total === 0) return;
+
+        contenedor.innerHTML = `
+            <h2 class="titulo-seccion">Condiciones especiales</h2>
+            <p class="titulo-ayuda">Relevamientos marcados como nuevo votante, fallecido, empleado municipal o con ayuda social.</p>
+            <p class="condiciones-total">${total.toLocaleString('es-AR')}<span>de ${Number(d.total_relevamientos || 0).toLocaleString('es-AR')} relevamientos (${d.porcentaje_condiciones_especiales ?? 0}%)</span></p>
+        `;
+    } catch (error) {
+        console.error('Error cargando condiciones especiales:', error);
     }
 }
 

@@ -24,8 +24,11 @@
         // Gateado por permiso, no por rol: a diferencia de usuarios/auditoria (siempre
         // admin), listas.view puede terminar asignado a otro rol el dia de manana.
         { href: 'listas.html', icon: 'fa-list-ol', label: 'Listas', key: 'listas', permission: 'listas.view' },
-        { href: 'comicio.html', icon: 'fa-building', label: 'Comicio', key: 'comicio', permission: 'comicio.view' },
-        { href: 'fiscales.html', icon: 'fa-user-shield', label: 'Fiscales', key: 'fiscales', permission: 'fiscales.view' },
+        // Comicio absorbio a Fiscales en una sola pantalla: gestionar un comicio implica
+        // gestionar los fiscales de sus mesas, asi que no tiene sentido como item aparte.
+        // Entra con cualquiera de los dos permisos -- alguien con solo fiscales.view no
+        // puede quedar sin forma de llegar a la pantalla.
+        { href: 'comicio.html', icon: 'fa-building', label: 'Comicio', key: 'comicio', permissionAny: ['comicio.view', 'fiscales.view'] },
         { href: 'usuarios.html', icon: 'fa-users-gear', label: 'Usuarios', key: 'usuarios', adminOnly: true },
         { href: 'auditoria.html', icon: 'fa-clipboard-list', label: 'Auditoría', key: 'auditoria', adminOnly: true }
     ];
@@ -37,14 +40,14 @@
         const userPermisos = user.permisos || [];
         const visibleItems = NAV_ITEMS.filter(item =>
             (!item.adminOnly || userRole === 'administrador') &&
-            (!item.permission || userPermisos.includes(item.permission))
+            (!item.permission || userPermisos.includes(item.permission)) &&
+            (!item.permissionAny || item.permissionAny.some(p => userPermisos.includes(p)))
         );
         return `
         <nav class="navbar-unified">
             <div class="navbar-content">
                 <div class="navbar-brand">
-                    <i class="fas fa-vote-yea"></i>
-                    <span class="brand-text">Sistema Electoral</span>
+                    <img src="/assets/images/agora-logo.png" alt="ÁGORA" class="navbar-logo">
                 </div>
 
                 <div class="navbar-mobile-actions">
@@ -154,11 +157,6 @@
         const container = document.getElementById(containerId);
         if (!container) return;
         container.innerHTML = renderNavbar(activeKey);
-        // Set username if available
-        const user = (window.authService && window.authService.getCurrentUser && window.authService.getCurrentUser()) || { username: 'Usuario' };
-        const username = user.nombre_completo || user.username || 'Usuario';
-        const usernameElement = document.getElementById('username');
-        if (usernameElement) usernameElement.textContent = username;
         // Logout buttons (desktop inside menu + mobile in navbar)
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {

@@ -17,12 +17,9 @@ class LoginComponent {
             <div class="login-container">
                 <div class="login-card">
                     <div class="login-header">
-                        <h1>
-                            <i class="fas fa-vote-yea"></i>
-                            Sistema Electoral
+                        <h1 class="login-logo">
+                            <img src="/assets/images/agora-logo.png" alt="ÁGORA">
                         </h1>
-                        <h2></h2>
-                        <p>Ingrese sus credenciales para acceder al sistema</p>
                     </div>
 
                     <form id="loginForm" class="login-form">
@@ -61,7 +58,7 @@ class LoginComponent {
                             Iniciar Sesión
                         </button>
 
-                        <div id="loginError" class="error-message" style="display: none;"></div>
+                        <div id="loginError" class="error-message" role="alert" aria-live="assertive" style="display: none;"></div>
                     </form>
 
                     
@@ -139,6 +136,9 @@ class LoginComponent {
         } catch (error) {
             console.error('❌ Error en login:', error);
             this.showError(error.message || 'Error al iniciar sesión');
+            // No dejar una clave ya rechazada lista para reenviarse (FE-051).
+            const campoPassword = document.getElementById('password');
+            if (campoPassword) { campoPassword.value = ''; campoPassword.focus(); }
             if (error.rateLimited) {
                 cooldownSeconds = Number.isFinite(error.retryAfter) ? error.retryAfter : 10;
             }
