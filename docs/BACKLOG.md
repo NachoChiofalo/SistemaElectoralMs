@@ -27,8 +27,20 @@ Postgres descartable; ninguno tocó producción): G4 (FE-003/004/005, circuito e
 y los sueltos FE-006, 007, 008, 010, 011, 014, 026 y BE-003, 004, 005, 006, 007, 008, 011,
 012, 017, 020, 022, 028, 046. G6 **aplicado en producción** (2026-10-07, junto con las otras 9 migraciones de la
 ronda, corridas a mano con `npm run migrate`).
-Quedan para vos: G2 (CASCADE→RESTRICT cambia qué se puede borrar), DB-007, DB-010 (hay que
-mirar el rol real de la conexión), 018, 014 y 002.
+Quedan para vos: 018, 014 y 002 (G2, DB-007 y DB-010 ya resueltos, ver abajo).
+
+**2026-10-07 (G2, DB-007, DB-010).** **G2 hecho:** borrar una mesa o un comicio con votos cargados
+(blancos, nulos o votos por fuerza) responde 409 con el motivo; sin votos se borra como antes.
+`comicio/008` pasa `votos_fuerza → mesas` a `ON DELETE RESTRICT` y `padron/008` hace lo mismo con
+`relevamientos → votantes` (red de seguridad en la base: un `DELETE` bloqueado por una FK ahora es
+409 y no "referencia inexistente"). Las asignaciones de fiscales siguen yéndose con la mesa.
+**DB-007, decidido dejarlo:** el límite de una mesa son dos DNIs y su posición depende del
+apellido y nombre *actuales* de esos votantes; corregir el apellido de un votante que es límite
+mueve el rango de esa mesa sin rastro. Es raro y el rango sólo calcula participación. Si pasa a
+asignar votantes a mesas, cerrarlo con un trigger o un snapshot de (apellido, nombre). **DB-010,
+riesgo aceptado:** la app usa el rol `postgres` (dueño del proyecto) y migra con el mismo; si se
+filtra `DATABASE_URL`, el acceso es total. Retomar con un rol acotado si crece el equipo o los
+datos; nunca poner `DATABASE_URL` en logs, issues ni capturas.
 
 **2026-10-07 (decisiones de base de datos) — DB-004, 005 y 018 hechos; DB-015 decidido que no.**
 DB-004: `auth/007` y `padron/007` convierten las 15 columnas `TIMESTAMP` a `TIMESTAMPTZ`
@@ -469,7 +481,7 @@ el 500 no controlado y el riesgo de dato corrupto.
 | ⬛ BE-008 | Exportador de padrón sin manejo de errores de conexión a mitad de stream | Bug | Backend |
 | ⬛ BE-011 | `PUT /listas/:id` no atómico entre metadata y candidatos | Bug | Backend |
 | ⬛ DB-004 | `TIMESTAMP` sin timezone inconsistente en módulos viejos vs. nuevos | Diseño/Tipos | Backend, Base de datos |
-| DB-010 | Posible uso de rol superusuario de Supabase para la conexión de la app | Seguridad | Backend, Base de datos |
+| ⬛ DB-010 | Posible uso de rol superusuario de Supabase para la conexión de la app | Seguridad | Backend, Base de datos |
 
 ---
 

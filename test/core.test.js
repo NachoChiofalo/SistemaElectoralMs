@@ -216,3 +216,15 @@ test('el manejador de errores traduce codigos de PostgreSQL a HTTP', () => {
     assert.equal(typeof cuerpo.message, 'string');
   }
 });
+
+test('un DELETE bloqueado por una FK es un 409 y no "referencia inexistente" (G2)', () => {
+  const { manejadorErrores } = require('../src/core/errors');
+  const responder = (error) => {
+    let estado = null;
+    const res = { headersSent: false, status(n) { estado = n; return this; }, json() { return this; } };
+    manejadorErrores(error, { method: 'DELETE', originalUrl: '/x' }, res, () => {});
+    return estado;
+  };
+  assert.equal(responder({ code: '23503', detail: 'Key (id)=(1) is still referenced from table "votos_fuerza".' }), 409);
+  assert.equal(responder({ code: '23503', detail: 'Key (fuerza_id)=(9) is not present in table "fuerzas".' }), 400);
+});

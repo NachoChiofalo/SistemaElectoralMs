@@ -433,6 +433,39 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     assert.equal((despues['60+'] || 0) - (antes['60+'] || 0), 0, 'no debe sumar a 60+ por la edad guardada');
   });
 
+  await t.test('borrar una mesa o un votante con datos asociados falla en la base (G2)', async () => {
+    const { ComicioRepository } = require('../src/modules/comicio/repository');
+    const repo = new ComicioRepository(db);
+
+    const comicio = await db.unaFila("INSERT INTO elecciones.comicios (nombre, tipo_eleccion) VALUES ('g2', 'municipal') RETURNING id");
+    const fuerza = await db.unaFila("INSERT INTO elecciones.fuerzas (nombre) VALUES ('Fuerza G2') RETURNING id");
+    const conVotos = await db.unaFila('INSERT INTO elecciones.mesas (comicio_id, numero) VALUES ($1, 1) RETURNING id', [comicio.id]);
+    const vacia = await db.unaFila('INSERT INTO elecciones.mesas (comicio_id, numero) VALUES ($1, 2) RETURNING id', [comicio.id]);
+    await db.query('INSERT INTO elecciones.votos_fuerza (mesa_id, fuerza_id, cantidad) VALUES ($1, $2, 10)', [conVotos.id, fuerza.id]);
+
+    assert.equal(await repo.mesaTieneVotos(conVotos.id), true);
+    assert.equal(await repo.mesaTieneVotos(vacia.id), false);
+    assert.equal(await repo.contarMesasConVotos(comicio.id), 1);
+
+    await assert.rejects(
+      () => db.query('DELETE FROM elecciones.mesas WHERE id = $1', [conVotos.id]),
+      (error) => error.code === '23503' && /still referenced/.test(error.detail),
+      'RESTRICT: la base no deja borrar una mesa con votos',
+    );
+    await db.query('DELETE FROM elecciones.mesas WHERE id = $1', [vacia.id]); // sin votos se borra
+
+    // Reemplazar los votos sigue andando: es un DELETE de las propias filas.
+    await repo.reemplazarVotos(conVotos.id, { blancos: 0, nulos: 0, porFuerza: [{ fuerzaId: fuerza.id, cantidad: 5 }] });
+
+    await db.query("INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre) VALUES ('90000077', 1980, 'G2', 'Prueba')");
+    await db.query("INSERT INTO padron.relevamientos (dni, opcion_politica) VALUES ('90000077', 'PJ')");
+    await assert.rejects(
+      () => db.query("DELETE FROM padron.votantes WHERE dni = '90000077'"),
+      (error) => error.code === '23503' && /still referenced/.test(error.detail),
+      'RESTRICT: no se borra un votante con relevamiento',
+    );
+  });
+
   await t.test('sesion unica: un login nuevo invalida el refresh token anterior y se guarda hasheado (G3, 003)', async () => {
     const bcrypt = require('bcryptjs');
     const AuthRepository = require('../src/modules/auth/repository');

@@ -148,6 +148,14 @@ class ComicioService {
     const existente = await this.repo.porIdComicio(id);
     if (!existente) throw errores.noEncontrado('Comicio no encontrado');
 
+    // Borrar el comicio arrastra sus mesas y, con ellas, los votos cargados (G2).
+    const conVotos = await this.repo.contarMesasConVotos(id);
+    if (conVotos > 0) {
+      throw errores.conflicto(
+        `El comicio tiene ${conVotos} mesa(s) con votos cargados: no se puede borrar sin perderlos`,
+      );
+    }
+
     await this.repo.eliminarComicio(id);
 
     await this.auditoria.registrarDeRequest(req, {
@@ -240,6 +248,10 @@ class ComicioService {
   async eliminarMesa(req, comicioId, mesaId) {
     const existente = await this.repo.mesaPorId(mesaId);
     if (!existente || existente.comicio_id !== comicioId) throw errores.noEncontrado('Mesa no encontrada');
+
+    if (await this.repo.mesaTieneVotos(mesaId)) {
+      throw errores.conflicto('La mesa tiene votos cargados: no se puede borrar sin perderlos');
+    }
 
     await this.repo.eliminarMesa(mesaId);
 

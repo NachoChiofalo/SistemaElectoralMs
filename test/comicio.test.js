@@ -91,6 +91,13 @@ function repoFalso() {
       comicio = { ...comicio, ...datos, fuerzaIds };
       return comicio;
     },
+    async contarMesasConVotos() {
+      return mesas.filter((m) => m.votos_blancos != null || m.votos_nulos != null).length;
+    },
+    async mesaTieneVotos(mesaId) {
+      const m = mesas.find((x) => x.id === mesaId);
+      return Boolean(m && (m.votos_blancos != null || m.votos_nulos != null));
+    },
     async eliminarComicio(id) {
       const existia = comicio && comicio.id === id;
       if (existia) comicio = null;
@@ -343,6 +350,21 @@ test('eliminar un comicio inexistente da 404', async () => {
   const { repo, auditoria } = repoFalso();
   const servicio = new ComicioService(repo, auditoria);
   await assert.rejects(servicio.eliminarComicio({}, 999), (e) => e.status === 404);
+});
+
+test('no se puede borrar una mesa ni un comicio con votos cargados (G2)', async () => {
+  const { repo, auditoria } = repoFalso();
+  const servicio = new ComicioService(repo, auditoria);
+  const req = {};
+  const comicio = await servicio.crearComicio(req, DATOS_COMICIO, [1, 2]);
+  const mesa = await servicio.crearMesa(req, comicio.id, { numero: 1 });
+
+  await assert.doesNotReject(servicio.eliminarMesa({}, comicio.id, (await servicio.crearMesa(req, comicio.id, { numero: 2 })).id));
+
+  await servicio.cargarVotos(req, comicio.id, mesa.id, { blancos: 2, nulos: 1, porFuerza: [] });
+
+  await assert.rejects(servicio.eliminarMesa(req, comicio.id, mesa.id), (e) => e.status === 409);
+  await assert.rejects(servicio.eliminarComicio(req, comicio.id), (e) => e.status === 409);
 });
 
 test('auditoria registra alta de comicio, mesa y votos', async () => {

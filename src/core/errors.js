@@ -55,6 +55,12 @@ function traducir(error) {
   if (error.code === 'LIMIT_FILE_SIZE') return errores.demasiadoGrande();
   if (error.code === 'LIMIT_UNEXPECTED_FILE') return errores.solicitudInvalida('Campo de archivo inesperado');
 
+  // Un DELETE bloqueado por una FK RESTRICT/NO ACTION tambien es 23503, pero NO es "referencia a
+  // un registro inexistente": el registro existe y otro lo referencia. Es un conflicto (G2).
+  if (error.code === '23503' && /is still referenced/i.test(error.detail || '')) {
+    return new AppError('No se puede borrar: tiene datos asociados', 409, 'PG_23503_REFERENCIADO');
+  }
+
   if (error.code && PG_A_HTTP[error.code]) {
     const [status, mensaje] = PG_A_HTTP[error.code];
     return new AppError(mensaje, status, `PG_${error.code}`);

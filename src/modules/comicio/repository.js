@@ -175,6 +175,10 @@ class ComicioRepository {
 
   // ---- Mesas ----
 
+  // DB-007 (riesgo aceptado): el limite de una mesa es un DNI y su posicion en el rango se calcula
+  // con el (apellido, nombre, dni) ACTUAL de ese votante. Corregir el apellido de un votante que es
+  // limite de mesa mueve el rango de esa mesa sin dejar rastro. Hoy el rango solo calcula
+  // participacion; si pasa a asignar votantes a mesas, congelarlo (trigger o snapshot).
   async contarVotantesEnRango(desde, hasta) {
     const { total } = await this.db.unaFila(
       `SELECT COUNT(*)::int AS total
@@ -267,6 +271,33 @@ class ComicioRepository {
       [mesaId, numero, desdeDni || null, hastaDni || null],
     );
     return mesa;
+  }
+
+  /**
+   * Hay datos de votacion en la mesa: blancos o nulos cargados, o votos por fuerza. Borrarla los
+   * destruiria sin rastro (G2), por eso el service lo consulta antes.
+   */
+  async mesaTieneVotos(mesaId) {
+    const fila = await this.db.unaFila(
+      `SELECT 1 AS hay FROM elecciones.mesas m
+        WHERE m.id = $1
+          AND (m.votos_blancos IS NOT NULL OR m.votos_nulos IS NOT NULL
+               OR EXISTS (SELECT 1 FROM elecciones.votos_fuerza v WHERE v.mesa_id = m.id))`,
+      [mesaId],
+    );
+    return Boolean(fila);
+  }
+
+  /** Cuantas mesas del comicio tienen datos de votacion (ver mesaTieneVotos). */
+  async contarMesasConVotos(comicioId) {
+    const fila = await this.db.unaFila(
+      `SELECT COUNT(*)::int AS n FROM elecciones.mesas m
+        WHERE m.comicio_id = $1
+          AND (m.votos_blancos IS NOT NULL OR m.votos_nulos IS NOT NULL
+               OR EXISTS (SELECT 1 FROM elecciones.votos_fuerza v WHERE v.mesa_id = m.id))`,
+      [comicioId],
+    );
+    return fila.n;
   }
 
   async eliminarMesa(mesaId) {
