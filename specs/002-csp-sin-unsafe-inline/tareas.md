@@ -175,6 +175,15 @@ métodos despachados confirmados uno por uno contra la clase), pero la interacci
 
       Ambos arreglados, `npm run build:assets` y `npm test` corridos después de cada
       uno (131/131 en verde).
+- [x] **4.2 (cierre, 2026-10-07)** Smoke en Chrome real contra la app local con Postgres
+      descartable: login, dashboard, padrón (paginación, ficha, guardar teléfono y
+      observación, modal nuevo votante con cierre por overlay, circuitos del select),
+      `DetalleVotanteComponent` (abrir, guardar, reabrir con el dato persistido, cerrar),
+      resultados, usuarios, auditoría, comicio, listas y root-redirect. **Cero errores de
+      consola ni de CSP.** Sin probar: "eliminar detalle" y logout (disparan un `confirm()`
+      nativo que bloquea la extensión). Apareció un bug previo y ajeno: `GET
+      /api/padron/votantes/:dni` devolvía el objeto sin `{success, data}` y el modal de
+      condiciones nunca abría; corregido en `padron/routes.js`.
 - [x] **4.3** `npm test` completo en verde.
       *Verifica:* 131 pass, 1 skip (el mismo que ya se salteaba antes de este trabajo,
       necesita Postgres real).

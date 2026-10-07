@@ -144,6 +144,6 @@ una fecha que controlamos.
 ## Cierre
 
 - [ ] Actualizar `docs/BACKLOG.md`: 012 a ⬛, y confirmar el estado de 013 y 014.
-- [ ] `CLAUDE.md`: agregar a las reglas que no se rompen — *una escritura de relevamiento
+- [x] `CLAUDE.md`: agregar a las reglas que no se rompen — *una escritura de relevamiento
       sólo manda los campos que la persona editó, y viaja con su versión*. Es la regla que
       todo este trabajo deja instalada, y la que se pierde primero si no está escrita.

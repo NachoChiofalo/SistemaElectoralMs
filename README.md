@@ -1,4 +1,4 @@
-# Sistema Electoral
+# ÁGORA
 
 Gestión de padrón electoral, relevamientos, resultados y auditoría.
 

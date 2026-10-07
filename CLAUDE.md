@@ -50,6 +50,14 @@ y sembró lo que faltaba. Eso es lo que permite no usar `migrate:adopt` — que 
 pero es más arriesgado, porque salta migraciones enteras sin ejecutarlas. Una
 migración aplicada no se edita: se agrega la siguiente.
 
+**No hay base de staging: `DATABASE_URL` es la de producción.** `npm run migrate`
+corrido desde un checkout local aplica directo contra Supabase real — lo confirmó
+`npm run migrate:status` al implementar [G3](specs/G3-sesion-jwt/spec.md). Una migración que
+sólo crea esquema (`CREATE TABLE IF NOT EXISTS`) es de bajo riesgo correrla sin avisar;
+una que además toca datos existentes (`DELETE`, `UPDATE`, purgar algo) puede afectar
+sesiones o datos de gente usando el sistema en ese momento, y se confirma con la
+persona antes de correrla — no hay forma de probarla primero en otro lado.
+
 **Ningún dato de usuario entra a una plantilla sin `escaparHtml`.** Está en
 `public/src/lib/escapar.js` y lo cargan todas las páginas. Escapa las comillas además de
 `<`, `>` y `&`, porque este frontend interpola dentro de atributos (`value=`, `title=`,
@@ -113,6 +121,7 @@ significando algo con más de un usuario activo, que es exactamente el escenario
 | Escapado de datos en el frontend | `public/src/lib/escapar.js` |
 | Quién tocó una ficha y qué cambió | `padron.relevamientos.actualizado_por`, `GET /api/padron/cambios` |
 | Por qué el frontend es como es | [docs/FRONTEND.md](docs/FRONTEND.md) |
+| Paleta, tipografía, logo e ícono — la identidad de marca | [docs/IDENTIDAD.md](docs/IDENTIDAD.md) |
 | Cómo hace el sistema para que dos personas no se pisen | [docs/MULTIUSUARIO.md](docs/MULTIUSUARIO.md) |
 | Selector de tema claro/oscuro | `public/src/tema.js` |
 
@@ -125,7 +134,7 @@ Cada módulo sigue el mismo corte: `routes` (HTTP) → `service` (reglas) → `r
 
 ```bash
 npm run dev              # con --watch
-npm test                 # 130 tests, no necesitan base
+npm test                 # ~210 tests; los de Postgres real se saltean sin DATABASE_URL_TEST
 npm run migrate:status   # qué está aplicado
 npm run migrate          # aplicar pendientes
 npm run seed:usuarios    # crear el administrador
@@ -229,22 +238,13 @@ que hay que entender para no repetirla:
 - El frontend se escribió contra Font Awesome 5 y usa nombres que en la 6 cambiaron
   (`fa-save`, `fa-times`, `fa-home`). `build-assets.js` los traduce leyendo la
   metadata del paquete, así que no hace falta migrar el markup.
-- Quedan páginas sin backend: `fiscales.html` y `comicio.html`. Sus permisos ya están
-  en la migración de auth.
-- `padron-styles.css`, `resultados-styles.css`, `auditoria-styles.css` y
-  `usuarios-styles.css` definen las mismas clases (`.stat-card`, `.stat-icon`,
-  `.stat-label`) con medidas distintas. Hoy no choca porque ninguna página carga dos de
-  esas hojas a la vez, pero es una trampa puesta: la primera página que combine dos
-  módulos va a ver componentes deformes. Consolidarlas es trabajo pendiente.
-- `debug.html`, `test-api.html` y `test-padron.html` se sirven públicamente en
-  producción. No cargan el design system y quedaron fuera del test de tokens.
+- Una página no puede cargar dos hojas que definan la misma clase base (`.stat-card` fue la
+  que lo rompió: ver 005). Hay un test que lo impide, pero sólo mira `.stat-card`.
 - La tabla del padrón no tiene encabezado fijo. Se probó y se revirtió: `position:
   sticky` necesita que el contenedor tenga scroll propio, y esa barra vertical angosta
   el área útil hasta empujar la última de las once columnas fuera de la vista. Además
   cambia el modelo de scroll (la rueda mueve la tabla, no la página), que hay que
   probar usándolo. Vale la pena, pero como cambio verificado a mano.
-- Sin tests de integración contra una base real. Los 130 tests corren sin PostgreSQL;
-  lo que toca la base se verifica con el snapshot de contrato.
 - La CSP está activa pero con `'unsafe-inline'` en `script-src`. Corta la carga de
   recursos externos, `<base>` y el framing, pero **no frena XSS inline**, que es lo que
   más importa. Para sacar ese `'unsafe-inline'` hay que eliminar los bloques `<script>`
