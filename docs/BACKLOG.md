@@ -33,7 +33,9 @@ Quedan para vos: 018, 014 y 002 (G2, DB-007 y DB-010 ya resueltos, ver abajo).
 (blancos, nulos o votos por fuerza) responde 409 con el motivo; sin votos se borra como antes.
 `comicio/008` pasa `votos_fuerza → mesas` a `ON DELETE RESTRICT` y `padron/008` hace lo mismo con
 `relevamientos → votantes` (red de seguridad en la base: un `DELETE` bloqueado por una FK ahora es
-409 y no "referencia inexistente"). Las asignaciones de fiscales siguen yéndose con la mesa.
+409 y no "referencia inexistente"). Una mesa o un comicio con fiscales asignados tampoco se borra
+(409; `fiscales/004` pasa `fiscal_asignaciones → mesas` a `RESTRICT`). Borrar un *fiscal* sí sigue
+llevándose sus asignaciones.
 **DB-007, decidido dejarlo:** el límite de una mesa son dos DNIs y su posición depende del
 apellido y nombre *actuales* de esos votantes; corregir el apellido de un votante que es límite
 mueve el rango de esa mesa sin rastro. Es raro y el rango sólo calcula participación. Si pasa a

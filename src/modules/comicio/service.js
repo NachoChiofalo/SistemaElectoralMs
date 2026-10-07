@@ -155,6 +155,12 @@ class ComicioService {
         `El comicio tiene ${conVotos} mesa(s) con votos cargados: no se puede borrar sin perderlos`,
       );
     }
+    const conFiscales = await this.repo.contarMesasConAsignaciones(id);
+    if (conFiscales > 0) {
+      throw errores.conflicto(
+        `El comicio tiene ${conFiscales} mesa(s) con fiscales asignados: desasignalos antes de borrarlo`,
+      );
+    }
 
     await this.repo.eliminarComicio(id);
 
@@ -251,6 +257,12 @@ class ComicioService {
 
     if (await this.repo.mesaTieneVotos(mesaId)) {
       throw errores.conflicto('La mesa tiene votos cargados: no se puede borrar sin perderlos');
+    }
+    const asignaciones = await this.repo.contarAsignacionesDeMesa(mesaId);
+    if (asignaciones > 0) {
+      throw errores.conflicto(
+        `La mesa tiene ${asignaciones} fiscal(es) asignado(s): desasignalos antes de borrarla`,
+      );
     }
 
     await this.repo.eliminarMesa(mesaId);

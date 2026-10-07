@@ -457,6 +457,19 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     // Reemplazar los votos sigue andando: es un DELETE de las propias filas.
     await repo.reemplazarVotos(conVotos.id, { blancos: 0, nulos: 0, porFuerza: [{ fuerzaId: fuerza.id, cantidad: 5 }] });
 
+    // Fiscales asignados: la mesa tampoco se borra.
+    const fiscal = await db.unaFila("INSERT INTO elecciones.fiscales (nombre) VALUES ('Fiscal G2') RETURNING id");
+    await db.query("INSERT INTO elecciones.fiscal_asignaciones (mesa_id, fiscal_id, desde, hasta) VALUES ($1, $2, '08:00', '12:00')", [conVotos.id, fiscal.id]);
+    assert.equal(await repo.contarAsignacionesDeMesa(conVotos.id), 1);
+    assert.equal(await repo.contarMesasConAsignaciones(comicio.id), 1);
+    const sinVotos = await db.unaFila('INSERT INTO elecciones.mesas (comicio_id, numero) VALUES ($1, 3) RETURNING id', [comicio.id]);
+    await db.query("INSERT INTO elecciones.fiscal_asignaciones (mesa_id, fiscal_id, desde, hasta) VALUES ($1, $2, '13:00', '15:00')", [sinVotos.id, fiscal.id]);
+    await assert.rejects(
+      () => db.query('DELETE FROM elecciones.mesas WHERE id = $1', [sinVotos.id]),
+      (error) => error.code === '23503' && /still referenced/.test(error.detail),
+      'RESTRICT: la base no deja borrar una mesa con fiscales asignados',
+    );
+
     await db.query("INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre) VALUES ('90000077', 1980, 'G2', 'Prueba')");
     await db.query("INSERT INTO padron.relevamientos (dni, opcion_politica) VALUES ('90000077', 'PJ')");
     await assert.rejects(

@@ -300,6 +300,29 @@ class ComicioRepository {
     return fila.n;
   }
 
+  /**
+   * Cuantos fiscales tiene asignados la mesa. La tabla es del modulo de fiscales pero comparte
+   * schema y la mesa es de comicio: borrar la mesa se llevaba las asignaciones en silencio (G2).
+   */
+  async contarAsignacionesDeMesa(mesaId) {
+    const fila = await this.db.unaFila(
+      'SELECT COUNT(*)::int AS n FROM elecciones.fiscal_asignaciones WHERE mesa_id = $1',
+      [mesaId],
+    );
+    return fila.n;
+  }
+
+  /** Cuantas mesas del comicio tienen al menos un fiscal asignado. */
+  async contarMesasConAsignaciones(comicioId) {
+    const fila = await this.db.unaFila(
+      `SELECT COUNT(*)::int AS n FROM elecciones.mesas m
+        WHERE m.comicio_id = $1
+          AND EXISTS (SELECT 1 FROM elecciones.fiscal_asignaciones a WHERE a.mesa_id = m.id)`,
+      [comicioId],
+    );
+    return fila.n;
+  }
+
   async eliminarMesa(mesaId) {
     const { rowCount } = await this.db.query('DELETE FROM elecciones.mesas WHERE id = $1', [mesaId]);
     return rowCount > 0;

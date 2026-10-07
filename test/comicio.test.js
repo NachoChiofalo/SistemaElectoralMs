@@ -28,6 +28,7 @@ const VOTANTES = {
 function repoFalso() {
   let comicio = null;
   let mesas = [];
+  const asignadas = new Set(); // ids de mesa con algun fiscal asignado
   let siguienteMesaId = 1;
   const fuerzas = [{ id: 1, nombre: 'Fuerza A', color: 1 }, { id: 2, nombre: 'Fuerza B', color: 2 }];
   const auditoriaLlamadas = [];
@@ -94,6 +95,8 @@ function repoFalso() {
     async contarMesasConVotos() {
       return mesas.filter((m) => m.votos_blancos != null || m.votos_nulos != null).length;
     },
+    async contarMesasConAsignaciones() { return asignadas.size ? 1 : 0; },
+    async contarAsignacionesDeMesa(mesaId) { return asignadas.has(mesaId) ? 1 : 0; },
     async mesaTieneVotos(mesaId) {
       const m = mesas.find((x) => x.id === mesaId);
       return Boolean(m && (m.votos_blancos != null || m.votos_nulos != null));
@@ -177,7 +180,7 @@ function repoFalso() {
     },
   };
 
-  return { repo, auditoria, llamadas: () => auditoriaLlamadas };
+  return { repo, auditoria, asignadas, llamadas: () => auditoriaLlamadas };
 }
 
 const DATOS_COMICIO = { nombre: 'Comicio Test', tipoEleccion: 'municipal' };
@@ -365,6 +368,21 @@ test('no se puede borrar una mesa ni un comicio con votos cargados (G2)', async 
 
   await assert.rejects(servicio.eliminarMesa(req, comicio.id, mesa.id), (e) => e.status === 409);
   await assert.rejects(servicio.eliminarComicio(req, comicio.id), (e) => e.status === 409);
+});
+
+test('no se puede borrar una mesa ni un comicio con fiscales asignados (G2)', async () => {
+  const { repo, auditoria, asignadas } = repoFalso();
+  const servicio = new ComicioService(repo, auditoria);
+  const req = {};
+  const comicio = await servicio.crearComicio(req, DATOS_COMICIO, [1, 2]);
+  const mesa = await servicio.crearMesa(req, comicio.id, { numero: 1 });
+
+  asignadas.add(mesa.id);
+  await assert.rejects(servicio.eliminarMesa(req, comicio.id, mesa.id), (e) => e.status === 409 && /fiscal/.test(e.message));
+  await assert.rejects(servicio.eliminarComicio(req, comicio.id), (e) => e.status === 409 && /fiscal/.test(e.message));
+
+  asignadas.clear(); // desasignados: ahora se puede
+  await assert.doesNotReject(servicio.eliminarMesa(req, comicio.id, mesa.id));
 });
 
 test('auditoria registra alta de comicio, mesa y votos', async () => {
