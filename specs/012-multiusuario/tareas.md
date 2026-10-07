@@ -32,8 +32,9 @@ cortado.
       GET previo, mandando un solo campo.
       *Verifica:* cambiar la opción política de una fila no altera la observación de ese
       DNI (mirarla antes y después).
-- [ ] **0.9** Prueba manual de la pérdida original: abrir ficha, cargar teléfono **y**
-      observación, guardar, recargar la página. Los dos valores están.
+- [x] **0.9** Prueba manual de la pérdida original: abrir ficha, cargar teléfono **y**
+      observación, guardar, recargar la página. Los dos valores están. **Hecho en producción
+      el 2026-10-07**, ya con el deploy de la ronda P2/P3.
 - [ ] **0.10** Snapshot después: **sin diferencias**.
       *Verifica:* `--compare specs/012-multiusuario/snapshot-antes.json`.
 
