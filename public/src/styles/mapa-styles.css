@@ -1,0 +1,419 @@
+/* Mapa por manzana y barrio (018). Reutiliza modales, botones y avisos de usuarios-styles.css; aca solo
+   lo propio del mapa. Todo color sale de un token: la escala --ds-mapa-N y, para la opcion lider, la
+   clase op-N que fija --opcion-color (design-system.css). */
+
+.mapa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.mapa-header h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ds-text-primary);
+}
+
+.mapa-subtitulo {
+    margin: 4px 0 0;
+    color: var(--ds-text-secondary);
+}
+
+.mapa-barra {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* Botones segmentados: el elegido lleva aria-pressed="true". */
+.segmentado {
+    display: inline-flex;
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-md);
+    overflow: hidden;
+}
+
+.segmentado button {
+    background: var(--ds-bg-card);
+    color: var(--ds-text-secondary);
+    border: 0;
+    padding: 8px 14px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.segmentado button + button {
+    border-left: 1px solid var(--ds-border-light);
+}
+
+.segmentado button[aria-pressed="true"] {
+    background: var(--ds-primary-500);
+    color: var(--ds-on-primary);
+}
+
+.segmentado button:focus-visible,
+.mapa-sin-ubicar:focus-visible {
+    outline: 2px solid var(--ds-primary-500);
+    outline-offset: 2px;
+}
+
+.mapa-sin-ubicar {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-bg-card);
+    color: var(--ds-warning-on-tint);
+    cursor: pointer;
+    font: inherit;
+}
+
+.mapa-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+    gap: 16px;
+    align-items: start;
+}
+
+.mapa-lienzo,
+.mapa-panel {
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-lg);
+}
+
+.mapa-lienzo {
+    padding: 8px;
+}
+
+.mapa-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 75vh;
+}
+
+/* —— Zonas —— */
+.mapa-svg path.zona {
+    stroke: var(--ds-bg-card);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+}
+
+.mapa-svg path.zona:hover {
+    stroke: var(--ds-text-secondary);
+    stroke-width: 1.5;
+}
+
+.mapa-svg path.zona:focus-visible,
+.mapa-svg path.zona.seleccionada {
+    outline: none;
+    stroke: var(--ds-text-primary);
+    stroke-width: 3;
+}
+
+/* Nivel radio censal: con uno elegido, los demas se atenuan (su borde va por las calles y no se ve). */
+.mapa-svg.con-seleccion path.zona:not(.seleccionada) {
+    opacity: 0.35;
+}
+
+/* El nivel que no se eligio queda solo como referencia. */
+.mapa-svg path.contorno {
+    fill: none;
+    pointer-events: none;
+    vector-effect: non-scaling-stroke;
+}
+
+.mapa-svg path.contorno-barrio {
+    stroke: var(--ds-text-primary);
+    stroke-width: 2;
+    stroke-opacity: 0.55;
+}
+
+.mapa-svg path.contorno-manzana {
+    stroke: var(--ds-text-secondary);
+    stroke-width: 0.6;
+    stroke-opacity: 0.5;
+}
+
+.mapa-n0 { fill: var(--ds-mapa-0); }
+.mapa-n1 { fill: var(--ds-mapa-1); }
+.mapa-n2 { fill: var(--ds-mapa-2); }
+.mapa-n3 { fill: var(--ds-mapa-3); }
+.mapa-n4 { fill: var(--ds-mapa-4); }
+.mapa-n5 { fill: var(--ds-mapa-5); }
+.op-relleno { fill: var(--opcion-color); }
+
+/* —— Leyenda —— */
+.mapa-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 10px;
+    color: var(--ds-text-secondary);
+    font-size: 0.85rem;
+}
+
+.leyenda-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.leyenda-muestra {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px var(--ds-border-light);
+}
+
+.leyenda-muestra.mapa-n0 { background: var(--ds-mapa-0); }
+.leyenda-muestra.mapa-n1 { background: var(--ds-mapa-1); }
+.leyenda-muestra.mapa-n2 { background: var(--ds-mapa-2); }
+.leyenda-muestra.mapa-n3 { background: var(--ds-mapa-3); }
+.leyenda-muestra.mapa-n4 { background: var(--ds-mapa-4); }
+.leyenda-muestra.mapa-n5 { background: var(--ds-mapa-5); }
+.leyenda-muestra.op-relleno { background: var(--opcion-color); }
+
+/* —— Panel de zona —— */
+.mapa-panel {
+    padding: 16px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.mapa-vacio {
+    margin: 0;
+    color: var(--ds-text-secondary);
+}
+
+.panel-titulo {
+    margin: 0 0 10px;
+    color: var(--ds-text-primary);
+}
+
+.panel-subtitulo {
+    margin: 0 0 8px;
+    color: var(--ds-text-primary);
+}
+
+.panel-barrio {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--ds-border-light);
+}
+
+.panel-pestanas {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--ds-border-light);
+}
+
+.panel-pestanas button {
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 6px 10px;
+    color: var(--ds-text-secondary);
+    cursor: pointer;
+    font: inherit;
+}
+
+.panel-pestanas button[aria-selected="true"] {
+    color: var(--ds-text-primary);
+    border-bottom-color: var(--ds-primary-500);
+}
+
+.panel-cifras {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 0 0 12px;
+}
+
+.panel-cifras div {
+    background: var(--ds-bg-subtle);
+    border-radius: var(--ds-radius-md);
+    padding: 8px;
+}
+
+.panel-cifras dt {
+    font-size: 0.75rem;
+    color: var(--ds-text-secondary);
+}
+
+.panel-cifras dd {
+    margin: 2px 0 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ds-text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.panel-aviso {
+    margin: 8px 0;
+    padding: 8px 10px;
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-bg-subtle);
+    color: var(--ds-text-secondary);
+    font-size: 0.85rem;
+}
+
+.panel-nota {
+    margin: 6px 0;
+    color: var(--ds-text-secondary);
+    font-size: 0.85rem;
+}
+
+.panel-opciones {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.barra-opcion {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--ds-text-primary);
+}
+
+.barra-nombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.barra-pista {
+    height: 8px;
+    border-radius: var(--ds-radius-full);
+    background: var(--ds-bg-subtle);
+    overflow: hidden;
+}
+
+.barra-relleno {
+    display: block;
+    height: 100%;
+    background: var(--opcion-color);
+}
+
+.barra-valor {
+    color: var(--ds-text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.panel-corte {
+    margin: 8px 0;
+}
+
+.panel-corte summary {
+    cursor: pointer;
+    color: var(--ds-text-primary);
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+.panel-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.panel-tabla th,
+.panel-tabla td {
+    padding: 4px 6px;
+    text-align: right;
+    border-bottom: 1px solid var(--ds-border-light);
+    color: var(--ds-text-primary);
+}
+
+.panel-tabla th:first-child,
+.panel-tabla td:first-child {
+    text-align: left;
+}
+
+.panel-tabla thead th {
+    color: var(--ds-text-secondary);
+    font-weight: 600;
+}
+
+.celda-oculta {
+    color: var(--ds-text-muted);
+    font-style: italic;
+    text-align: center !important;
+}
+
+.panel-lista td:nth-child(2) {
+    text-align: left;
+}
+
+.estado-relevado {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: var(--ds-radius-full);
+}
+
+.estado-relevado.si {
+    background: var(--ds-bg-subtle);
+    color: var(--ds-success-on-tint);
+}
+
+.estado-relevado.no {
+    background: var(--ds-bg-subtle);
+    color: var(--ds-text-secondary);
+}
+
+.enlace-ficha {
+    color: var(--ds-primary-on-tint);
+}
+
+.panel-paginas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 10px;
+    color: var(--ds-text-secondary);
+}
+
+.panel-detalles {
+    margin: 4px 0 0;
+    padding-left: 18px;
+    color: var(--ds-text-secondary);
+    font-size: 0.82rem;
+}
+
+.panel-detalles span {
+    color: var(--ds-text-primary);
+    font-variant-numeric: tabular-nums;
+    margin-left: 6px;
+}
+
+@media (max-width: 900px) {
+    .mapa-cuerpo {
+        grid-template-columns: 1fr;
+    }
+
+    .mapa-sin-ubicar {
+        margin-left: 0;
+    }
+
+    .mapa-panel {
+        max-height: none;
+    }
+}

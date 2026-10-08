@@ -50,6 +50,9 @@ module.exports = {
   'users-gear': 'user-cog',
   // Configuracion de la instancia (021): lo mas parecido a un panel de ajustes.
   'sliders-h': 'sliders-horizontal',
+  // Mapa por manzana y barrio (018).
+  'map': 'map',
+  'layer-group': 'layers',
 
   // —— Padrón y relevamiento ——
   'id-card': 'id-card',

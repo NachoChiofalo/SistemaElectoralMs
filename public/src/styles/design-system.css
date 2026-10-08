@@ -122,6 +122,17 @@
     --ds-fuerza-7: #db2777;
     --ds-fuerza-8: #57534e;
 
+    /* —— Escala del mapa (018) ——
+       El avance de relevamiento de una zona, de nada a todo, en un solo tono que crece. Verde porque
+       avance es progreso (el mismo sentido que --ds-success). El 0 es "sin datos" o "no se puede
+       mostrar" (menos relevados que el umbral de privacidad): un gris que no compite con la escala. */
+    --ds-mapa-0: #ececec;
+    --ds-mapa-1: #e3f3e9;
+    --ds-mapa-2: #b5dfc5;
+    --ds-mapa-3: #7cc49b;
+    --ds-mapa-4: #3d9f6b;
+    --ds-mapa-5: #1d7146;
+
     /* —— Texto sobre fondo teñido ——
        Los badges y los íconos de estadística pintan un fondo tenue del color que
        representan y escriben encima con ese mismo color, más oscuro. En claro eso sale
@@ -861,6 +872,14 @@ textarea::placeholder {
     --modo-oscuro-fuerza-7: #f9a8d4;
     --modo-oscuro-fuerza-8: #a8a29e;
 
+    /* —— Escala del mapa: en oscuro crece hacia el claro, para que "mas" siga siendo "mas visible" —— */
+    --modo-oscuro-mapa-0: #2c2c2c;
+    --modo-oscuro-mapa-1: #1c3326;
+    --modo-oscuro-mapa-2: #1f4f36;
+    --modo-oscuro-mapa-3: #25704b;
+    --modo-oscuro-mapa-4: #3b9a69;
+    --modo-oscuro-mapa-5: #6fd29c;
+
     /* —— Texto sobre tinte: acá el par se da vuelta y el texto pasa a ser el claro —— */
     --modo-oscuro-primary-on-tint: #ffffff;
     --modo-oscuro-success-on-tint: #6ee7b7;
@@ -946,6 +965,12 @@ textarea::placeholder {
         --ds-fuerza-6: var(--modo-oscuro-fuerza-6);
         --ds-fuerza-7: var(--modo-oscuro-fuerza-7);
         --ds-fuerza-8: var(--modo-oscuro-fuerza-8);
+        --ds-mapa-0: var(--modo-oscuro-mapa-0);
+        --ds-mapa-1: var(--modo-oscuro-mapa-1);
+        --ds-mapa-2: var(--modo-oscuro-mapa-2);
+        --ds-mapa-3: var(--modo-oscuro-mapa-3);
+        --ds-mapa-4: var(--modo-oscuro-mapa-4);
+        --ds-mapa-5: var(--modo-oscuro-mapa-5);
 
         --ds-primary-on-tint: var(--modo-oscuro-primary-on-tint);
         --ds-success-on-tint: var(--modo-oscuro-success-on-tint);
@@ -1020,6 +1045,12 @@ textarea::placeholder {
     --ds-fuerza-6: var(--modo-oscuro-fuerza-6);
     --ds-fuerza-7: var(--modo-oscuro-fuerza-7);
     --ds-fuerza-8: var(--modo-oscuro-fuerza-8);
+    --ds-mapa-0: var(--modo-oscuro-mapa-0);
+    --ds-mapa-1: var(--modo-oscuro-mapa-1);
+    --ds-mapa-2: var(--modo-oscuro-mapa-2);
+    --ds-mapa-3: var(--modo-oscuro-mapa-3);
+    --ds-mapa-4: var(--modo-oscuro-mapa-4);
+    --ds-mapa-5: var(--modo-oscuro-mapa-5);
 
     --ds-primary-on-tint: var(--modo-oscuro-primary-on-tint);
     --ds-success-on-tint: var(--modo-oscuro-success-on-tint);

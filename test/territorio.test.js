@@ -346,3 +346,23 @@ test('la geometria se puede volver a pedir con If-None-Match y responde 304', as
     assert.equal(segunda.status, 304);
   });
 });
+
+// ---------------------------------------------------------------- frontend: proyeccion (F6)
+
+test('la proyeccion encaja la localidad en el ancho y deja el norte arriba', () => {
+  const { crearProyeccion, pathDe } = require('../public/src/lib/geometria-svg');
+  // Un cuadrado de 0,01 grados en Alcira: a esa latitud el ancho real es cos(32,75) del alto.
+  const cuadrado = [[[-64.34, -32.76], [-64.33, -32.76], [-64.33, -32.75], [-64.34, -32.75], [-64.34, -32.76]]];
+  const { ancho, alto, proyectar } = crearProyeccion(cuadrado, 1000, 0);
+  assert.equal(ancho, 1000);
+  assert.equal(alto, Math.round(1000 / Math.cos((32.755 * Math.PI) / 180)), 'mas alto que ancho, por la latitud');
+  const [, yNorte] = proyectar([-64.34, -32.75]);
+  const [, ySur] = proyectar([-64.34, -32.76]);
+  assert.ok(yNorte < ySur, 'el norte arriba');
+  assert.deepEqual(proyectar([-64.34, -32.75]), [0, 0]);
+  // El anillo arranca en la esquina suroeste, que con el norte arriba queda abajo a la izquierda (y maxima).
+  const [, yMax] = proyectar([-64.34, -32.76]);
+  const y = yMax.toFixed(1);
+  assert.equal(pathDe(cuadrado, proyectar), `M0.0 ${y} L1000.0 ${y} L1000.0 0.0 L0.0 0.0 L0.0 ${y} Z`);
+  assert.equal(pathDe([[[1, 1], [2, 2]]], proyectar), '', 'un anillo degenerado no se dibuja');
+});

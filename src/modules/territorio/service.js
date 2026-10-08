@@ -56,6 +56,20 @@ function aplicarUmbral(zona, umbral) {
 const numero = (x) => Number(x) || 0;
 const filaAZona = (f, codigos) => metricas({ votantes: numero(f.total_votantes), relevados: numero(f.total_relevados), votos: f.votos }, codigos);
 
+// Como se le explica cada motivo a una persona (los de ESTADOS son los internos, sin tildes).
+const MOTIVOS = {
+  sin_domicilio: 'Sin domicilio, o zona rural',
+  sin_numero: 'Sin calle y número (barrio, S/N u otro formato)',
+  esquina: 'Esquina (dos calles, sin número)',
+  sin_altura: 'Tiene calle, pero el número es 0 o falta',
+  calle_no_encontrada: 'La calle no está en el callejero',
+  calle_parecida: 'Hay una calle parecida, pero no igual (revisar)',
+  sin_tramo: 'La calle existe, pero ninguna cuadra cubre ese número',
+  calle_ambigua: 'El nombre coincide con más de una calle',
+  sentido_ambiguo: 'No se pudo deducir hacia dónde crece la numeración',
+  sin_manzana: 'El punto cae fuera de toda manzana (borde del pueblo)',
+};
+
 const CONDICIONES = ['empleados_municipales', 'ayuda_social', 'nuevos_votantes', 'fallecidos'];
 
 class TerritorioService {
@@ -317,7 +331,7 @@ class TerritorioService {
         .filter((e) => e !== 'ok' && porEstado[e])
         .map((estado) => ({
           estado,
-          descripcion: ESTADOS[estado],
+          descripcion: MOTIVOS[estado] || ESTADOS[estado],
           votantes: porEstado[estado],
           detalles: pendientes.filter((p) => p.estado === estado && p.detalle).slice(0, 10)
             .map((p) => ({ detalle: p.detalle, votantes: p.votantes })),

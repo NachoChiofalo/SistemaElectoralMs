@@ -52,13 +52,17 @@ async function main() {
   console.log(`Descargando calles, manzanas y radios censales de "${args.localidad}" (datos publicos)...`);
   const capas = await descargarLocalidad(args.localidad, { departamento: args.departamento });
   const asignacion = asignarSectores(capas.manzanas, capas.sectores);
+  // Un radio sin ninguna manzana es campo: no aporta al mapa urbano y solo agranda el dibujo.
+  const usados = new Set([...asignacion.values()].filter(Boolean));
+  const descartados = capas.sectores.length - usados.size;
+  capas.sectores = capas.sectores.filter((s) => usados.has(s.codigo));
   const conBarrio = [...asignacion.values()].filter(Boolean).length;
   const conNumeracion = capas.tramos.filter((t) => ALTURA_MIN(t) < Infinity).length;
 
   console.log(`Localidad en el callejero: ${capas.localidades.join(', ')}`);
   console.log(`  tramos de calle: ${num(capas.tramos.length)} (con numeracion: ${num(conNumeracion)})`);
   console.log(`  manzanas: ${num(capas.manzanas.length)} (dentro de un radio: ${num(conBarrio)})`);
-  console.log(`  radios censales: ${num(capas.sectores.length)}`);
+  console.log(`  radios censales: ${num(capas.sectores.length)} con manzanas (se descartan ${num(descartados)} sin ninguna, que son campo)`);
   if (capas.localidades.length > 1) {
     console.log('  AVISO: el nombre coincide con mas de una localidad; acotalo con --departamento.');
   }

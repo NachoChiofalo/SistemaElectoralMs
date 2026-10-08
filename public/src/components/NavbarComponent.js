@@ -21,6 +21,8 @@
         { href: 'dashboard.html', icon: 'fa-tachometer-alt', label: 'Inicio', key: 'dashboard' },
         { href: 'index.html', icon: 'fa-list', label: 'Padrón', key: 'padron' },
         { href: 'resultados.html', icon: 'fa-chart-bar', label: 'Resultados', key: 'resultados' },
+        // Por permiso y no por rol: en la etapa 1 solo lo tiene el administrador (018).
+        { href: 'mapa.html', icon: 'fa-map', label: 'Mapa', key: 'mapa', permission: 'territorio.view' },
         // Gateado por permiso, no por rol: a diferencia de usuarios/auditoria (siempre
         // admin), listas.view puede terminar asignado a otro rol el dia de manana.
         { href: 'listas.html', icon: 'fa-list-ol', label: 'Listas', key: 'listas', permission: 'listas.view' },

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoria - ÁGORA</title>
+    <title>Mapa - ÁGORA</title>
     <link rel="icon" type="image/png" href="/assets/images/agora-icon.png">
 
     <!-- Tipografia e iconos, servidos desde este mismo origen -->
@@ -20,7 +20,8 @@
 
     <!-- Estilos -->
     <link rel="stylesheet" href="src/styles/navbar-styles.css?v=482f8826">
-    <link rel="stylesheet" href="src/styles/auditoria-styles.css?v=fa022422">
+    <link rel="stylesheet" href="src/styles/usuarios-styles.css?v=6259e477">
+    <link rel="stylesheet" href="src/styles/mapa-styles.css?v=90630404">
 
     <style>
         body {
@@ -43,8 +44,8 @@
     <div id="navbar-container"></div>
 
     <main class="page-container">
-        <div id="auditoria-container" aria-live="polite">
-            <!-- AuditoriaComponent se renderiza aqui -->
+        <div id="mapa-container">
+            <!-- MapaComponent se renderiza aqui -->
         </div>
     </main>
 
@@ -52,7 +53,9 @@
     <script src="src/components/NavbarComponent.js?v=5f19dd0d"></script>
     <script src="src/services/ApiService.js?v=1ccf812f"></script>
     <script src="src/services/AuthService.js?v=c07d343e"></script>
-    <script src="src/components/AuditoriaComponent.js?v=5af1db76"></script>
-    <script src="src/pages/auditoria.js?v=851a84a9"></script>
+    <script src="src/lib/opciones.js?v=c7d76c08"></script>
+    <script src="src/lib/geometria-svg.js?v=fb7735c4"></script>
+    <script src="src/components/MapaComponent.js?v=a12bc7d0"></script>
+    <script src="src/pages/mapa.js?v=80792bd8"></script>
 </body>
 </html>

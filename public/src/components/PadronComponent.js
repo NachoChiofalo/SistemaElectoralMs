@@ -89,6 +89,12 @@ class PadronComponent {
             // No fallar completamente si los datos no cargan
         }
 
+        // Ficha pedida desde la URL: solo se puede abrir una que este en el listado ya cargado.
+        if (this.dniAAbrir) {
+            await this.abrirPanel(this.dniAAbrir);
+            this.dniAAbrir = null;
+        }
+
         // Se arranca al final y no antes: sin tabla dibujada no hay filas que marcar.
         this.iniciarVigilanciaDeCambios();
 
@@ -1346,6 +1352,18 @@ class PadronComponent {
      */
     aplicarFiltroDesdeUrl() {
         const params = new URLSearchParams(window.location.search);
+
+        // "?dni=12345678" (desde la lista de una manzana del mapa, 018): se busca ese votante y, cuando el
+        // listado carga, se abre su ficha. Un DNI que no existe deja el listado con la busqueda vacia de
+        // resultados, que es honesto.
+        const dni = params.get('dni');
+        if (dni && /^\d{6,9}$/.test(dni)) {
+            const busqueda = document.getElementById('filtro-busqueda');
+            if (busqueda) busqueda.value = dni;
+            this.estado.filtros = { ...this.estado.filtros, busqueda: dni };
+            this.dniAAbrir = dni;
+        }
+
         if (params.get('sinRelevar') !== '1') return;
 
         const checkbox = document.getElementById('filtro-sin-relevamiento');
