@@ -49,6 +49,26 @@ function agregadosVoto(codigos, desde) {
 `;
 }
 
+/**
+ * Rango etario de un votante, sobre `v.edad_vigente` (ver estadisticasPorRangoEtario). Compartido con el mapa
+ * (018) para que los dos cortes digan exactamente lo mismo.
+ */
+const EDAD_VIGENTE = '(EXTRACT(YEAR FROM CURRENT_DATE)::int - anio_nac)';
+const RANGO_ETARIO = `CASE
+                  WHEN v.edad_vigente BETWEEN 18 AND 30 THEN '18-30'
+                  WHEN v.edad_vigente BETWEEN 31 AND 45 THEN '31-45'
+                  WHEN v.edad_vigente BETWEEN 46 AND 60 THEN '46-60'
+                  WHEN v.edad_vigente > 60              THEN '60+'
+                  ELSE 'Sin definir'
+                END`;
+const ORDEN_RANGO_ETARIO = `CASE rango_etario
+                  WHEN '18-30' THEN 1
+                  WHEN '31-45' THEN 2
+                  WHEN '46-60' THEN 3
+                  WHEN '60+'   THEN 4
+                  ELSE 5
+                END`;
+
 class PadronRepository {
   constructor(db) {
     this.db = db;
@@ -411,30 +431,18 @@ class PadronRepository {
       `SELECT rango_etario, ${agregadosVoto(codigos, 1)}
        FROM (
          SELECT v.*,
-                CASE
-                  WHEN v.edad_vigente BETWEEN 18 AND 30 THEN '18-30'
-                  WHEN v.edad_vigente BETWEEN 31 AND 45 THEN '31-45'
-                  WHEN v.edad_vigente BETWEEN 46 AND 60 THEN '46-60'
-                  WHEN v.edad_vigente > 60              THEN '60+'
-                  ELSE 'Sin definir'
-                END AS rango_etario
+                ${RANGO_ETARIO} AS rango_etario
          -- La edad se deriva de anio_nac y no de la columna edad, que viene del archivo con su
          -- fecha de corte y queda vieja entre importaciones (DB-005). Ano de calendario menos ano
          -- de nacimiento: puede diferir en uno de la edad oficial.
          FROM (
-           SELECT *, (EXTRACT(YEAR FROM CURRENT_DATE)::int - anio_nac) AS edad_vigente
+           SELECT *, ${EDAD_VIGENTE} AS edad_vigente
            FROM padron.votantes
          ) v
        ) v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni
        GROUP BY rango_etario
-       ORDER BY CASE rango_etario
-                  WHEN '18-30' THEN 1
-                  WHEN '31-45' THEN 2
-                  WHEN '46-60' THEN 3
-                  WHEN '60+'   THEN 4
-                  ELSE 5
-                END`,
+       ORDER BY ${ORDEN_RANGO_ETARIO}`,
       codigos,
     );
   }
@@ -576,4 +584,7 @@ class PadronRepository {
    */
 }
 
-module.exports = { PadronRepository, CAMPOS_ORDEN };
+// Los fragmentos se exportan para el mapa (018), que agrega por manzana con las mismas reglas.
+module.exports = {
+  PadronRepository, CAMPOS_ORDEN, porOpcion, agregadosVoto, EDAD_VIGENTE, RANGO_ETARIO, ORDEN_RANGO_ETARIO,
+};

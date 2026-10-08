@@ -12,7 +12,9 @@
  */
 
 const path = require('path');
-const express = require('express');
+const { TerritorioRepository } = require('./repository');
+const { TerritorioService } = require('./service');
+const construirRutas = require('./routes');
 
 module.exports = {
   name: 'territorio',
@@ -21,7 +23,22 @@ module.exports = {
   requiresAuth: true,
   permissions: ['territorio.view'],
 
-  register() {
-    return { router: express.Router(), provides: {} };
+  register({ db, services, logger, config }) {
+    const servicio = new TerritorioService(new TerritorioRepository(db), {
+      db,
+      padron: services.padron,
+      auditoria: services.auditoria,
+      logger,
+      ttlCacheMs: config.esProduccion ? 60_000 : 5_000,
+    });
+
+    // Cualquier cambio del padron deja viejas las estadisticas; una importacion, ademas, trae domicilios
+    // nuevos que hay que ubicar. Corre fuera de la respuesta: la importacion no espera al mapa.
+    services.padron.alCambiar((tipo) => {
+      servicio.invalidarCache();
+      if (tipo === 'importacion') servicio.reubicarEnSegundoPlano();
+    });
+
+    return { router: construirRutas(servicio), provides: { territorio: servicio } };
   },
 };

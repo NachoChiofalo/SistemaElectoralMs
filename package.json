@@ -16,7 +16,8 @@
     "build:assets": "node scripts/build-assets.js",
     "test": "node --test \"test/**/*.test.js\"",
     "seed:usuarios": "node scripts/seed-usuarios.js",
-    "medir:geocodificacion": "node scripts/medir-geocodificacion.js"
+    "medir:geocodificacion": "node scripts/medir-geocodificacion.js",
+    "territorio:cargar": "node scripts/territorio-cargar.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

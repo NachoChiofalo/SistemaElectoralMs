@@ -48,7 +48,35 @@ class PadronService {
     this.cache = new CacheResultados(ttlCacheMs);
     // Las opciones politicas son configurables por instancia (021). Cambiarlas cambia las
     // columnas de todos los resultados, asi que tambien tira el cache de agregaciones.
-    this.opciones = new OpcionesPoliticas(repositorio, auditoria, () => this.cache.invalidar());
+    this.opciones = new OpcionesPoliticas(repositorio, auditoria, () => this.cambio('opciones'));
+    this.oyentes = [];
+  }
+
+  /**
+   * Suscribe a los cambios del padron. Lo usa el mapa (018) para invalidar su cache y para reubicar a los
+   * votantes despues de una importacion. El padron no sabe quien escucha: la dependencia va del modulo que
+   * se suscribe hacia este, nunca al reves (un modulo solo consume servicios de los registrados antes).
+   *
+   * El oyente recibe el tipo de cambio: 'votante', 'relevamiento', 'detalle', 'importacion' u 'opciones'.
+   */
+  alCambiar(oyente) {
+    this.oyentes.push(oyente);
+  }
+
+  /**
+   * Un cambio en los datos: invalida el cache de resultados y avisa. Un oyente que falla —sincronico o
+   * asincronico— se loguea y NUNCA hace fallar la operacion del padron que lo disparo.
+   */
+  cambio(tipo) {
+    this.cache.invalidar();
+    for (const oyente of this.oyentes) {
+      const avisar = (error) => this.logger.warn('Fallo un suscriptor de cambios del padron', { tipo, error: error.message });
+      try {
+        Promise.resolve(oyente(tipo)).catch(avisar);
+      } catch (error) {
+        avisar(error);
+      }
+    }
   }
 
   // ------------------------------------------------------------- consulta
@@ -143,7 +171,7 @@ class PadronService {
 
     if (!votante) throw errores.conflicto(`Ya existe un votante con DNI ${dni}`);
 
-    this.cache.invalidar();
+    this.cambio('votante');
 
     await this.auditoria.registrarDeRequest(req, {
       operacion: 'CREAR_VOTANTE',
@@ -210,7 +238,7 @@ class PadronService {
     // respuestas distintas —409 y 200— y distinguirlas exige releer.
     if (!relevamiento) return this.resolverEscrituraSinEfecto(dni, version, req);
 
-    this.cache.invalidar();
+    this.cambio('relevamiento');
 
     await this.auditoria.registrarDeRequest(req, {
       operacion: 'ACTUALIZAR_RELEVAMIENTO',
@@ -312,7 +340,7 @@ class PadronService {
     const anterior = await this.repo.votantePorDni(dni);
 
     const fila = await this.repo.guardarDetalle(dni, normalizadas, autorDe(req));
-    this.cache.invalidar();
+    this.cambio('detalle');
 
     const despues = await this.repo.votantePorDni(dni);
 
@@ -339,7 +367,7 @@ class PadronService {
 
     if (!eliminado) throw errores.noEncontrado('No se encontro el detalle a eliminar');
 
-    this.cache.invalidar();
+    this.cambio('detalle');
     const despues = await this.repo.votantePorDni(dni);
 
     await this.auditoria.registrarDeRequest(req, {
@@ -455,7 +483,7 @@ class PadronService {
 
   async importar(rutaArchivo, nombreOriginal, req) {
     const resumen = await importarCsv(this.repo.db, rutaArchivo);
-    this.cache.invalidar();
+    this.cambio('importacion');
 
     await this.auditoria.registrarDeRequest(req, {
       operacion: 'IMPORTAR_CSV',
@@ -565,4 +593,4 @@ function aDetalle(fila) {
   };
 }
 
-module.exports = { PadronService, normalizarCondiciones, aDetalle };
+module.exports = { PadronService, CacheResultados, normalizarCondiciones, aDetalle };

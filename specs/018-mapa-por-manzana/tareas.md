@@ -79,36 +79,36 @@ F0 ─► F1 ─► F2 ─► F3 ─► F4 ─► F5 ─► F6 ─► F7 ─► 
 
 ## F3 — Carga de capas
 
-- [ ] **3.1** Repositorio: `reemplazarCapas(cliente, { tramos, manzanas, sectores, configuracion })` en una
+- [x] **3.1** Repositorio: `reemplazarCapas(cliente, { tramos, manzanas, sectores, configuracion })` en una
       transacción. Vacía `ubicaciones` (se recalcula enseguida) y conserva los ids de origen de las manzanas.
       Inserta por lotes (`unnest` / `jsonb_to_recordset`), no fila por fila.
       *Verifica:* test con capas sintéticas: dos cargas seguidas dejan exactamente lo mismo.
-- [ ] **3.2** `scripts/territorio-cargar.js` y `npm run territorio:cargar`. Sin `--si` **solo muestra** destino
+- [x] **3.2** `scripts/territorio-cargar.js` y `npm run territorio:cargar`. Sin `--si` **solo muestra** destino
       (host de la base), localidad y conteos; con `--si` escribe. Al terminar llama a `reubicar()`
       (que llega en F4: hasta entonces, solo carga).
       *Verifica:* carga de Alcira en la base descartable: 431 tramos, 163 manzanas, el 100 % con radio.
       Correrlo de nuevo no cambia los conteos.
-- [ ] **3.3** La carga queda registrada: `configuracion.cargado_en`, fuente y localidad, y una línea en el log.
+- [x] **3.3** La carga queda registrada: `configuracion.cargado_en`, fuente y localidad, y una línea en el log.
       *Verifica:* `SELECT * FROM territorio.configuracion` después de cargar.
 
 ## F4 — Ubicar el padrón
 
-- [ ] **4.1** Repositorio: leer `dni, domicilio` de todos los votantes y guardar ubicaciones por lotes de 1.000
+- [x] **4.1** Repositorio: leer `dni, domicilio` de todos los votantes y guardar ubicaciones por lotes de 1.000
       con `INSERT … ON CONFLICT (dni) DO UPDATE`.
       *Verifica:* test con 2.500 votantes sintéticos (tres lotes): ninguno perdido ni repetido.
-- [ ] **4.2** `TerritorioService.reubicar()`: advisory lock propio (constante documentada junto a
+- [x] **4.2** `TerritorioService.reubicar()`: advisory lock propio (constante documentada junto a
       `LOCK_IMPORTACION`), capas leídas de la base, índice en memoria, resolución, escritura en una
       transacción. Devuelve el resumen por estado y loguea la duración.
       *Verifica:* integración con capas y padrón sintéticos: resumen exacto, dos corridas dan lo mismo, y dos
       corridas simultáneas no se pisan (una espera).
-- [ ] **4.3** `PadronService.alCambiar(oyente)` y el aviso, con el tipo de cambio, en los puntos donde hoy
+- [x] **4.3** `PadronService.alCambiar(oyente)` y el aviso, con el tipo de cambio, en los puntos donde hoy
       invalida su caché. Un oyente que lanza se loguea y no rompe la operación.
       *Verifica:* tests unitarios del padrón: un oyente que lanza no hace fallar `actualizarRelevamiento` ni
       `importar`; el resto de la suite del padrón pasa sin tocarla.
-- [ ] **4.4** `territorio` se suscribe al registrarse: invalida su caché ante cualquier cambio y reubica,
+- [x] **4.4** `territorio` se suscribe al registrarse: invalida su caché ante cualquier cambio y reubica,
       fuera de la respuesta, ante una importación.
       *Verifica:* integración: importar un CSV chico deja los votantes nuevos ubicados sin acción manual.
-- [ ] **4.5** Un votante sin fila en `ubicaciones` cuenta como "sin calcular".
+- [x] **4.5** Un votante sin fila en `ubicaciones` cuenta como "sin calcular".
       *Verifica:* test: crear un votante a mano y pedir el resumen.
 
 ## F5 — API

@@ -712,6 +712,127 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     assert.deepEqual(ok.candidatos.map((c) => c.nombre), ['Carla']);
   });
 
+  // ------------------------------------------------------------ territorio (018)
+  // Una calle de dos cuadras (GRL PAZ, dibujada al reves de la numeracion) con una manzana a cada lado de
+  // cada cuadra, y dos radios: R1 al oeste, R2 al este. Coordenadas en metros alrededor de Alcira.
+  const territorio = (() => {
+    const LAT0 = -32.75; const LON0 = -64.33; const M = 111320;
+    const pt = (x, y) => [LON0 + x / (M * Math.cos((LAT0 * Math.PI) / 180)), LAT0 + y / M];
+    const caja = (x0, y0, x1, y1) => [[pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1), pt(x0, y0)]];
+    return {
+      tramos: [
+        { nombre: 'GRL PAZ', aii: 101, afi: 199, aid: 102, afd: 200, camino: [pt(100, 0), pt(0, 0)] },
+        { nombre: 'GRL PAZ', aii: 201, afi: 299, aid: 202, afd: 300, camino: [pt(200, 0), pt(100, 0)] },
+      ],
+      manzanas: [
+        { id: 9001, anillos: caja(5, 10, 95, 90) }, { id: 9002, anillos: caja(5, -90, 95, -10) },
+        { id: 9003, anillos: caja(105, 10, 195, 90) }, { id: 9004, anillos: caja(105, -90, 195, -10) },
+      ],
+      sectores: [
+        { codigo: 'R1', nombre: 'Radio 1.1', anillos: caja(0, -100, 100, 100), poblacion: 50, viviendas: 20 },
+        { codigo: 'R2', nombre: 'Radio 1.2', anillos: caja(100, -100, 200, 100), poblacion: 40, viviendas: 15 },
+      ],
+    };
+  })();
+  const territorioDeps = () => {
+    const { TerritorioRepository } = require('../src/modules/territorio/repository');
+    const { TerritorioService } = require('../src/modules/territorio/service');
+    const { asignarSectores } = require('../src/modules/territorio/capas');
+    const repo = new TerritorioRepository(db);
+    return { repo, asignarSectores, TerritorioService };
+  };
+  const cargarTerritorio = async () => {
+    const { repo, asignarSectores } = territorioDeps();
+    await db.transaccion((cliente) => repo.reemplazarCapas(cliente, {
+      ...territorio, asignacion: asignarSectores(territorio.manzanas, territorio.sectores),
+      configuracion: { localidad: 'PRUEBA', fuente: 'test' },
+    }));
+  };
+
+  await t.test('territorio (018): cargar las capas dos veces deja exactamente lo mismo, con los ids de origen', async () => {
+    await cargarTerritorio();
+    const foto = async () => db.unaFila(`
+      SELECT (SELECT COUNT(*)::int FROM territorio.calles_tramos) AS tramos,
+             (SELECT string_agg(m.id || ':' || s.codigo, ',' ORDER BY m.id) FROM territorio.manzanas m
+                JOIN territorio.sectores s ON s.id = m.sector_id) AS manzanas,
+             (SELECT localidad FROM territorio.configuracion) AS localidad`);
+    const primera = await foto();
+    await cargarTerritorio();
+    assert.deepEqual(await foto(), primera);
+    assert.deepEqual(primera, { tramos: 2, manzanas: '9001:R1,9002:R1,9003:R2,9004:R2', localidad: 'PRUEBA' });
+  });
+
+  await t.test('territorio (018): reubicar ubica, explica los pendientes, es idempotente y no pierde a nadie', async () => {
+    const { repo, TerritorioService } = territorioDeps();
+    const servicio = new TerritorioService(repo, { db, logger: null });
+
+    // 2.500 votantes sinteticos: tres lotes de guardado.
+    await db.query(`
+      INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre, domicilio, sexo)
+      SELECT (77000000 + g)::text, 1980, 'MAPA', 'N' || g,
+             CASE g % 5 WHEN 0 THEN 'GRAL PAZ 153' WHEN 1 THEN 'GRAL PAZ 154' WHEN 2 THEN 'GRL PAZ 253'
+                        WHEN 3 THEN 'zona rural' ELSE 'GRAL PAZ 0' END,
+             CASE WHEN g % 2 = 0 THEN 'F' ELSE 'M' END
+      FROM generate_series(1, 2500) g`);
+
+    const r = await servicio.reubicar();
+    const { n: totalVotantes } = await db.unaFila('SELECT COUNT(*)::int AS n FROM padron.votantes');
+    const { n: totalUbicaciones } = await db.unaFila('SELECT COUNT(*)::int AS n FROM territorio.ubicaciones');
+    assert.equal(r.total, totalVotantes);
+    assert.equal(totalUbicaciones, totalVotantes, 'ninguno perdido ni repetido');
+
+    const de = async (dni) => db.unaFila('SELECT estado, manzana_id, detalle, lat, calle, numero FROM territorio.ubicaciones WHERE dni = $1', [dni]);
+    const impar = await de('77000005');
+    assert.deepEqual([impar.estado, impar.manzana_id, impar.detalle, impar.calle, impar.numero], ['ok', '9001', null, 'GRL PAZ', 153]);
+    assert.ok(impar.lat > -32.75, 'con coordenadas, al norte del eje (latitud mayor)');
+    assert.equal((await de('77000001')).manzana_id, '9002', 'el par, enfrente');
+    assert.equal((await de('77000002')).manzana_id, '9003', 'la segunda cuadra');
+    const rural = await de('77000003');
+    assert.deepEqual([rural.estado, rural.manzana_id, rural.lat], ['sin_domicilio', null, null], 'un pendiente no tiene punto');
+    assert.deepEqual([(await de('77000004')).estado, (await de('77000004')).detalle], ['sin_altura', 'GRL PAZ']);
+
+    const huella = async () => (await db.unaFila(
+      "SELECT md5(string_agg(dni || estado || COALESCE(manzana_id::text, ''), ',' ORDER BY dni)) AS h FROM territorio.ubicaciones",
+    )).h;
+    const antes = await huella();
+    await servicio.reubicar();
+    assert.equal(await huella(), antes, 'idempotente');
+
+    const [a, b] = await Promise.all([servicio.reubicar(), servicio.reubicar()]);
+    assert.equal(a.ubicados, b.ubicados, 'dos simultaneas no se pisan');
+  });
+
+  await t.test('territorio (018): un votante nuevo queda sin calcular, e importar un CSV lo ubica solo', async () => {
+    const fsx = require('fs');
+    const os = require('os');
+    const path = require('path');
+    const { repo, TerritorioService } = territorioDeps();
+    const { PadronService } = require('../src/modules/padron/service');
+    const { PadronRepository } = require('../src/modules/padron/repository');
+    const auditoria = { async registrarDeRequest() {} };
+    const logger = { info() {}, warn() {}, error() {}, debug() {} };
+    const padron = new PadronService(new PadronRepository(db), auditoria, logger, { ttlCacheMs: 60_000 });
+    const territorioServicio = new TerritorioService(repo, { db, padron, auditoria, logger });
+    // Lo mismo que hace module.js al registrarse.
+    padron.alCambiar((tipo) => { territorioServicio.invalidarCache(); if (tipo === 'importacion') territorioServicio.reubicarEnSegundoPlano(); });
+
+    await db.query("INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre, domicilio) VALUES ('77900001', 1980, 'A', 'MANO', 'GRAL PAZ 155')");
+    const estados = async () => Object.fromEntries((await repo.resumenUbicacion()).map((x) => [x.estado, x.votantes]));
+    assert.equal((await estados()).sin_calcular, 1);
+
+    const archivo = path.join(os.tmpdir(), `territorio-${Date.now()}.csv`);
+    fsx.writeFileSync(archivo, 'DNI,ANO NAC,APELLIDO,NOMBRE,DOMICILIO\n77900002,1980,B,CSV,GRAL PAZ 157\n');
+    try {
+      await padron.importar(archivo, 'territorio.csv', { headers: {} });
+    } finally {
+      fsx.unlinkSync(archivo);
+    }
+    await territorioServicio.enCurso;
+    const nuevo = await db.unaFila("SELECT estado, manzana_id FROM territorio.ubicaciones WHERE dni = '77900002'");
+    assert.deepEqual(nuevo, { estado: 'ok', manzana_id: '9001' });
+    assert.equal((await estados()).sin_calcular, undefined, 'el recalculo alcanzo tambien al cargado a mano');
+  });
+
   await t.test('la app arranca (migraciones + servidor) contra esta base', async () => {
     const { crearApp } = require('../src/core/app');
     const { app } = crearApp(modulos);

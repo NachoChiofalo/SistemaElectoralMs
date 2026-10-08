@@ -21,6 +21,9 @@ const BASE = 'https://services6.arcgis.com/iv0BLxm1Ob5oB8rs/arcgis/rest/services
 const TAMANO_PAGINA = 1000;
 // Margen alrededor de las calles para traer las manzanas y radios del borde (~200 m).
 const MARGEN_GRADOS = 0.002;
+// Coordenadas a 7 decimales (~1 cm): el portal manda 15 y solo agregan peso.
+const r7 = (n) => Math.round(n * 1e7) / 1e7;
+const redondear = (puntos) => puntos.map(([x, y]) => [r7(x), r7(y)]);
 
 /** Una consulta a una capa, con reintentos. Un error del servicio llega como JSON con `error`. */
 async function pedir(servicio, parametros, { fetch: fetchFn = globalThis.fetch, pausaMs = 1500, intentos = 3 } = {}) {
@@ -77,7 +80,7 @@ async function descargarLocalidad(localidad, { departamento, ...opciones } = {})
   const tramos = filas.map((f) => ({
     nombre: repararMojibake(f.attributes.NAM || '').trim(),
     aii: f.attributes.AII, afi: f.attributes.AFI, aid: f.attributes.AID, afd: f.attributes.AFD,
-    camino: (f.geometry?.paths || []).flat(),
+    camino: redondear((f.geometry?.paths || []).flat()),
   })).filter((t) => t.camino.length >= 2);
   if (!tramos.length) throw new Error(`No hay calles para la localidad "${localidad}" en el callejero. Probá con otro nombre (sin acentos) o con --departamento.`);
 
@@ -86,7 +89,7 @@ async function descargarLocalidad(localidad, { departamento, ...opciones } = {})
 
   const bloques = await paginado('Manzanas_callejero', { ...porEnvolvente(caja), outFields: 'ID', returnGeometry: 'true' }, opciones);
   const manzanas = bloques
-    .map((b) => ({ id: Number(b.attributes.ID), anillos: b.geometry?.rings || [] }))
+    .map((b) => ({ id: Number(b.attributes.ID), anillos: (b.geometry?.rings || []).map(redondear) }))
     .filter((m) => Number.isFinite(m.id) && m.anillos.length);
 
   const radios = await paginado('Radios2022', { ...porEnvolvente(caja), outFields: 'LINK,CFN,CRO,POB_2022,VIVIENDAS', returnGeometry: 'true' }, opciones);
@@ -94,7 +97,7 @@ async function descargarLocalidad(localidad, { departamento, ...opciones } = {})
     .map((r) => ({
       codigo: String(r.attributes.LINK),
       nombre: `Radio ${r.attributes.CFN}.${r.attributes.CRO}`,
-      anillos: r.geometry?.rings || [],
+      anillos: (r.geometry?.rings || []).map(redondear),
       poblacion: Number.isFinite(r.attributes.POB_2022) ? r.attributes.POB_2022 : null,
       viviendas: Number.isFinite(r.attributes.VIVIENDAS) ? r.attributes.VIVIENDAS : null,
     }))

@@ -264,6 +264,40 @@ test('guardar un relevamiento invalida el cache de resultados', async () => {
   assert.equal(llamadas, 2);
 });
 
+test('el padron avisa sus cambios a quien se suscriba, con el tipo (018)', async () => {
+  const { servicio } = servicioDePrueba({
+    async votantePorDni() { return { dni: '1' }; },
+    async upsertRelevamiento() { return { dni: '1', opcion_politica: 'PJ' }; },
+  });
+  const vistos = [];
+  servicio.alCambiar((tipo) => vistos.push(tipo));
+
+  await servicio.actualizarRelevamiento('1', { opcionPolitica: 'PJ', version: 1 }, { ip: '::1', headers: {} });
+  assert.deepEqual(vistos, ['relevamiento']);
+});
+
+test('un suscriptor que falla no rompe la operacion del padron (018)', async () => {
+  const avisos = [];
+  const auditoria = { async registrarDeRequest() {} };
+  const logger = { info() {}, error() {}, debug() {}, warn(msg, datos) { avisos.push({ msg, datos }); } };
+  const repo = {
+    async opcionesPoliticas() { return OPCIONES_DE_PRUEBA; },
+    async votantePorDni() { return { dni: '1' }; },
+    async upsertRelevamiento() { return { dni: '1', opcion_politica: 'PJ' }; },
+  };
+  const servicio = new PadronService(repo, auditoria, logger, { ttlCacheMs: 10_000 });
+  servicio.alCambiar(() => { throw new Error('sincronico'); });
+  servicio.alCambiar(async () => { throw new Error('asincronico'); });
+  let llamado = false;
+  servicio.alCambiar(() => { llamado = true; });
+
+  const r = await servicio.actualizarRelevamiento('1', { opcionPolitica: 'PJ', version: 1 }, { ip: '::1', headers: {} });
+  assert.equal(r.opcion_politica, 'PJ', 'la escritura se hizo igual');
+  assert.ok(llamado, 'los demas suscriptores se enteran igual');
+  await new Promise((res) => setImmediate(res));
+  assert.deepEqual(avisos.map((a) => a.datos.error).sort(), ['asincronico', 'sincronico']);
+});
+
 // ------------------------------------------------- escritura parcial (012)
 
 /** Un repo falso que solo recuerda con que campos lo llamaron. */

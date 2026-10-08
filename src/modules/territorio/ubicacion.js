@@ -373,9 +373,9 @@ function resolver(indice, domicilio, { offsetM = 14, invertirLado = false, reint
     manzana = manzanaEn(indice, ubicado);
     if (manzana) break;
   }
-  if (!manzana) return { estado: 'sin_manzana', clave: `${nombre} ${rango}`, lat: ubicado[1], lon: ubicado[0], calle: nombre };
+  if (!manzana) return { estado: 'sin_manzana', clave: `${nombre} ${rango}`, lat: ubicado[1], lon: ubicado[0], calle: nombre, numero: partido.numero };
   return {
-    estado: 'ok', manzana: manzana.id, lat: ubicado[1], lon: ubicado[0], calle: nombre,
+    estado: 'ok', manzana: manzana.id, lat: ubicado[1], lon: ubicado[0], calle: nombre, numero: partido.numero,
     aproximada: Boolean(aproximada), estimado: Boolean(hallado.t.estimado), buscada: partido.calle,
   };
 }
