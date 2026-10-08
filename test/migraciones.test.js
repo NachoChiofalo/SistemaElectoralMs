@@ -833,6 +833,62 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     assert.equal((await estados()).sin_calcular, undefined, 'el recalculo alcanzo tambien al cargado a mano');
   });
 
+  await t.test('territorio (018): estadisticas, zonas, lista y pendientes contra valores calculados a mano', async () => {
+    const { repo, TerritorioService } = territorioDeps();
+    const opciones = { listar: async () => [{ codigo: 'PJ' }, { codigo: 'UCR' }, { codigo: 'Indeciso' }] };
+    const servicio = new TerritorioService(repo, { db, padron: { opciones }, logger: null });
+
+    // Manzana 9001: 12 relevados (7 PJ, 5 UCR). Manzana 9002: 3 relevados (2 PJ, 1 UCR), bajo el umbral.
+    // Los DNI 77000005, 77000010, ... viven en GRAL PAZ 153 (9001); 77000001, 77000006, ... en GRAL PAZ 154 (9002).
+    const enN = Array.from({ length: 12 }, (_, i) => String(77000005 + 5 * i));
+    const enS = ['77000001', '77000006', '77000011'];
+    await db.query(`INSERT INTO padron.relevamientos (dni, opcion_politica)
+      SELECT dni, CASE WHEN i <= 7 THEN 'PJ' ELSE 'UCR' END FROM unnest($1::text[]) WITH ORDINALITY AS x(dni, i)`, [enN]);
+    await db.query(`INSERT INTO padron.relevamientos (dni, opcion_politica)
+      SELECT dni, CASE WHEN i <= 2 THEN 'PJ' ELSE 'UCR' END FROM unnest($1::text[]) WITH ORDINALITY AS x(dni, i)`, [enS]);
+
+    const e = await servicio.estadisticas();
+    const m1 = e.manzanas.find((m) => m.id === 9001);
+    assert.deepEqual([m1.votantes, m1.relevados, m1.votos.PJ, m1.votos.UCR, m1.lider], [502, 12, 7, 5, 'PJ']);
+    assert.equal(m1.porcentajes.PJ, 58.33);
+    const m2 = e.manzanas.find((m) => m.id === 9002);
+    assert.deepEqual(m2, { id: 9002, sector: m2.sector, votantes: 500, relevados: 3, avance: 0.6, desglose_oculto: true });
+
+    const r1 = e.barrios.find((b) => b.codigo === 'R1');
+    assert.deepEqual([r1.votantes, r1.relevados, r1.votos.PJ, r1.votos.UCR], [1002, 15, 9, 6], 'R1 = 9001 + 9002');
+    for (const b of e.barrios) {
+      const suyas = e.manzanas.filter((m) => m.sector === b.id);
+      assert.equal(b.votantes, suyas.reduce((a, m) => a + m.votantes, 0), `${b.codigo}: votantes = suma de sus manzanas`);
+      assert.equal(b.relevados, suyas.reduce((a, m) => a + m.relevados, 0));
+    }
+    const r = e.resumen;
+    assert.equal(r.ubicados + r.sinUbicar + r.sinCalcular, r.total, 'ubicados + sin ubicar + sin calcular = total');
+    assert.equal(r.total, (await db.unaFila('SELECT COUNT(*)::int AS n FROM padron.votantes')).n);
+
+    // Detalle: la manzana trae su barrio, con las mismas cuentas que las estadisticas.
+    const z = await servicio.zona('manzana', 9001);
+    assert.deepEqual([z.votantes, z.relevados, z.votos.PJ, z.barrio.codigo, z.barrio.relevados, z.barrio.votos.PJ], [502, 12, 7, 'R1', 15, 9]);
+    const sexos = Object.fromEntries(z.porSexo.map((x) => [x.sexo, x.votantes]));
+    assert.equal(sexos.F + sexos.M + (sexos.null || 0), 502, 'el corte por sexo suma la zona');
+    assert.equal(z.porEdad.reduce((a, x) => a + x.votantes, 0), 502, 'el corte por edad tambien');
+    assert.equal((await servicio.zona('manzana', 9002)).desglose_oculto, true);
+    await assert.rejects(servicio.zona('manzana', 123456), (err) => err.status === 404);
+
+    // Lista: paginada, en el orden en que se camina, sin opcion politica.
+    const p1 = await servicio.votantesDeManzana(9001, 1);
+    assert.deepEqual([p1.votantes.length, p1.paginacion.total, p1.paginacion.paginas], [50, 502, 11]);
+    assert.ok(!('opcionPolitica' in p1.votantes[0]) && !('opcion_politica' in p1.votantes[0]));
+    const ultima = await servicio.votantesDeManzana(9001, 11);
+    assert.deepEqual(ultima.votantes.map((v) => v.domicilio), ['GRAL PAZ 155', 'GRAL PAZ 157'], 'del 153 al 157');
+    assert.equal(p1.votantes.filter((v) => v.relevado).length > 0, true);
+
+    // Pendientes: cierran con el resumen.
+    const sinUbicar = await servicio.sinUbicar();
+    const pendientes = sinUbicar.motivos.reduce((a, m) => a + m.votantes, 0);
+    assert.equal(pendientes, r.sinUbicar);
+    assert.deepEqual(sinUbicar.motivos.find((m) => m.estado === 'sin_altura').detalles[0], { detalle: 'GRL PAZ', votantes: 500 });
+  });
+
   await t.test('la app arranca (migraciones + servidor) contra esta base', async () => {
     const { crearApp } = require('../src/core/app');
     const { app } = crearApp(modulos);

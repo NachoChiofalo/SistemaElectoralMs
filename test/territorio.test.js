@@ -121,3 +121,228 @@ test('centroide de area, y el promedio si el poligono no tiene area', () => {
   assert.deepEqual(centroide(cuadrado(0, 0, 4, 2)), [2, 1]);
   assert.deepEqual(centroide([[[1, 1], [3, 1], [1, 1]]]), [5 / 3, 1]);
 });
+
+// ---------------------------------------------------------------- servicio y API (F5)
+
+const express = require('express');
+const { TerritorioService, aplicarUmbral, metricas } = require('../src/modules/territorio/service');
+const construirRutas = require('../src/modules/territorio/routes');
+const { manejadorErrores, manejadorNoEncontrado } = require('../src/core/errors');
+
+const OPCIONES = [
+  { codigo: 'PJ', etiqueta: 'PJ', color: 1, orden: 1, esNeutra: false },
+  { codigo: 'UCR', etiqueta: 'UCR', color: 2, orden: 2, esNeutra: false },
+  { codigo: 'Indeciso', etiqueta: 'Indeciso', color: null, orden: 3, esNeutra: true },
+];
+
+test('el umbral deja ver el desglose recien desde 10 relevados', () => {
+  const zona = (relevados) => metricas({ votantes: 40, relevados, votos: { PJ: relevados } }, ['PJ', 'UCR']);
+  assert.deepEqual(aplicarUmbral(zona(9), 10), { votantes: 40, relevados: 9, avance: 22.5, desglose_oculto: true });
+  assert.equal(aplicarUmbral(zona(10), 10).desglose_oculto, false);
+  assert.equal(aplicarUmbral(zona(10), 10).votos.PJ, 10);
+  assert.equal(aplicarUmbral(zona(11), 10).desglose_oculto, false);
+  // El umbral es de la instancia, no una constante.
+  assert.equal(aplicarUmbral(zona(5), 5).desglose_oculto, false);
+  assert.equal(aplicarUmbral(zona(4), 5).desglose_oculto, true);
+});
+
+test('el lider es la opcion con mas votos solo si es unica', () => {
+  const codigos = ['PJ', 'UCR', 'Indeciso'];
+  assert.equal(metricas({ votantes: 20, relevados: 12, votos: { PJ: 7, UCR: 5 } }, codigos).lider, 'PJ');
+  assert.equal(metricas({ votantes: 20, relevados: 10, votos: { PJ: 5, UCR: 5 } }, codigos).lider, null, 'empate: sin lider');
+  assert.equal(metricas({ votantes: 20, relevados: 0, votos: {} }, codigos).lider, null);
+  const m = metricas({ votantes: 20, relevados: 12, votos: { PJ: 7, UCR: 5 } }, codigos);
+  assert.deepEqual(m.porcentajes, { PJ: 58.33, UCR: 41.67, Indeciso: 0 });
+  assert.equal(m.avance, 60);
+});
+
+/**
+ * Un repositorio falso con dos barrios: B1 con las manzanas 1 (12 relevados) y 2 (3 relevados), B2 con la
+ * manzana 3 (sin votantes ubicados), y la manzana 4 sin barrio.
+ */
+function repoFalso() {
+  const fila = (manzana, votantes, relevados, votos) => ({ manzana: String(manzana), total_votantes: String(votantes), total_relevados: String(relevados), votos });
+  const chica = { total: { total_votantes: '6', total_relevados: '3', votos: { PJ: 2, UCR: 1, Indeciso: 0 } },
+    porSexo: [{ sexo: 'F', total_votantes: '3', total_relevados: '2', votos: { PJ: 2 } }],
+    porEdad: [{ rango_etario: '18-30', total_votantes: '6', total_relevados: '3', votos: { PJ: 2, UCR: 1 } }],
+    condiciones: { empleados_municipales: '1', empleados_municipales_por_opcion: { PJ: 1 } } };
+  return {
+    async configuracion() { return { umbral_privacidad: 10, etiqueta_barrio: 'Radio censal', localidad: 'PRUEBA', cargado_en: new Date('2026-10-08T00:00:00Z') }; },
+    async cargadoEn() { return { cargado_en: new Date('2026-10-08T00:00:00Z') }; },
+    async estadisticasPorManzana() {
+      return [fila(1, 20, 12, { PJ: 7, UCR: 5, Indeciso: 0 }), fila(2, 6, 3, { PJ: 2, UCR: 1, Indeciso: 0 }), fila(4, 4, 1, { PJ: 1 })];
+    },
+    async manzanasSectores() { return [{ id: '1', sector_id: 10 }, { id: '2', sector_id: 10 }, { id: '3', sector_id: 20 }, { id: '4', sector_id: null }]; },
+    async sectores() { return [{ id: 10, codigo: 'B1', nombre: 'Radio 1.1' }, { id: 20, codigo: 'B2', nombre: 'Radio 1.2' }]; },
+    async resumenUbicacion() { return [{ estado: 'ok', votantes: 30 }, { estado: 'sin_altura', votantes: 5 }, { estado: 'sin_calcular', votantes: 2 }]; },
+    async pendientes() { return [{ estado: 'sin_altura', detalle: 'GRL PAZ', votantes: 5 }]; },
+    async manzana(id) { return [1, 2, 3, 4].includes(id) ? { id: String(id), sector_id: id === 4 ? null : 10 } : null; },
+    async sector(id) { return id === 10 ? { id: 10, codigo: 'B1', nombre: 'Radio 1.1', poblacion_2022: 50, viviendas_2022: 20 } : null; },
+    // Toda zona pedida es "chica": 3 relevados. Es el caso que el umbral tiene que tapar.
+    async detalleZona() { return chica; },
+    async votantesDeManzana() {
+      return [{ dni: '1', apellido: 'A', nombre: 'B', domicilio: 'GRL PAZ 153', edad: 40, calle: 'GRL PAZ', numero: 153, relevado: true, fecha_modificacion: null, total: '1' }];
+    },
+    async geometria() { return { sectores: [{ id: 10, codigo: 'B1', nombre: 'Radio 1.1', anillos: [[[-64.123456789, -32.1]]] }], manzanas: [{ id: '1', sector_id: 10, anillos: [[[-64.1, -32.1]]] }] }; },
+  };
+}
+
+const servicioFalso = () => new TerritorioService(repoFalso(), {
+  db: null, padron: { opciones: { listar: async () => OPCIONES } }, auditoria: null, logger: null,
+});
+
+test('cada barrio es la suma exacta de sus manzanas, y los totales cierran', async () => {
+  const e = await servicioFalso().estadisticas();
+  const b1 = e.barrios.find((b) => b.codigo === 'B1');
+  assert.deepEqual([b1.votantes, b1.relevados], [26, 15], 'manzanas 1 + 2');
+  assert.deepEqual(b1.votos, { PJ: 9, UCR: 6, Indeciso: 0 });
+  assert.equal(b1.desglose_oculto, false, '15 relevados pasan el umbral aunque una de sus manzanas no');
+  const b2 = e.barrios.find((b) => b.codigo === 'B2');
+  assert.deepEqual([b2.votantes, b2.relevados, b2.desglose_oculto], [0, 0, true]);
+
+  assert.equal(e.manzanas.find((m) => m.id === 2).desglose_oculto, true, 'la manzana de 3 relevados no muestra desglose');
+  assert.equal(e.manzanas.find((m) => m.id === 2).votos, undefined);
+  assert.equal(e.resumen.sinBarrio, 4, 'la manzana 4 no tiene barrio');
+  const r = e.resumen;
+  assert.equal(r.ubicados + r.sinUbicar + r.sinCalcular, r.total);
+  assert.deepEqual([r.total, r.ubicados, r.sinUbicar, r.sinCalcular], [37, 30, 5, 2]);
+});
+
+test('la geometria va redondeada a 5 decimales y la lista nunca trae la opcion politica', async () => {
+  const servicio = servicioFalso();
+  const g = await servicio.geometria();
+  assert.deepEqual(g.barrios[0].anillos, [[[-64.12346, -32.1]]]);
+  const l = await servicio.votantesDeManzana(1);
+  assert.deepEqual(Object.keys(l.votantes[0]).sort(), ['apellido', 'dni', 'domicilio', 'edad', 'fechaRelevamiento', 'nombre', 'relevado']);
+  assert.deepEqual(l.paginacion, { pagina: 1, porPagina: 50, total: 1, paginas: 1 });
+});
+
+/** La app con las rutas reales del mapa y un usuario a eleccion. */
+function appDelMapa(servicio, usuario) {
+  const app = express();
+  app.use(express.json());
+  app.use((req, res, next) => { req.user = usuario; next(); });
+  app.use('/api/territorio', construirRutas(servicio));
+  app.use(manejadorNoEncontrado);
+  app.use(manejadorErrores);
+  return app;
+}
+
+async function conServidor(app, fn) {
+  const servidor = await new Promise((res) => { const s = app.listen(0, () => res(s)); });
+  try {
+    return await fn(`http://127.0.0.1:${servidor.address().port}/api/territorio`);
+  } finally {
+    await new Promise((res) => servidor.close(res));
+  }
+}
+
+const ADMIN = { id: 1, username: 'admin', rol: 'administrador', permisos: ['territorio.view'] };
+
+/** Las rutas GET del router, con sus parametros reemplazados por valores de prueba. */
+function rutasGet() {
+  const router = construirRutas(servicioFalso());
+  const rutas = [];
+  for (const capa of router.stack) {
+    if (!capa.route || !capa.route.methods.get) continue;
+    const p = capa.route.path;
+    if (p.includes(':tipo')) {
+      rutas.push(p.replace(':tipo', 'manzana').replace(':id', '1'), p.replace(':tipo', 'barrio').replace(':id', '10'));
+    } else {
+      rutas.push(p.replace(':id', '1'));
+    }
+  }
+  return rutas;
+}
+
+/** Busca, en cualquier nivel de un JSON, una clave que delate una opcion politica o un desglose. */
+function clavesSensibles(valor, ruta = '') {
+  const SENSIBLES = ['votos', 'porcentajes', 'lider', 'por_opcion', 'opcionPolitica', 'opcion_politica'];
+  if (Array.isArray(valor)) return valor.flatMap((v, i) => clavesSensibles(v, `${ruta}[${i}]`));
+  if (!valor || typeof valor !== 'object') return [];
+  return Object.entries(valor).flatMap(([k, v]) => [
+    ...(SENSIBLES.includes(k) ? [`${ruta}.${k}`] : []),
+    ...clavesSensibles(v, `${ruta}.${k}`),
+  ]);
+}
+
+test('UMBRAL EN TODAS LAS RUTAS: con 3 relevados ninguna respuesta trae un desglose', async () => {
+  const rutas = rutasGet();
+  assert.ok(rutas.length >= 6, `se recorrieron ${rutas.length} rutas`);
+  await conServidor(appDelMapa(servicioFalso(), ADMIN), async (base) => {
+    for (const ruta of rutas) {
+      const r = await fetch(base + ruta);
+      assert.equal(r.status, 200, ruta);
+      const { data } = await r.json();
+      // /estadisticas trae la manzana 1 (12 relevados), que SI puede mostrar su desglose: se la saca.
+      const aRevisar = ruta === '/estadisticas'
+        ? { ...data, manzanas: data.manzanas.filter((m) => m.relevados < 10), barrios: data.barrios.filter((b) => b.relevados < 10) }
+        : data;
+      assert.deepEqual(clavesSensibles(aRevisar), [], `${ruta} filtra un dato sensible`);
+    }
+  });
+});
+
+test('todas las rutas exigen territorio.view, y recalcular exige ademas ser administrador', async () => {
+  const rutas = [...rutasGet().map((r) => ['GET', r]), ['POST', '/reubicar']];
+  const sinPermiso = { id: 2, username: 'enc', rol: 'encargado_relevamiento', permisos: ['padron.view', 'padron.edit', 'resultados.view'] };
+  await conServidor(appDelMapa(servicioFalso(), sinPermiso), async (base) => {
+    for (const [metodo, ruta] of rutas) {
+      assert.equal((await fetch(base + ruta, { method: metodo })).status, 403, `${metodo} ${ruta}`);
+    }
+  });
+  // Con el permiso pero sin el rol (el caso de la etapa 2, si se abre el mapa a otro rol).
+  const conPermisoSinRol = { ...sinPermiso, permisos: ['territorio.view'] };
+  await conServidor(appDelMapa(servicioFalso(), conPermisoSinRol), async (base) => {
+    assert.equal((await fetch(`${base}/reubicar`, { method: 'POST' })).status, 403);
+    assert.equal((await fetch(`${base}/estadisticas`)).status, 200);
+  });
+});
+
+test('zonas: tipo o id invalidos son 400; una zona inexistente es 404', async () => {
+  await conServidor(appDelMapa(servicioFalso(), ADMIN), async (base) => {
+    assert.equal((await fetch(`${base}/zonas/provincia/1`)).status, 400);
+    assert.equal((await fetch(`${base}/zonas/manzana/abc`)).status, 400);
+    assert.equal((await fetch(`${base}/zonas/manzana/-3`)).status, 400);
+    assert.equal((await fetch(`${base}/zonas/manzana/999`)).status, 404);
+    assert.equal((await fetch(`${base}/zonas/barrio/999`)).status, 404);
+    assert.equal((await fetch(`${base}/manzanas/999/votantes`)).status, 404);
+  });
+});
+
+test('una manzana trae tambien su barrio, y cada subgrupo chico va sin desglose', async () => {
+  const servicio = new TerritorioService({
+    ...repoFalso(),
+    // Zona grande, con un subgrupo chico en cada corte.
+    async detalleZona() {
+      return {
+        total: { total_votantes: '30', total_relevados: '14', votos: { PJ: 8, UCR: 6 } },
+        porSexo: [{ sexo: 'F', total_votantes: '20', total_relevados: '11', votos: { PJ: 6, UCR: 5 } }, { sexo: 'M', total_votantes: '10', total_relevados: '3', votos: { PJ: 2, UCR: 1 } }],
+        porEdad: [{ rango_etario: '60+', total_votantes: '4', total_relevados: '2', votos: { PJ: 2 } }],
+        condiciones: { ayuda_social: '12', ayuda_social_por_opcion: { PJ: 7, UCR: 5 }, empleados_municipales: '2', empleados_municipales_por_opcion: { PJ: 2 } },
+      };
+    },
+  }, { db: null, padron: { opciones: { listar: async () => OPCIONES } }, logger: null });
+
+  const z = await servicio.zona('manzana', 1);
+  assert.equal(z.desglose_oculto, false);
+  assert.equal(z.barrio.nombre, 'Radio 1.1', 'el barrio viene con la manzana');
+  assert.equal(z.barrio.censo2022.poblacion, 50);
+  assert.equal(z.porSexo.find((x) => x.sexo === 'F').desglose_oculto, false);
+  assert.deepEqual(z.porSexo.find((x) => x.sexo === 'M'), { sexo: 'M', votantes: 10, relevados: 3, avance: 30, desglose_oculto: true });
+  assert.equal(z.porEdad[0].desglose_oculto, true);
+  assert.deepEqual(z.condiciones.ayuda_social, { total: 12, por_opcion: { PJ: 7, UCR: 5, Indeciso: 0 }, desglose_oculto: false });
+  assert.deepEqual(z.condiciones.empleados_municipales, { total: 2, desglose_oculto: true });
+});
+
+test('la geometria se puede volver a pedir con If-None-Match y responde 304', async () => {
+  await conServidor(appDelMapa(servicioFalso(), ADMIN), async (base) => {
+    const primera = await fetch(`${base}/geometria`);
+    const etag = primera.headers.get('etag');
+    assert.ok(etag, 'Express emite ETag');
+    // Como revalida un navegador. El fetch de Node, con If-None-Match a mano, agrega "Cache-Control: no-cache",
+    // y ante eso Express (con razon) nunca responde 304: hay que decirle explicitamente que es una revalidacion.
+    const segunda = await fetch(`${base}/geometria`, { headers: { 'If-None-Match': etag, 'Cache-Control': 'max-age=0' } });
+    assert.equal(segunda.status, 304);
+  });
+});

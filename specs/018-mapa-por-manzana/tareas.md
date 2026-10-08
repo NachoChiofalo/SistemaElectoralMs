@@ -115,36 +115,36 @@ F0 ─► F1 ─► F2 ─► F3 ─► F4 ─► F5 ─► F6 ─► F7 ─► 
 
 Todas las rutas con `requirePermission('territorio.view')`.
 
-- [ ] **5.1** Exportar desde `padron/repository.js` los fragmentos de agregados por opción (`porOpcion`,
+- [x] **5.1** Exportar desde `padron/repository.js` los fragmentos de agregados por opción (`porOpcion`,
       `agregadosVoto`) para no duplicar el SQL. Las opciones salen de `services.padron.opciones`.
       *Verifica:* la suite del padrón pasa sin cambios.
-- [ ] **5.2** `aplicarUmbral(zona, umbral)`: única función que recorta una zona bajo el umbral a
+- [x] **5.2** `aplicarUmbral(zona, umbral)`: única función que recorta una zona bajo el umbral a
       `{ votantes, relevados, avance, desglose_oculto: true }`.
       *Verifica:* tests unitarios en el borde (9, 10 y 11 relevados) y con umbral configurado distinto de 10.
-- [ ] **5.3** `GET /estadisticas`: **una** consulta `GROUP BY manzana_id`; los barrios se suman en memoria;
+- [x] **5.3** `GET /estadisticas`: **una** consulta `GROUP BY manzana_id`; los barrios se suman en memoria;
       contadores de "sin ubicar" y "sin calcular"; caché de 60 s invalidada por el padrón; umbral al final.
       *Verifica:* integración: `ubicados + sin ubicar + sin calcular = total`, y cada barrio es la suma exacta
       de sus manzanas.
-- [ ] **5.4** `GET /zonas/:tipo/:id`: total, relevados, avance, por opción, por sexo, por rango etario y
+- [x] **5.4** `GET /zonas/:tipo/:id`: total, relevados, avance, por opción, por sexo, por rango etario y
       condiciones especiales; para una manzana también su barrio. 404 si la zona no existe.
       *Verifica:* integración contra valores calculados a mano sobre el padrón sintético.
-- [ ] **5.5** `GET /manzanas/:id/votantes`: paginada, ordenada por calle y número; nombre, domicilio, relevado
+- [x] **5.5** `GET /manzanas/:id/votantes`: paginada, ordenada por calle y número; nombre, domicilio, relevado
       sí/no y fecha. **Sin opción política.**
       *Verifica:* test de forma de la respuesta (la clave de la opción no existe) y del orden.
-- [ ] **5.6** `GET /sin-ubicar`: cuántos por estado y los detalles más frecuentes.
+- [x] **5.6** `GET /sin-ubicar`: cuántos por estado y los detalles más frecuentes.
       *Verifica:* integración: coincide con el resumen de `reubicar()`.
-- [ ] **5.7** `GET /geometria`: barrios y manzanas con coordenadas a 5 decimales.
+- [x] **5.7** `GET /geometria`: barrios y manzanas con coordenadas a 5 decimales.
       *Verifica:* un segundo pedido con `If-None-Match` responde 304 (Express emite ETag por defecto; si no, se
       calcula), y el cuerpo de Alcira pesa menos de 60 KB comprimido.
-- [ ] **5.8** `POST /reubicar`: solo administrador, auditado como `REUBICAR`, responde el resumen.
+- [x] **5.8** `POST /reubicar`: solo administrador, auditado como `REUBICAR`, responde el resumen.
       *Verifica:* test de auditoría y de permiso.
-- [ ] **5.9** El test del umbral **recorre todas las rutas** con una zona de 3 relevados y falla si aparece
+- [x] **5.9** El test del umbral **recorre todas las rutas** con una zona de 3 relevados y falla si aparece
       cualquier clave sensible (opción, desglose, condiciones, líder).
       *Verifica:* agregar a propósito una ruta que se salte `aplicarUmbral` hace fallar el test (se prueba y se
       saca).
-- [ ] **5.10** Permisos en `test/permisos.test.js`: cada ruta da 403 sin `territorio.view` y no 403 con él.
+- [x] **5.10** Permisos (quedaron en `test/territorio.test.js`, recorriendo las rutas del router): cada ruta da 403 sin `territorio.view` y no 403 con él.
       *Verifica:* `npm test`.
-- [ ] **5.11** `EXPLAIN (ANALYZE, BUFFERS)` de estadísticas, zona y lista sobre 5.500 votantes sintéticos.
+- [x] **5.11** `EXPLAIN (ANALYZE, BUFFERS)` de estadísticas, zona y lista sobre 5.500 votantes sintéticos.
       *Verifica:* la lista usa el índice de `manzana_id`; los números quedan anotados en el plan.
 
 ## F6 — Pantalla

@@ -128,6 +128,18 @@ chica y verifica que ningún campo sensible aparece, para que una ruta futura no
 La ubicación completa son ~1 millón de comparaciones simples (votantes × manzanas, con caja envolvente como
 filtro): milisegundos de CPU. La base gana una tabla de ~5.500 filas y un índice.
 
+### 8. Medido en la implementación (padrón sintético de 5.500 votantes sobre las capas reales de Alcira)
+
+| Qué | Resultado |
+|---|---|
+|  completo | 0,9 s la primera corrida, 0,5 s las siguientes; dos simultáneas no se pisan |
+| Ubicados (padrón sintético) | 74,5 % (el real medido: 73,0 %) |
+| Estadísticas de todas las manzanas (una consulta) | 7,8 ms |
+| Detalle de una manzana (4 consultas en paralelo) | 0,8 a 3 ms cada una |
+| Lista de una manzana | 2,9 ms, por el índice de . Con 5.500 votantes Postgres prefiere leer el padrón entero (0,5 ms); con 55.000 pasa solo al índice del padrón (4 ms) |
+
+La API usa  (no ) como tipo de zona: .
+
 ## Orden de trabajo
 
 1. **Mudar la ubicación a `src/modules/territorio/ubicacion.js`.** El script de medición la importa. Se verifica con:
