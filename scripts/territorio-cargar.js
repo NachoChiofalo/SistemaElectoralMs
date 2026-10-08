@@ -25,7 +25,13 @@ const { ALTURA_MIN } = require('../src/modules/territorio/ubicacion');
 
 const FUENTE = 'Direccion General de Estadistica y Censos de Cordoba (Visualizador_de_calles, Manzanas_callejero, Radios2022)';
 
-function argumentos(argv) {
+/**
+ * Lee los argumentos. En PowerShell, `npm run territorio:cargar -- --localidad ALCIRA` NO llega asi: PowerShell
+ * se come el `--`, npm toma `--localidad` como configuracion propia y lo deja en la variable de entorno
+ * npm_config_localidad, y al script le llega solo `ALCIRA`. Por eso se aceptan las dos formas: la localidad
+ * como argumento suelto y las opciones desde npm_config_*.
+ */
+function argumentos(argv, entorno = process.env) {
   const a = {};
   for (let i = 0; i < argv.length; i += 1) {
     const k = argv[i];
@@ -33,8 +39,12 @@ function argumentos(argv) {
     else if (k === '--departamento') a.departamento = argv[++i];
     else if (k === '--si') a.si = true;
     else if (k === '--ayuda' || k === '-h') a.ayuda = true;
+    else if (!k.startsWith('-') && !a.localidad) a.localidad = k;
     else throw new Error(`Argumento desconocido: ${k}`);
   }
+  if (!a.localidad && entorno.npm_config_localidad) a.localidad = entorno.npm_config_localidad;
+  if (!a.departamento && entorno.npm_config_departamento) a.departamento = entorno.npm_config_departamento;
+  if (entorno.npm_config_si === 'true') a.si = true;
   return a;
 }
 
@@ -88,6 +98,10 @@ async function main() {
   }
 }
 
-main()
-  .catch((error) => { console.error(`\nError: ${error.message}`); process.exitCode = 1; })
-  .finally(() => db.cerrar());
+if (require.main === module) {
+  main()
+    .catch((error) => { console.error(`\nError: ${error.message}`); process.exitCode = 1; })
+    .finally(() => db.cerrar());
+}
+
+module.exports = { argumentos };

@@ -366,3 +366,16 @@ test('la proyeccion encaja la localidad en el ancho y deja el norte arriba', () 
   assert.equal(pathDe(cuadrado, proyectar), `M0.0 ${y} L1000.0 ${y} L1000.0 0.0 L0.0 0.0 L0.0 ${y} Z`);
   assert.equal(pathDe([[[1, 1], [2, 2]]], proyectar), '', 'un anillo degenerado no se dibuja');
 });
+
+// ---------------------------------------------------------------- script de carga
+
+test('territorio:cargar entiende la localidad aunque PowerShell se coma el "--"', () => {
+  const { argumentos } = require('../scripts/territorio-cargar');
+  // Desde bash/cmd: llegan las opciones tal cual.
+  assert.deepEqual(argumentos(['--localidad', 'ALCIRA', '--si'], {}), { localidad: 'ALCIRA', si: true });
+  // Desde PowerShell: npm se queda con --localidad y --si (npm_config_*) y al script le llega el valor suelto.
+  assert.deepEqual(argumentos(['ALCIRA'], { npm_config_localidad: 'true', npm_config_si: 'true' }), { localidad: 'ALCIRA', si: true });
+  assert.deepEqual(argumentos([], { npm_config_localidad: 'ALCIRA', npm_config_departamento: 'RIO CUARTO' }), { localidad: 'ALCIRA', departamento: 'RIO CUARTO' });
+  assert.deepEqual(argumentos(['ALCIRA'], {}), { localidad: 'ALCIRA' }, 'sin --si no escribe');
+  assert.throws(() => argumentos(['--otra'], {}), /Argumento desconocido/);
+});
