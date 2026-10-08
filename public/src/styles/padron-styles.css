@@ -13,9 +13,6 @@
     --success: var(--ds-success-500);
     --warning: var(--ds-warning-500);
     --danger: var(--ds-danger-500);
-    --pj: var(--ds-party-pj);
-    --ucr: var(--ds-party-ucr);
-    --indeciso: var(--ds-party-indeciso);
     --bg: var(--ds-bg-page);
     --card: var(--ds-bg-card);
     --border: var(--ds-border-light);
@@ -96,9 +93,6 @@ body {
     --padron-success: var(--success);
     --padron-warning: var(--warning);
     --padron-danger: var(--danger);
-    --padron-pj: var(--pj);
-    --padron-ucr: var(--ucr);
-    --padron-indeciso: var(--indeciso);
     --padron-bg: var(--bg);
     --padron-card: var(--card);
     --padron-border: var(--border);
@@ -689,19 +683,10 @@ body {
     color: var(--ds-text-inverse);
 }
 
-.radio-label.selected .radio-custom.pj {
-    background: var(--padron-pj);
-    border-color: var(--padron-pj);
-}
-
-.radio-label.selected .radio-custom.ucr {
-    background: var(--padron-ucr);
-    border-color: var(--padron-ucr);
-}
-
-.radio-label.selected .radio-custom.indeciso {
-    background: var(--padron-indeciso);
-    border-color: var(--padron-indeciso);
+/* El color de cada opción lo fija la clase op-N de la píldora (design-system.css, 021). */
+.radio-label.selected .radio-custom.opcion {
+    background: var(--opcion-color);
+    border-color: var(--opcion-color);
 }
 
 /* El teclado tiene que ver dónde está parado: el input real está oculto, así que el

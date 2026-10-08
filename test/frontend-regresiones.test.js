@@ -14,6 +14,27 @@ const path = require('path');
 const PUBLICO = path.join(__dirname, '..', 'public');
 const leer = (...partes) => fs.readFileSync(path.join(PUBLICO, ...partes), 'utf8');
 
+test('ningun componente del frontend nombra una opcion politica concreta (021)', () => {
+  // Las opciones las define cada instancia: un literal 'PJ' o 'UCR' en un componente haria que
+  // otro cliente viera partidos que no son los suyos. Se leen de window.opcionesPoliticas.
+  const archivos = [
+    ['src', 'components', 'PadronComponent.js'],
+    ['src', 'components', 'ResultadosComponent.js'],
+    ['src', 'pages', 'dashboard.js'],
+  ];
+  for (const partes of archivos) {
+    const sinComentarios = leer(...partes).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    assert.ok(!/['"`>]\s*(PJ|UCR)\s*['"`<]|votos_(pj|ucr)|porcentaje_(pj|ucr)/.test(sinComentarios),
+      `${partes.join('/')} tiene una opcion politica escrita a mano`);
+  }
+});
+
+test('las paginas que dibujan opciones politicas cargan src/lib/opciones.js (021)', () => {
+  for (const pagina of ['index.html', 'resultados.html', 'dashboard.html']) {
+    assert.match(leer(pagina), /src\/lib\/opciones\.js/, `${pagina} necesita opciones.js`);
+  }
+});
+
 test('ApiService aplica el timeout con un AbortController (FE-027)', () => {
   const fuente = leer('src', 'services', 'ApiService.js');
   assert.ok(fuente.includes('new AbortController()'));

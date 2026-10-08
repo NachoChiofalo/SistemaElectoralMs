@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comicio - ÁGORA</title>
+    <title>Configuración - ÁGORA</title>
     <link rel="icon" type="image/png" href="/assets/images/agora-icon.png">
 
+    <!-- Tipografia e iconos, servidos desde este mismo origen -->
     <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2?v=dd05e326" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/assets/fonts/inter-latin-600-normal.woff2?v=62553d15" as="font" type="font/woff2" crossorigin>
     <!-- Antes del primer pintado: si se aplicara despues, el tema oscuro destellaria en blanco. -->
@@ -19,9 +20,8 @@
 
     <!-- Estilos -->
     <link rel="stylesheet" href="src/styles/navbar-styles.css?v=482f8826">
-    <link rel="stylesheet" href="src/styles/comicio-styles.css?v=0576d5c9">
-    <link rel="stylesheet" href="src/styles/fiscales-styles.css?v=22d4d97c">
-    <link rel="stylesheet" href="src/styles/microchart.css?v=aadaea89">
+    <link rel="stylesheet" href="src/styles/usuarios-styles.css?v=6259e477">
+    <link rel="stylesheet" href="src/styles/configuracion-styles.css?v=b5761041">
 
     <style>
         body {
@@ -44,8 +44,8 @@
     <div id="navbar-container"></div>
 
     <main class="page-container">
-        <div id="comicio-container" aria-live="polite">
-            <!-- ComicioComponent se renderiza aqui -->
+        <div id="opciones-container" aria-live="polite">
+            <!-- OpcionesPoliticasComponent se renderiza aqui -->
         </div>
     </main>
 
@@ -53,8 +53,8 @@
     <script src="src/components/NavbarComponent.js?v=487a16d8"></script>
     <script src="src/services/ApiService.js?v=1ccf812f"></script>
     <script src="src/services/AuthService.js?v=c07d343e"></script>
-    <script src="src/lib/microchart.js?v=265cf6c7"></script>
-    <script src="src/components/ComicioComponent.js?v=986cafe3"></script>
-    <script src="src/pages/comicio.js?v=e3fd7721"></script>
+    <script src="src/lib/opciones.js?v=c7d76c08"></script>
+    <script src="src/components/OpcionesPoliticasComponent.js?v=0163805e"></script>
+    <script src="src/pages/configuracion.js?v=a02a72de"></script>
 </body>
 </html>

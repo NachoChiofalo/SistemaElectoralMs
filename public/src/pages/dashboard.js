@@ -306,19 +306,22 @@ document.addEventListener('click', (event) => {
 });
 
 /**
- * Tres píldoras de intención de voto (PJ/UCR/Indeciso), sobre el total ya
- * relevado. Sin gráfico: esta pantalla ya tiene una cifra grande dominando el
+ * Una píldora de intención de voto por cada opción política de la instancia, sobre el
+ * total ya relevado. Sin gráfico: esta pantalla ya tiene una cifra grande dominando el
  * bloque de situación, y para el detalle está Resultados.
+ *
+ * `votos` es el objeto { codigo: cantidad } que devuelve la API. La etiqueta es texto del
+ * cliente, así que se escapa.
  */
-function renderIntencionVoto({ pj, ucr, indeciso, totalRelevados }) {
+function renderIntencionVoto({ votos, totalRelevados }) {
     const total = Math.max(Number(totalRelevados) || 0, 1);
     const pct = valor => Math.round((Number(valor) || 0) / total * 100);
 
+    const pildoras = window.opcionesPoliticas.lista().map(opcion => `
+            <span class="intencion-pill ${window.opcionesPoliticas.clase(opcion)}"><span class="intencion-dot"></span>${escaparHtml(opcion.etiqueta)} <strong>${pct(votos?.[opcion.codigo])}%</strong></span>`).join('');
+
     return `
-        <div class="intencion-voto">
-            <span class="intencion-pill"><span class="intencion-dot pj"></span>PJ <strong>${pct(pj)}%</strong></span>
-            <span class="intencion-pill"><span class="intencion-dot ucr"></span>UCR <strong>${pct(ucr)}%</strong></span>
-            <span class="intencion-pill"><span class="intencion-dot indeciso"></span>Indeciso <strong>${pct(indeciso)}%</strong></span>
+        <div class="intencion-voto">${pildoras}
         </div>
     `;
 }
@@ -341,7 +344,10 @@ async function loadQuickStats() {
     const numero = valor => Number(valor || 0).toLocaleString('es-AR');
 
     try {
-        const respuesta = await window.apiService.request('/api/padron/resultados/estadisticas-avanzadas');
+        const [respuesta] = await Promise.all([
+            window.apiService.request('/api/padron/resultados/estadisticas-avanzadas'),
+            window.opcionesPoliticas.cargar(),
+        ]);
         const d = respuesta?.data || {};
 
         const total = Number(d.total_votantes) || 0;
@@ -358,7 +364,7 @@ async function loadQuickStats() {
                          aria-valuemin="0" aria-valuemax="100" aria-label="Avance del relevamiento">
                         <div class="situacion-relleno" style="width: ${porcentaje}%"></div>
                     </div>
-                    ${renderIntencionVoto({ pj: d.votos_pj, ucr: d.votos_ucr, indeciso: d.votos_indeciso, totalRelevados: relevados })}
+                    ${renderIntencionVoto({ votos: d.votos, totalRelevados: relevados })}
                 </div>
             </div>
             <dl class="situacion-cifras">
@@ -516,7 +522,7 @@ async function loadEstadoComicio() {
  * (resultados.view), que este rol no tiene.
  *
  * Sin intención de voto: a diferencia de administrador y consultor, el
- * encargado no ve el desglose PJ/UCR/Indeciso en el dashboard.
+ * encargado no ve el desglose por opción política en el dashboard.
  */
 async function loadResumenEncargado() {
     const contenedor = document.getElementById('situacion-encargado');

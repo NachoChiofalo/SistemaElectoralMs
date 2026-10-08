@@ -16,11 +16,8 @@
  * acompañan sin tocar este archivo. Antes el mismo `#1e3a8a` estaba escrito cinco veces.
  */
 const COLORES = {
-    politica: ['var(--ds-party-pj)', 'var(--ds-party-ucr)', 'var(--ds-party-indeciso)'],
-    pj: 'var(--ds-party-pj)',
-    ucr: 'var(--ds-party-ucr)',
-    indeciso: 'var(--ds-party-indeciso)',
-    // Las condiciones no son fuerzas politicas: se distinguen por rol semantico.
+    // Las condiciones no son fuerzas politicas: se distinguen por rol semantico. El color de
+    // cada opcion politica lo da window.opcionesPoliticas (021), no este archivo.
     condiciones: [
         'var(--ds-primary-500)',
         'var(--ds-warning-500)',
@@ -275,6 +272,8 @@ class ResultadosComponent {
         this.mostrarCarga(true);
 
         try {
+            await window.opcionesPoliticas.cargar();
+
             // El corte por circuito se pide junto al resto: son cinco consultas que el
             // backend ya cachea 60 s, y pedirlas en paralelo cuesta lo mismo que cuatro.
             const [general, porSexo, porRangoEtario, condiciones, porCircuito] = await Promise.all([
@@ -331,6 +330,18 @@ class ResultadosComponent {
         const data = this.datos.general;
         const container = document.getElementById('stats-generales');
 
+        // Una tarjeta por opcion politica de la instancia (021). La etiqueta la escribe el
+        // cliente: se escapa.
+        const tarjetasOpciones = this.opciones.map(opcion => `
+            <div class="stat-card opcion ${window.opcionesPoliticas.clase(opcion)}">
+                <div class="stat-icon"><i class="fas ${opcion.esNeutra ? 'fa-question-circle' : 'fa-flag'}"></i></div>
+                <div class="stat-content">
+                    <div class="stat-number">${this.formatNumber(this.votosDe(data, opcion.codigo))}</div>
+                    <div class="stat-label">${escaparHtml(opcion.etiqueta)}</div>
+                    <div class="stat-percentage">${this.pctTexto(data, opcion.codigo)}%</div>
+                </div>
+            </div>`).join('');
+
         container.innerHTML = `
             <div class="stat-card total">
                 <div class="stat-icon"><i class="fas fa-users"></i></div>
@@ -346,31 +357,7 @@ class ResultadosComponent {
                     <div class="stat-label">Relevados</div>
                     <div class="stat-percentage">${data.porcentaje_participacion}%</div>
                 </div>
-            </div>
-            <div class="stat-card pj">
-                <div class="stat-icon"><i class="fas fa-flag"></i></div>
-                <div class="stat-content">
-                    <div class="stat-number">${this.formatNumber(data.votos_pj)}</div>
-                    <div class="stat-label">PJ</div>
-                    <div class="stat-percentage">${data.porcentaje_pj || 0}%</div>
-                </div>
-            </div>
-            <div class="stat-card ucr">
-                <div class="stat-icon"><i class="fas fa-flag"></i></div>
-                <div class="stat-content">
-                    <div class="stat-number">${this.formatNumber(data.votos_ucr)}</div>
-                    <div class="stat-label">UCR</div>
-                    <div class="stat-percentage">${data.porcentaje_ucr || 0}%</div>
-                </div>
-            </div>
-            <div class="stat-card indeciso">
-                <div class="stat-icon"><i class="fas fa-question-circle"></i></div>
-                <div class="stat-content">
-                    <div class="stat-number">${this.formatNumber(data.votos_indeciso)}</div>
-                    <div class="stat-label">Indecisos</div>
-                    <div class="stat-percentage">${data.porcentaje_indeciso || 0}%</div>
-                </div>
-            </div>
+            </div>${tarjetasOpciones}
         `;
     }
 
@@ -444,53 +431,34 @@ class ResultadosComponent {
             return;
         }
 
-        const pjPct = ((parseInt(data.votos_pj) || 0) / totalRelevados * 100).toFixed(1);
-        const ucrPct = ((parseInt(data.votos_ucr) || 0) / totalRelevados * 100).toFixed(1);
-        const indPct = ((parseInt(data.votos_indeciso) || 0) / totalRelevados * 100).toFixed(1);
+        const valores = this.opciones.map(opcion => ({
+            opcion,
+            nombre: opcion.etiqueta,
+            pct: Number((this.votosDe(data, opcion.codigo) / totalRelevados * 100).toFixed(1)),
+        }));
 
-        // Determinar lider
-        const valores = [
-            { nombre: 'PJ', pct: parseFloat(pjPct) },
-            { nombre: 'UCR', pct: parseFloat(ucrPct) },
-            { nombre: 'Indecisos', pct: parseFloat(indPct) }
-        ].sort((a, b) => b.pct - a.pct);
-
-        const diferencia = (valores[0].pct - valores[1].pct).toFixed(1);
-
-        container.innerHTML = `
-            <div class="comparador">
+        const barras = valores.map(({ opcion, nombre, pct }) => `
                 <div class="barra-item">
                     <div class="barra-label">
-                        <span class="barra-nombre">PJ</span>
-                        <span class="barra-valor">${this.formatNumber(data.votos_pj)} (${pjPct}%)</span>
+                        <span class="barra-nombre">${escaparHtml(nombre)}</span>
+                        <span class="barra-valor">${this.formatNumber(this.votosDe(data, opcion.codigo))} (${pct.toFixed(1)}%)</span>
                     </div>
                     <div class="barra-track">
-                        <div class="barra-fill pj" style="width: ${pjPct}%"></div>
+                        <div class="barra-fill opcion ${window.opcionesPoliticas.clase(opcion)}" style="width: ${pct}%"></div>
                     </div>
-                </div>
-                <div class="barra-item">
-                    <div class="barra-label">
-                        <span class="barra-nombre">UCR</span>
-                        <span class="barra-valor">${this.formatNumber(data.votos_ucr)} (${ucrPct}%)</span>
-                    </div>
-                    <div class="barra-track">
-                        <div class="barra-fill ucr" style="width: ${ucrPct}%"></div>
-                    </div>
-                </div>
-                <div class="barra-item">
-                    <div class="barra-label">
-                        <span class="barra-nombre">Indecisos</span>
-                        <span class="barra-valor">${this.formatNumber(data.votos_indeciso)} (${indPct}%)</span>
-                    </div>
-                    <div class="barra-track">
-                        <div class="barra-fill indeciso" style="width: ${indPct}%"></div>
-                    </div>
-                </div>
+                </div>`).join('');
+
+        // Determinar lider. Con una sola opcion no hay contra quien compararlo.
+        const orden = [...valores].sort((a, b) => b.pct - a.pct);
+        const resumen = orden.length < 2 ? '' : `
                 <div class="comparador-resumen">
                     <i class="fas fa-trophy"></i>
-                    <strong>${valores[0].nombre}</strong> lidera con ${valores[0].pct}%
-                    (${diferencia} puntos de ventaja sobre ${valores[1].nombre})
-                </div>
+                    <strong>${escaparHtml(orden[0].nombre)}</strong> lidera con ${orden[0].pct}%
+                    (${(orden[0].pct - orden[1].pct).toFixed(1)} puntos de ventaja sobre ${escaparHtml(orden[1].nombre)})
+                </div>`;
+
+        container.innerHTML = `
+            <div class="comparador">${barras}${resumen}
             </div>
         `;
     }
@@ -499,6 +467,13 @@ class ResultadosComponent {
         const data = this.datos.general;
         const container = document.getElementById('resumen-general');
         const noRelevados = parseInt(data.total_votantes) - parseInt(data.total_relevados);
+
+        const filasOpciones = this.opciones.map(opcion => `
+                    <tr class="fila-opcion ${window.opcionesPoliticas.clase(opcion)}">
+                        <td>${escaparHtml(opcion.etiqueta)}</td>
+                        <td>${this.formatNumber(this.votosDe(data, opcion.codigo))}</td>
+                        <td>${this.pctTexto(data, opcion.codigo)}%</td>
+                    </tr>`).join('');
 
         container.innerHTML = `
             <table class="stats-table">
@@ -524,22 +499,7 @@ class ResultadosComponent {
                         <td>Sin Relevar</td>
                         <td>${this.formatNumber(noRelevados)}</td>
                         <td>${(100 - (parseFloat(data.porcentaje_participacion) || 0)).toFixed(2)}%</td>
-                    </tr>
-                    <tr class="row-pj">
-                        <td>PJ</td>
-                        <td>${this.formatNumber(data.votos_pj)}</td>
-                        <td>${data.porcentaje_pj || 0}%</td>
-                    </tr>
-                    <tr class="row-ucr">
-                        <td>UCR</td>
-                        <td>${this.formatNumber(data.votos_ucr)}</td>
-                        <td>${data.porcentaje_ucr || 0}%</td>
-                    </tr>
-                    <tr class="row-indeciso">
-                        <td>Indecisos</td>
-                        <td>${this.formatNumber(data.votos_indeciso)}</td>
-                        <td>${data.porcentaje_indeciso || 0}%</td>
-                    </tr>
+                    </tr>${filasOpciones}
                 </tbody>
             </table>
         `;
@@ -558,10 +518,10 @@ class ResultadosComponent {
         this.graficos.principal = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['PJ', 'UCR', 'Indecisos'],
+                labels: this.opciones.map(o => o.etiqueta),
                 datasets: [{
-                    data: [data.votos_pj, data.votos_ucr, data.votos_indeciso],
-                    backgroundColor: COLORES.politica,
+                    data: this.opciones.map(o => this.votosDe(data, o.codigo)),
+                    backgroundColor: this.coloresOpciones(),
                     borderWidth: 3
                 }]
             },
@@ -588,6 +548,15 @@ class ResultadosComponent {
         });
     }
 
+    /** Un dataset por opcion politica, con la cantidad de cada fila (sexo, rango etario...). */
+    datasetsPorOpcion(filas) {
+        return this.opciones.map(opcion => ({
+            label: opcion.etiqueta,
+            data: filas.map(f => this.votosDe(f, opcion.codigo)),
+            backgroundColor: window.opcionesPoliticas.color(opcion),
+        }));
+    }
+
     crearGraficoPorSexo() {
         const canvas = document.getElementById('chart-sexo');
         if (!canvas) return;
@@ -602,11 +571,7 @@ class ResultadosComponent {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [
-                    { label: 'PJ', data: data.map(i => i.votos_pj || 0), backgroundColor: COLORES.pj },
-                    { label: 'UCR', data: data.map(i => i.votos_ucr || 0), backgroundColor: COLORES.ucr },
-                    { label: 'Indecisos', data: data.map(i => i.votos_indeciso || 0), backgroundColor: COLORES.indeciso }
-                ]
+                datasets: this.datasetsPorOpcion(data)
             },
             options: {
                 responsive: true,
@@ -629,11 +594,7 @@ class ResultadosComponent {
             type: 'bar',
             data: {
                 labels: data.map(i => i.rango_etario),
-                datasets: [
-                    { label: 'PJ', data: data.map(i => i.votos_pj || 0), backgroundColor: COLORES.pj },
-                    { label: 'UCR', data: data.map(i => i.votos_ucr || 0), backgroundColor: COLORES.ucr },
-                    { label: 'Indecisos', data: data.map(i => i.votos_indeciso || 0), backgroundColor: COLORES.indeciso }
-                ]
+                datasets: this.datasetsPorOpcion(data)
             },
             options: {
                 responsive: true,
@@ -703,27 +664,29 @@ class ResultadosComponent {
         return vacio;
     }
 
-    crearGraficoEmpleadosPolitica() {
-        const canvas = document.getElementById('chart-empleados-politica');
+    /**
+     * Torta de una condicion especial repartida por opcion politica. `clave` es el campo del
+     * endpoint de condiciones (empleados_por_opcion, ayuda_social_por_opcion).
+     */
+    crearGraficoCondicionPorOpcion(idCanvas, nombreGrafico, clave) {
+        const canvas = document.getElementById(idCanvas);
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const data = this.datos.condiciones;
+        const porOpcion = this.datos.condiciones?.[clave] || {};
 
-        if (this.graficos.empleadosPolitica) this.graficos.empleadosPolitica.destroy();
+        if (this.graficos[nombreGrafico]) this.graficos[nombreGrafico].destroy();
 
-        const pj = parseInt(data.empleados_pj) || 0;
-        const ucr = parseInt(data.empleados_ucr) || 0;
-        const ind = parseInt(data.empleados_indeciso) || 0;
+        const valores = this.opciones.map(o => parseInt(porOpcion[o.codigo]) || 0);
 
-        if (this.alternarSinDatos(canvas, pj + ucr + ind === 0)) return;
+        if (this.alternarSinDatos(canvas, valores.every(v => v === 0))) return;
 
-        this.graficos.empleadosPolitica = new Chart(ctx, {
+        this.graficos[nombreGrafico] = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['PJ', 'UCR', 'Indecisos'],
+                labels: this.opciones.map(o => o.etiqueta),
                 datasets: [{
-                    data: [pj, ucr, ind],
-                    backgroundColor: COLORES.politica,
+                    data: valores,
+                    backgroundColor: this.coloresOpciones(),
                     borderWidth: 2
                 }]
             },
@@ -747,48 +710,12 @@ class ResultadosComponent {
         });
     }
 
+    crearGraficoEmpleadosPolitica() {
+        this.crearGraficoCondicionPorOpcion('chart-empleados-politica', 'empleadosPolitica', 'empleados_por_opcion');
+    }
+
     crearGraficoAyudaPolitica() {
-        const canvas = document.getElementById('chart-ayuda-politica');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const data = this.datos.condiciones;
-
-        if (this.graficos.ayudaPolitica) this.graficos.ayudaPolitica.destroy();
-
-        const pj = parseInt(data.ayuda_social_pj) || 0;
-        const ucr = parseInt(data.ayuda_social_ucr) || 0;
-        const ind = parseInt(data.ayuda_social_indeciso) || 0;
-
-        if (this.alternarSinDatos(canvas, pj + ucr + ind === 0)) return;
-
-        this.graficos.ayudaPolitica = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['PJ', 'UCR', 'Indecisos'],
-                datasets: [{
-                    data: [pj, ucr, ind],
-                    backgroundColor: COLORES.politica,
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => {
-                                const value = context.parsed;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const pct = ((value / total) * 100).toFixed(1);
-                                return context.label + ': ' + value + ' (' + pct + '%)';
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        this.crearGraficoCondicionPorOpcion('chart-ayuda-politica', 'ayudaPolitica', 'ayuda_social_por_opcion');
     }
 
     // ==================== TABLAS ====================
@@ -820,16 +747,14 @@ class ResultadosComponent {
                 `<p class="bloque-ayuda">${this.formatNumber(resumen.apellidos)} apellidos se repiten, ` +
                 `con ${this.formatNumber(resumen.personas)} personas en total. Se muestran los ${familias.length} más numerosos.</p>` +
                 '<table class="tabla-datos"><thead><tr>' +
-                '<th>Apellido</th><th>Integrantes</th><th>Relevados</th><th>PJ</th><th>UCR</th><th>Indecisos</th>' +
+                '<th>Apellido</th><th>Integrantes</th><th>Relevados</th>' + this.encabezadosOpciones() +
                 '</tr></thead><tbody>' +
                 familias.map(f =>
                     '<tr>' +
                     '<td>' + escaparHtml(f.apellido) + '</td>' +
                     '<td>' + this.formatNumber(f.total_votantes) + '</td>' +
                     '<td>' + this.formatNumber(f.total_relevados) + '</td>' +
-                    '<td>' + this.formatNumber(f.votos_pj) + '</td>' +
-                    '<td>' + this.formatNumber(f.votos_ucr) + '</td>' +
-                    '<td>' + this.formatNumber(f.votos_indeciso) + '</td>' +
+                    this.celdasOpciones(f, false) +
                     '</tr>'
                 ).join('') +
                 '</tbody></table>';
@@ -859,7 +784,7 @@ class ResultadosComponent {
 
         contenedor.innerHTML = '<table class="tabla-datos"><thead><tr>' +
             '<th>Circuito</th><th>Padron</th><th>Relevados</th><th>Avance</th>' +
-            '<th>PJ</th><th>UCR</th><th>Indecisos</th>' +
+            this.encabezadosOpciones() +
             '</tr></thead><tbody>' +
             conAvance.map(c =>
                 '<tr>' +
@@ -867,9 +792,7 @@ class ResultadosComponent {
                 '<td>' + this.formatNumber(c.total) + '</td>' +
                 '<td>' + this.formatNumber(c.relevados) + '</td>' +
                 '<td>' + c.pct + '%</td>' +
-                '<td>' + this.formatNumber(c.votos_pj) + '</td>' +
-                '<td>' + this.formatNumber(c.votos_ucr) + '</td>' +
-                '<td>' + this.formatNumber(c.votos_indeciso) + '</td>' +
+                this.celdasOpciones(c, false) +
                 '</tr>'
             ).join('') +
             '</tbody></table>';
@@ -879,37 +802,41 @@ class ResultadosComponent {
         const container = document.getElementById('stats-sexo');
         const data = this.datos.porSexo;
 
+        // La opcion que lidera entre los relevados (sin contar la neutra): es la que interesa
+        // comparar entre sexos. Antes era siempre "PJ"; ahora la define la instancia (021).
+        const lider = this.opcionLider();
+
         // Calcular indicadores de tendencia
         // Se busca cada sexo por su campo: asumir que el array viene [M, F] rompia la
         // tendencia si el servidor devolvia otro orden o solo uno de los dos (FE-042).
-        const pctDe = (sexo) => parseFloat(data.find(i => i.sexo === sexo)?.porcentaje_pj);
+        const pctDe = (sexo) => lider
+            ? parseFloat(data.find(i => i.sexo === sexo)?.porcentajes?.[lider.codigo])
+            : NaN;
         const pctM = pctDe('M');
         const pctF = pctDe('F');
-        const tendenciaPJ = Number.isFinite(pctM) && Number.isFinite(pctF) ? (pctM > pctF ? 'M' : 'F') : null;
+        const tendencia = Number.isFinite(pctM) && Number.isFinite(pctF) ? (pctM > pctF ? 'M' : 'F') : null;
 
         const tabla = data.map(item => {
             return '<tr>' +
                 '<td>' + (item.sexo === 'M' ? 'Masculino' : 'Femenino') + '</td>' +
                 '<td>' + this.formatNumber(item.total_votantes) + '</td>' +
                 '<td>' + this.formatNumber(item.total_relevados) + '</td>' +
-                '<td>' + this.formatNumber(item.votos_pj) + ' <small>(' + (item.porcentaje_pj || 0) + '%)</small></td>' +
-                '<td>' + this.formatNumber(item.votos_ucr) + ' <small>(' + (item.porcentaje_ucr || 0) + '%)</small></td>' +
-                '<td>' + this.formatNumber(item.votos_indeciso) + ' <small>(' + (item.porcentaje_indeciso || 0) + '%)</small></td>' +
+                this.celdasOpciones(item, true) +
                 '</tr>';
         }).join('');
 
         let tendenciaHTML = '';
-        if (tendenciaPJ !== null) {
+        if (tendencia !== null) {
             tendenciaHTML = '<div class="tendencia-info">' +
                 '<i class="fas fa-chart-line"></i> ' +
-                '<strong>PJ</strong> tiene mayor porcentaje en el sexo <strong>' + (tendenciaPJ === 'M' ? 'Masculino' : 'Femenino') + '</strong>' +
+                '<strong>' + escaparHtml(lider.etiqueta) + '</strong> tiene mayor porcentaje en el sexo <strong>' + (tendencia === 'M' ? 'Masculino' : 'Femenino') + '</strong>' +
                 '</div>';
         }
 
         container.innerHTML = tendenciaHTML +
             '<table class="stats-table">' +
             '<thead><tr>' +
-            '<th>Sexo</th><th>Votantes</th><th>Relevados</th><th>PJ</th><th>UCR</th><th>Indecisos</th>' +
+            '<th>Sexo</th><th>Votantes</th><th>Relevados</th>' + this.encabezadosOpciones() +
             '</tr></thead>' +
             '<tbody>' + tabla + '</tbody></table>';
     }
@@ -932,9 +859,7 @@ class ResultadosComponent {
                 '<td>' + item.rango_etario + '</td>' +
                 '<td>' + this.formatNumber(item.total_votantes) + '</td>' +
                 '<td>' + this.formatNumber(item.total_relevados) + '</td>' +
-                '<td>' + this.formatNumber(item.votos_pj) + ' <small>(' + (item.porcentaje_pj || 0) + '%)</small></td>' +
-                '<td>' + this.formatNumber(item.votos_ucr) + ' <small>(' + (item.porcentaje_ucr || 0) + '%)</small></td>' +
-                '<td>' + this.formatNumber(item.votos_indeciso) + ' <small>(' + (item.porcentaje_indeciso || 0) + '%)</small></td>' +
+                this.celdasOpciones(item, true) +
                 '<td>' + (item.porcentaje_participacion || 0) + '%</td>' +
                 '</tr>';
         }).join('');
@@ -950,80 +875,125 @@ class ResultadosComponent {
         container.innerHTML = tendenciaHTML +
             '<table class="stats-table">' +
             '<thead><tr>' +
-            '<th>Rango</th><th>Votantes</th><th>Relevados</th><th>PJ</th><th>UCR</th><th>Indecisos</th><th>Participacion</th>' +
+            '<th>Rango</th><th>Votantes</th><th>Relevados</th>' + this.encabezadosOpciones() + '<th>Participacion</th>' +
             '</tr></thead>' +
             '<tbody>' + tabla + '</tbody></table>';
     }
 
-    mostrarTablaCondiciones() {
-        const container = document.getElementById('stats-condiciones-tabla');
+    /** Las cuatro condiciones especiales, cada una con su reparto por opcion politica. */
+    filasCondiciones() {
         const data = this.datos.condiciones;
-        if (!data) return;
+        const entero = (v) => parseInt(v) || 0;
+        const por = (clave) => this.opciones.map(o => entero(data[clave]?.[o.codigo]));
 
-        const filas = [
+        return [
             {
                 nombre: 'Empleados Municipales',
-                total: parseInt(data.total_empleados_municipales) || 0,
-                pj: parseInt(data.empleados_pj) || 0,
-                ucr: parseInt(data.empleados_ucr) || 0,
-                indeciso: parseInt(data.empleados_indeciso) || 0,
-                masc: parseInt(data.empleados_masculino) || 0,
-                fem: parseInt(data.empleados_femenino) || 0
+                total: entero(data.total_empleados_municipales),
+                porOpcion: por('empleados_por_opcion'),
+                masc: entero(data.empleados_masculino),
+                fem: entero(data.empleados_femenino)
             },
             {
                 nombre: 'Ayuda Social',
-                total: parseInt(data.total_ayuda_social) || 0,
-                pj: parseInt(data.ayuda_social_pj) || 0,
-                ucr: parseInt(data.ayuda_social_ucr) || 0,
-                indeciso: parseInt(data.ayuda_social_indeciso) || 0,
-                masc: parseInt(data.ayuda_social_masculino) || 0,
-                fem: parseInt(data.ayuda_social_femenino) || 0
+                total: entero(data.total_ayuda_social),
+                porOpcion: por('ayuda_social_por_opcion'),
+                masc: entero(data.ayuda_social_masculino),
+                fem: entero(data.ayuda_social_femenino)
             },
             {
                 nombre: 'Nuevos Votantes',
-                total: parseInt(data.total_nuevos_votantes) || 0,
-                pj: parseInt(data.nuevos_pj) || 0,
-                ucr: parseInt(data.nuevos_ucr) || 0,
-                indeciso: parseInt(data.nuevos_indeciso) || 0,
+                total: entero(data.total_nuevos_votantes),
+                porOpcion: por('nuevos_por_opcion'),
                 masc: '-',
                 fem: '-'
             },
             {
                 nombre: 'Fallecidos',
-                total: parseInt(data.total_fallecidos) || 0,
-                pj: parseInt(data.fallecidos_pj) || 0,
-                ucr: parseInt(data.fallecidos_ucr) || 0,
-                indeciso: parseInt(data.fallecidos_indeciso) || 0,
+                total: entero(data.total_fallecidos),
+                porOpcion: por('fallecidos_por_opcion'),
                 masc: '-',
                 fem: '-'
             }
         ];
+    }
 
-        const tablaHTML = filas.map(f => {
-            const mayorPartido = [
-                { nombre: 'PJ', v: f.pj },
-                { nombre: 'UCR', v: f.ucr },
-                { nombre: 'Indeciso', v: f.indeciso }
-            ].sort((a, b) => b.v - a.v)[0];
+    mostrarTablaCondiciones() {
+        const container = document.getElementById('stats-condiciones-tabla');
+        if (!this.datos.condiciones) return;
+
+        const opciones = this.opciones;
+        const tablaHTML = this.filasCondiciones().map(f => {
+            // La opcion con mas casos en esta condicion (la neutra tambien cuenta, como antes).
+            let mayor = 0;
+            f.porOpcion.forEach((v, i) => { if (v > f.porOpcion[mayor]) mayor = i; });
 
             return '<tr>' +
                 '<td><strong>' + f.nombre + '</strong></td>' +
                 '<td>' + this.formatNumber(f.total) + '</td>' +
-                '<td>' + this.formatNumber(f.pj) + '</td>' +
-                '<td>' + this.formatNumber(f.ucr) + '</td>' +
-                '<td>' + this.formatNumber(f.indeciso) + '</td>' +
+                f.porOpcion.map(v => '<td>' + this.formatNumber(v) + '</td>').join('') +
                 '<td>' + (typeof f.masc === 'number' ? this.formatNumber(f.masc) : f.masc) + '</td>' +
                 '<td>' + (typeof f.fem === 'number' ? this.formatNumber(f.fem) : f.fem) + '</td>' +
-                '<td><span class="badge-tendencia">' + (f.total > 0 ? mayorPartido.nombre : '-') + '</span></td>' +
+                '<td><span class="badge-tendencia">' + (f.total > 0 && opciones[mayor] ? escaparHtml(opciones[mayor].etiqueta) : '-') + '</span></td>' +
                 '</tr>';
         }).join('');
 
         container.innerHTML =
             '<table class="stats-table">' +
             '<thead><tr>' +
-            '<th>Condicion</th><th>Total</th><th>PJ</th><th>UCR</th><th>Indecisos</th><th>Masc.</th><th>Fem.</th><th>Mayor Tendencia</th>' +
+            '<th>Condicion</th><th>Total</th>' + this.encabezadosOpciones() + '<th>Masc.</th><th>Fem.</th><th>Mayor Tendencia</th>' +
             '</tr></thead>' +
             '<tbody>' + tablaHTML + '</tbody></table>';
+    }
+
+    // ==================== OPCIONES POLITICAS (021) ====================
+
+    /** Las opciones de la instancia, en el orden configurado. */
+    get opciones() {
+        return window.opcionesPoliticas.lista();
+    }
+
+    /** Cantidad de una opcion en una fila de resultados (`votos` es { codigo: n }). */
+    votosDe(fila, codigo) {
+        return Number(fila?.votos?.[codigo]) || 0;
+    }
+
+    /** Porcentaje sobre los relevados, con dos decimales como lo calcula el servidor. */
+    pctTexto(fila, codigo) {
+        const v = fila?.porcentajes?.[codigo];
+        return v === null || v === undefined ? '0' : Number(v).toFixed(2);
+    }
+
+    /** Un <th> por opcion. La etiqueta es del cliente: se escapa. */
+    encabezadosOpciones() {
+        return this.opciones.map(o => '<th>' + escaparHtml(o.etiqueta) + '</th>').join('');
+    }
+
+    /** Una <td> por opcion: la cantidad y, si se pide, el porcentaje entre parentesis. */
+    celdasOpciones(fila, conPorcentaje) {
+        return this.opciones.map(o =>
+            '<td>' + this.formatNumber(this.votosDe(fila, o.codigo)) +
+            (conPorcentaje ? ' <small>(' + this.pctTexto(fila, o.codigo) + '%)</small>' : '') +
+            '</td>'
+        ).join('');
+    }
+
+    coloresOpciones() {
+        return this.opciones.map(o => window.opcionesPoliticas.color(o));
+    }
+
+    /** La opcion no neutra con mas votos en el total general, o null si no hay ninguna. */
+    opcionLider() {
+        const candidatas = this.opciones.filter(o => !o.esNeutra);
+        if (!candidatas.length) return null;
+        return candidatas.reduce((a, b) =>
+            this.votosDe(this.datos.general, b.codigo) > this.votosDe(this.datos.general, a.codigo) ? b : a);
+    }
+
+    /** Escapa un valor para una celda CSV (comas, comillas y saltos de linea). */
+    csv(valor) {
+        const texto = String(valor ?? '');
+        return /[",\n]/.test(texto) ? '"' + texto.replace(/"/g, '""') + '"' : texto;
     }
 
     // ==================== ACCIONES ====================
@@ -1069,39 +1039,45 @@ class ResultadosComponent {
     exportarCSV() {
         try {
             const data = this.datos.general;
+            const opciones = this.opciones;
+            const cabeceraOpciones = opciones.map(o => this.csv(o.etiqueta)).join(',');
+            const fila = (valores) => valores.map(v => this.csv(v)).join(',') + '\n';
+
             let csv = 'Concepto,Cantidad,Porcentaje\n';
             csv += 'Total Votantes,' + data.total_votantes + ',100%\n';
             csv += 'Total Relevados,' + data.total_relevados + ',' + data.porcentaje_participacion + '%\n';
-            csv += 'PJ,' + data.votos_pj + ',' + (data.porcentaje_pj || 0) + '%\n';
-            csv += 'UCR,' + data.votos_ucr + ',' + (data.porcentaje_ucr || 0) + '%\n';
-            csv += 'Indecisos,' + data.votos_indeciso + ',' + (data.porcentaje_indeciso || 0) + '%\n';
+            opciones.forEach(o => {
+                csv += this.csv(o.etiqueta) + ',' + this.votosDe(data, o.codigo) + ',' + this.pctTexto(data, o.codigo) + '%\n';
+            });
 
             csv += '\nEstadisticas por Sexo\n';
-            csv += 'Sexo,Votantes,Relevados,PJ,UCR,Indecisos,Participacion\n';
+            csv += 'Sexo,Votantes,Relevados,' + cabeceraOpciones + ',Participacion\n';
             this.datos.porSexo.forEach(item => {
-                csv += (item.sexo === 'M' ? 'Masculino' : 'Femenino') + ',' +
-                    item.total_votantes + ',' + item.total_relevados + ',' +
-                    item.votos_pj + ',' + item.votos_ucr + ',' + item.votos_indeciso + ',' +
-                    item.porcentaje_participacion + '%\n';
+                csv += fila([
+                    item.sexo === 'M' ? 'Masculino' : 'Femenino',
+                    item.total_votantes, item.total_relevados,
+                    ...opciones.map(o => this.votosDe(item, o.codigo)),
+                    item.porcentaje_participacion + '%',
+                ]);
             });
 
             csv += '\nEstadisticas por Rango Etario\n';
-            csv += 'Rango,Votantes,Relevados,PJ,UCR,Indecisos,Participacion\n';
+            csv += 'Rango,Votantes,Relevados,' + cabeceraOpciones + ',Participacion\n';
             this.datos.porRangoEtario.forEach(item => {
-                csv += item.rango_etario + ',' +
-                    item.total_votantes + ',' + item.total_relevados + ',' +
-                    item.votos_pj + ',' + item.votos_ucr + ',' + item.votos_indeciso + ',' +
-                    item.porcentaje_participacion + '%\n';
+                csv += fila([
+                    item.rango_etario,
+                    item.total_votantes, item.total_relevados,
+                    ...opciones.map(o => this.votosDe(item, o.codigo)),
+                    item.porcentaje_participacion + '%',
+                ]);
             });
 
             if (this.datos.condiciones) {
-                const c = this.datos.condiciones;
                 csv += '\nCondiciones Especiales\n';
-                csv += 'Condicion,Total,PJ,UCR,Indecisos\n';
-                csv += 'Empleados Municipales,' + (c.total_empleados_municipales || 0) + ',' + (c.empleados_pj || 0) + ',' + (c.empleados_ucr || 0) + ',' + (c.empleados_indeciso || 0) + '\n';
-                csv += 'Ayuda Social,' + (c.total_ayuda_social || 0) + ',' + (c.ayuda_social_pj || 0) + ',' + (c.ayuda_social_ucr || 0) + ',' + (c.ayuda_social_indeciso || 0) + '\n';
-                csv += 'Nuevos Votantes,' + (c.total_nuevos_votantes || 0) + ',' + (c.nuevos_pj || 0) + ',' + (c.nuevos_ucr || 0) + ',' + (c.nuevos_indeciso || 0) + '\n';
-                csv += 'Fallecidos,' + (c.total_fallecidos || 0) + ',' + (c.fallecidos_pj || 0) + ',' + (c.fallecidos_ucr || 0) + ',' + (c.fallecidos_indeciso || 0) + '\n';
+                csv += 'Condicion,Total,' + cabeceraOpciones + '\n';
+                this.filasCondiciones().forEach(f => {
+                    csv += fila([f.nombre, f.total, ...f.porOpcion]);
+                });
             }
 
             const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });

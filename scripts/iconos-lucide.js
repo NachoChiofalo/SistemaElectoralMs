@@ -48,6 +48,8 @@ module.exports = {
   // el engranaje aparte, así que se usa el de ajustes sobre personas.
   'users-cog': 'user-cog',
   'users-gear': 'user-cog',
+  // Configuracion de la instancia (021): lo mas parecido a un panel de ajustes.
+  'sliders-h': 'sliders-horizontal',
 
   // —— Padrón y relevamiento ——
   'id-card': 'id-card',

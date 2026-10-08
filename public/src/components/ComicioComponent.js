@@ -110,7 +110,7 @@ class ComicioComponent {
                         </div>
                         <div class="form-group">
                             <label for="form-fuerza-sigla">Sigla</label>
-                            <input type="text" id="form-fuerza-sigla" class="form-input" maxlength="20" placeholder="Ej: PJ, UCR">
+                            <input type="text" id="form-fuerza-sigla" class="form-input" maxlength="20" placeholder="Sigla de la fuerza">
                         </div>
                         <div class="form-group">
                             <label>Color <span class="required">*</span></label>

@@ -172,9 +172,6 @@ class PadronComponent {
                         </label>
                         <select id="filtro-opcion-politica" aria-label="Filtrar por opción política">
                             <option value="">Todas</option>
-                            <option value="PJ">PJ</option>
-                            <option value="UCR">UCR</option>
-                            <option value="Indeciso">Indeciso</option>
                         </select>
                     </div>
                     <!-- Sin <span class="checkmark">: era el resto de un patrón de casilla
@@ -1108,21 +1105,26 @@ class PadronComponent {
      * Renderizar radio buttons para opciones políticas
      */
     renderizarRadioButtons(dni, opcionSeleccionada) {
-        const opciones = ['PJ', 'UCR', 'Indeciso'];
         // El DNI viene del CSV importado, así que es dato de usuario aunque parezca un
-        // número. Las opciones salen de esta lista de acá, no de la base.
+        // número. El código y la etiqueta de cada opción los define el cliente (021): también
+        // se escapan.
         const dniSeguro = escaparHtml(dni);
 
-        return opciones.map(opcion => `
-            <label class="radio-label ${opcionSeleccionada === opcion ? 'selected' : ''}">
+        return window.opcionesPoliticas.lista().map(opcion => {
+            const codigo = escaparHtml(opcion.codigo);
+            const elegida = opcionSeleccionada === opcion.codigo;
+
+            return `
+            <label class="radio-label ${elegida ? 'selected' : ''}">
                 <input type="radio"
                        name="opcion_${dniSeguro}"
-                       value="${opcion}"
-                       ${opcionSeleccionada === opcion ? 'checked' : ''}
-                       data-action="cambiarOpcionPolitica" data-dni="${dniSeguro}" data-opcion="${opcion}">
-                <span class="radio-custom ${opcion.toLowerCase()}">${opcion}</span>
+                       value="${codigo}"
+                       ${elegida ? 'checked' : ''}
+                       data-action="cambiarOpcionPolitica" data-dni="${dniSeguro}" data-opcion="${codigo}">
+                <span class="radio-custom opcion ${window.opcionesPoliticas.clase(opcion)}">${escaparHtml(opcion.etiqueta)}</span>
             </label>
-        `).join('');
+        `;
+        }).join('');
     }
 
     /**
@@ -1278,7 +1280,7 @@ class PadronComponent {
             if (respuesta?.conflicto) {
                 const quien = respuesta.actual?.actualizadoPor || 'Otra persona';
                 this.mostrarNotificacion(
-                    `${quien} ya había marcado ${respuesta.actual?.opcionPolitica} en esta fila`,
+                    `${quien} ya había marcado ${window.opcionesPoliticas.etiqueta(respuesta.actual?.opcionPolitica)} en esta fila`,
                     'warning'
                 );
                 // Se recarga para que la fila muestre lo que hay, no lo que se clickeó.
@@ -1401,6 +1403,15 @@ class PadronComponent {
                 return false;
             }
             const filtros = respuesta?.data;
+
+            // Las opciones políticas son de la instancia (021): alimentan el filtro y los
+            // botones de cada fila, que se dibujan después de este paso.
+            const opciones = await window.opcionesPoliticas.cargar();
+            const selectOpcion = document.getElementById('filtro-opcion-politica');
+            const elegida = selectOpcion.value;
+            selectOpcion.innerHTML = '<option value="">Todas</option>' +
+                opciones.map(o => `<option value="${escaparHtml(o.codigo)}">${escaparHtml(o.etiqueta)}</option>`).join('');
+            selectOpcion.value = elegida;
 
             const selectCircuito = document.getElementById('filtro-circuito');
             const circuitos = Array.isArray(filtros?.circuitos) ? filtros.circuitos : [];

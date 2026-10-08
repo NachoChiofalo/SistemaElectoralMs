@@ -32,10 +32,8 @@
     flex-shrink: 0;
 }
 
-/* Sólo las tres fuerzas conservan color: ahí el color es dato. */
-.stat-card.pj .stat-icon { color: var(--padron-pj); }
-.stat-card.ucr .stat-icon { color: var(--padron-ucr); }
-.stat-card.indeciso .stat-icon { color: var(--padron-indeciso); }
+/* Sólo las opciones políticas conservan color: ahí el color es dato (021). */
+.stat-card.opcion .stat-icon { color: var(--opcion-color); }
 .stat-card.completados .stat-icon { color: var(--ds-primary-600); }
 
 .stat-content {
@@ -273,14 +271,13 @@
 .stat-card.relevados { border-left-color: var(--ds-success-500); }
 .stat-card.relevados .stat-icon { color: var(--ds-success-500); }
 
-.stat-card.pj { border-left-color: var(--ds-party-pj); }
-.stat-card.pj .stat-icon { color: var(--ds-party-pj); }
+/* Una tarjeta por opción política: el color lo fija la clase op-N (design-system.css). */
+.stat-card.opcion { border-left-color: var(--opcion-color); }
+.stat-card.opcion .stat-icon { color: var(--opcion-color); }
 
-.stat-card.ucr { border-left-color: var(--ds-party-ucr); }
-.stat-card.ucr .stat-icon { color: var(--ds-party-ucr); }
-
-.stat-card.indeciso { border-left-color: var(--ds-warning-500); }
-.stat-card.indeciso .stat-icon { color: var(--ds-warning-500); }
+/* La opción neutra ("indeciso") conserva el ámbar con el que siempre se mostró acá. */
+.stat-card.opcion.op-neutra { border-left-color: var(--ds-warning-500); }
+.stat-card.opcion.op-neutra .stat-icon { color: var(--ds-warning-500); }
 
 /* Condiciones especiales cards */
 .stat-card.condicion.empleados { border-left-color: var(--ds-primary-500); }
@@ -465,16 +462,8 @@
     min-width: 2px;
 }
 
-.barra-fill.pj {
-    background: linear-gradient(90deg, var(--ds-party-pj), var(--ds-info-500));
-}
-
-.barra-fill.ucr {
-    background: linear-gradient(90deg, var(--ds-danger-600), var(--ds-danger-400));
-}
-
-.barra-fill.indeciso {
-    background: linear-gradient(90deg, var(--ds-party-indeciso), var(--ds-secondary-400));
+.barra-fill.opcion {
+    background: var(--opcion-color);
 }
 
 .comparador-resumen {
@@ -529,9 +518,7 @@
     color: var(--ds-text-muted);
 }
 
-.row-pj td:first-child { border-left: 3px solid var(--ds-party-pj); }
-.row-ucr td:first-child { border-left: 3px solid var(--ds-party-ucr); }
-.row-indeciso td:first-child { border-left: 3px solid var(--ds-party-indeciso); }
+.fila-opcion td:first-child { border-left: 3px solid var(--opcion-color); }
 
 /* ==================== TENDENCIA INFO ==================== */
 .tendencia-info {

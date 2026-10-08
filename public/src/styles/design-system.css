@@ -1063,3 +1063,19 @@ textarea::placeholder {
     --ds-shadow-xl: var(--modo-oscuro-shadow-xl);
     --ds-shadow-focus: var(--modo-oscuro-shadow-focus);
 }
+
+/* ==================== COLOR DE UNA OPCIÓN POLÍTICA (021) ====================
+   Las opciones políticas las define cada instancia, así que ninguna regla puede nombrar
+   "pj" o "ucr". En su lugar, el markup lleva una clase `op-N` (N = color de la opción, 1 a 8)
+   o `op-neutra`, y las reglas de cada pantalla pintan con `var(--opcion-color)`.
+   Los ocho colores son los de las fuerzas de comicio (--ds-fuerza-N), que ya tienen su
+   variante de modo oscuro: el 1 y el 2 son el azul y el rojo de siempre. */
+.op-1 { --opcion-color: var(--ds-fuerza-1); }
+.op-2 { --opcion-color: var(--ds-fuerza-2); }
+.op-3 { --opcion-color: var(--ds-fuerza-3); }
+.op-4 { --opcion-color: var(--ds-fuerza-4); }
+.op-5 { --opcion-color: var(--ds-fuerza-5); }
+.op-6 { --opcion-color: var(--ds-fuerza-6); }
+.op-7 { --opcion-color: var(--ds-fuerza-7); }
+.op-8 { --opcion-color: var(--ds-fuerza-8); }
+.op-neutra { --opcion-color: var(--ds-party-indeciso); }
