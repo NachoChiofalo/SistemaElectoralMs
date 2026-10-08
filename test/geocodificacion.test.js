@@ -1,5 +1,5 @@
 /**
- * Tests de scripts/medir-geocodificacion.js (018, factibilidad): la parte que no necesita red
+ * Tests de src/modules/territorio/ubicacion.js (018; nacio como scripts/medir-geocodificacion.js): la parte que no necesita red
  * ni base. Se arma una calle de este a oeste con dos cuadras y manzanas a cada lado, y se
  * comprueba que cada domicilio caiga del lado correcto aunque la linea este dibujada al revés
  * de la numeracion, que es lo que pasa en el callejero real.
@@ -12,8 +12,9 @@ const assert = require('node:assert/strict');
 
 const {
   repararMojibake, tokens, partirDomicilio, esRural, candidatas, puntoEnPoligono,
-  construirIndice, resolver, inferirLocalidad,
-} = require('../scripts/medir-geocodificacion');
+  construirIndice, resolver,
+} = require('../src/modules/territorio/ubicacion');
+const { inferirLocalidad } = require('../scripts/medir-geocodificacion');
 
 // Metros -> grados, en la latitud de Alcira.
 const LAT0 = -32.75;

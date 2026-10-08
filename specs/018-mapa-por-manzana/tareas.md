@@ -34,31 +34,31 @@ F0 ─► F1 ─► F2 ─► F3 ─► F4 ─► F5 ─► F6 ─► F7 ─► 
 
 ## F0 — Preparación
 
-- [ ] **0.1** Confirmar con el dueño las tres decisiones que tomé por defecto en la spec:
+- [x] **0.1** Confirmar con el dueño las tres decisiones que tomé por defecto en la spec:
       (a) la lista por manzana **no** muestra la opción política; (b) el nivel superior se rotula
       **"Radio censal"** hasta cerrar [022](../../docs/BACKLOG.md); (c) un votante cargado a mano queda
       **"sin calcular"** hasta el próximo recálculo.
       *Verifica:* la tabla de decisiones de la spec registra la respuesta.
-- [ ] **0.2** Snapshot de contrato con el servidor levantado contra la base descartable:
+- [x] **0.2** Snapshot de contrato con el servidor levantado contra la base descartable:
       `node scripts/api-snapshot.js --out specs/018-mapa-por-manzana/snapshot-antes.json`.
       *Verifica:* el archivo existe. Sirve para probar al final que no cambió ningún endpoint existente.
 
 ## F1 — Mudar la ubicación a un módulo
 
-- [ ] **1.1** `src/modules/territorio/ubicacion.js` con las funciones puras que hoy están en
+- [x] **1.1** `src/modules/territorio/ubicacion.js` con las funciones puras que hoy están en
       `scripts/medir-geocodificacion.js`: reparación de texto, términos, separación calle/número,
       candidatas, orientación, índice, `resolver` y `ESTADOS`. Sin red, sin base, sin `process.env`.
       *Verifica:* `test/geocodificacion.test.js` importa desde el módulo y sus 17 tests pasan **sin cambiar
       una línea de los asserts**.
-- [ ] **1.2** `src/modules/territorio/capas.js`: descarga paginada y normalización de tramos, manzanas y
+- [x] **1.2** `src/modules/territorio/capas.js`: descarga paginada y normalización de tramos, manzanas y
       radios censales (`Radios2022`, por envolvente). `fetch` se recibe por parámetro para poder probarlo.
       *Verifica:* tests con un `fetch` falso y respuestas guardadas: paginación (`exceededTransferLimit`),
       nombres con caracteres rotos, error del servicio con reintentos y mensaje claro.
-- [ ] **1.3** `asignarSectores(manzanas, radios)` en `capas.js`: cada manzana al radio que contiene su centroide.
+- [x] **1.3** `asignarSectores(manzanas, radios)` en `capas.js`: cada manzana al radio que contiene su centroide.
       *Verifica:* test con polígonos sintéticos (una manzana adentro, una afuera → sin barrio).
-- [ ] **1.4** El script de medición pasa a importar `ubicacion.js` y `capas.js`.
+- [x] **1.4** El script de medición pasa a importar `ubicacion.js` y `capas.js`.
       *Verifica:* `--localidad ALCIRA --probar "GRAL PAZ 353"` sigue dando manzana 58600, y
-      `npm run medir:geocodificacion` contra el padrón real sigue dando 73 % (**lo corre el dueño**).
+      `npm run medir:geocodificacion` contra el padrón real sigue dando 73 % (**lo corre el dueño**; con `--probar` ya da los mismos resultados).
 
 ## F2 — Esquema, permiso y módulo
 
