@@ -377,5 +377,9 @@ test('territorio:cargar entiende la localidad aunque PowerShell se coma el "--"'
   assert.deepEqual(argumentos(['ALCIRA'], { npm_config_localidad: 'true', npm_config_si: 'true' }), { localidad: 'ALCIRA', si: true });
   assert.deepEqual(argumentos([], { npm_config_localidad: 'ALCIRA', npm_config_departamento: 'RIO CUARTO' }), { localidad: 'ALCIRA', departamento: 'RIO CUARTO' });
   assert.deepEqual(argumentos(['ALCIRA'], {}), { localidad: 'ALCIRA' }, 'sin --si no escribe');
+  // La forma que funciona en cualquier consola: palabras sueltas, sin guiones que npm pueda tragarse.
+  assert.deepEqual(argumentos(['ALCIRA', 'si'], {}), { localidad: 'ALCIRA', si: true });
+  assert.deepEqual(argumentos(['ALCIRA', 'SÍ'], {}), { localidad: 'ALCIRA', si: true });
+  assert.deepEqual(argumentos(['si', 'ALCIRA'], {}), { localidad: 'ALCIRA', si: true }, 'en cualquier orden');
   assert.throws(() => argumentos(['--otra'], {}), /Argumento desconocido/);
 });

@@ -2,9 +2,9 @@
 /**
  * Carga las capas territoriales de la localidad de esta instancia y ubica al padron (018).
  *
- *   npm run territorio:cargar -- --localidad ALCIRA                 muestra que cargaria, sin escribir
- *   npm run territorio:cargar -- --localidad ALCIRA --si            carga y ubica
- *   npm run territorio:cargar -- --localidad ALCIRA --departamento "RIO CUARTO" --si
+ *   npm run territorio:cargar -- ALCIRA                             muestra que cargaria, sin escribir
+ *   npm run territorio:cargar -- ALCIRA si                          carga y ubica (en cualquier consola)
+ *   node scripts/territorio-cargar.js --localidad ALCIRA --departamento "RIO CUARTO" --si
  *
  * Lo corre el dueno del sistema, a mano, una vez por localidad (como seed:usuarios). Usa la DATABASE_URL
  * del entorno: SIN --si no escribe nada y muestra a que base apunta, para no cargar en la equivocada.
@@ -26,10 +26,12 @@ const { ALTURA_MIN } = require('../src/modules/territorio/ubicacion');
 const FUENTE = 'Direccion General de Estadistica y Censos de Cordoba (Visualizador_de_calles, Manzanas_callejero, Radios2022)';
 
 /**
- * Lee los argumentos. En PowerShell, `npm run territorio:cargar -- --localidad ALCIRA` NO llega asi: PowerShell
- * se come el `--`, npm toma `--localidad` como configuracion propia y lo deja en la variable de entorno
- * npm_config_localidad, y al script le llega solo `ALCIRA`. Por eso se aceptan las dos formas: la localidad
- * como argumento suelto y las opciones desde npm_config_*.
+ * Lee los argumentos. En PowerShell, `npm run territorio:cargar -- --localidad ALCIRA --si` NO llega asi:
+ * PowerShell se come el `--` y npm se queda con todo lo que empieza con guiones como configuracion propia. Al
+ * script solo le llegan las palabras sueltas (`ALCIRA`), y el `--si` se pierde sin aviso (comprobado en
+ * produccion: quedo en modo prueba, que es el comportamiento seguro). Por eso la localidad y la confirmacion
+ * se aceptan tambien como palabras sueltas: `npm run territorio:cargar -- ALCIRA si` funciona en cualquier
+ * consola. Algunas versiones de npm dejan las opciones en npm_config_*; se aprovechan si estan.
  */
 function argumentos(argv, entorno = process.env) {
   const a = {};
@@ -37,7 +39,7 @@ function argumentos(argv, entorno = process.env) {
     const k = argv[i];
     if (k === '--localidad') a.localidad = argv[++i];
     else if (k === '--departamento') a.departamento = argv[++i];
-    else if (k === '--si') a.si = true;
+    else if (k === '--si' || /^s[ií]$/i.test(k)) a.si = true;
     else if (k === '--ayuda' || k === '-h') a.ayuda = true;
     else if (!k.startsWith('-') && !a.localidad) a.localidad = k;
     else throw new Error(`Argumento desconocido: ${k}`);
@@ -53,7 +55,7 @@ const num = (n) => Number(n).toLocaleString('es-AR');
 async function main() {
   const args = argumentos(process.argv.slice(2));
   if (args.ayuda || !args.localidad) {
-    console.log('Uso: npm run territorio:cargar -- --localidad NOMBRE [--departamento NOMBRE] [--si]');
+    console.log('Uso: npm run territorio:cargar -- NOMBRE [si]   (o: node scripts/territorio-cargar.js --localidad NOMBRE [--departamento NOMBRE] [--si])');
     if (!args.ayuda) process.exitCode = 1;
     return;
   }
@@ -78,7 +80,9 @@ async function main() {
   }
 
   if (!args.si) {
-    console.log('\nModo prueba: no se escribio nada. Si la base y los conteos son los correctos, repeti con --si.');
+    console.log('\nModo prueba: no se escribio nada. Si la base y los conteos son los correctos, repeti confirmando:');
+    console.log(`  npm run territorio:cargar -- ${args.localidad} si`);
+    console.log(`  (o: node scripts/territorio-cargar.js --localidad ${args.localidad} --si)`);
     return;
   }
 
@@ -100,7 +104,8 @@ async function main() {
 
 if (require.main === module) {
   main()
-    .catch((error) => { console.error(`\nError: ${error.message}`); process.exitCode = 1; })
+    // Un error de conexion de Node puede venir sin mensaje (AggregateError): se muestra el codigo.
+    .catch((error) => { console.error(`\nError: ${error.message || error.code || String(error)}`); process.exitCode = 1; })
     .finally(() => db.cerrar());
 }
 
