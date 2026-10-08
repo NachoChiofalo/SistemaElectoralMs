@@ -829,6 +829,27 @@ alcance, no definido aún").
 con qué pronosticar. Su spec debe empezar por definir qué se pronostica y con qué
 información, no por la pantalla.
 
+### 🔴 021 — Una instancia aislada por municipio · **M**
+
+Hoy el sistema asume un único municipio: las opciones políticas `PJ`/`UCR` están escritas en un
+`CHECK` y en unas 60 líneas de backend y frontend. Los datos de un municipio no pueden cruzarse
+con los de otro (opinión política = dato sensible), así que cada municipio es una **instancia
+propia** (servicio de Render + proyecto de Supabase, mismo código). Trabajo: opciones políticas
+como datos de la instancia, nombre del municipio, una instancia `demo` que haga de staging y
+scripts para migrar y revisar varias bases sin equivocarse de una.
+
+Spec y plan: [specs/021-instancia-por-municipio](../specs/021-instancia-por-municipio/spec.md).
+Se evaluó y se dejó documentada la alternativa de una base compartida con `tenant_id`
+([alternativa-multitenancy](../specs/021-instancia-por-municipio/alternativa-multitenancy/spec.md)),
+con los criterios para reabrirla. Quedan abiertas las decisiones D1–D6.
+
+**Avance (2026-10-08):** las opciones políticas ya son configurables por instancia (fases 2, 3 y 4
+del plan, más la pantalla Configuración), con 282 tests en verde. Sin desplegar: falta el
+recorrido manual en un navegador y aplicar `padron/009` (preflight → backup → migrate → push).
+Quedan la instancia `demo`, el script `instancias.js` y los runbooks. Ver "Estado de la
+implementación" al final del plan. **Conviene resolver la
+fase 2–3 antes de 018, 014 y 020**: reescriben justo el padrón y los resultados.
+
 ---
 
 ### Hallazgos de severidad baja e informativa de la revisión de código (FE/BE/DB)

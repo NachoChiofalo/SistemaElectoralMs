@@ -64,6 +64,16 @@ una que además toca datos existentes (`DELETE`, `UPDATE`, purgar algo) puede af
 sesiones o datos de gente usando el sistema en ese momento, y se confirma con la
 persona antes de correrla — no hay forma de probarla primero en otro lado.
 
+**Las opciones políticas no se escriben en el código.** Cada instancia (un cliente, una
+localidad) tiene las suyas en `padron.opciones_politicas`, y se configuran desde la pantalla
+Configuración (solo administrador). Ni el esquema, ni el SQL, ni el frontend pueden nombrar
+`'PJ'` o `'UCR'`: el backend las lee de `OpcionesPoliticas` (`padron/opciones.js`, con caché
+en memoria) y el frontend de `window.opcionesPoliticas` (`lib/opciones.js`). Los resultados no
+traen una columna por opción sino objetos `votos` y `porcentajes` `{ codigo: n }`; el color es un
+índice 1–8 a `--ds-fuerza-N` (clase `op-N`), nunca un hex. Un test falla si un literal vuelve a
+entrar. El `codigo` de una opción no se renombra (lo guardan los relevamientos); una opción con
+relevamientos no se borra. Ver [021](specs/021-instancia-por-municipio/spec.md).
+
 **Ningún dato de usuario entra a una plantilla sin `escaparHtml`.** Está en
 `public/src/lib/escapar.js` y lo cargan todas las páginas. Escapa las comillas además de
 `<`, `>` y `&`, porque este frontend interpola dentro de atributos (`value=`, `title=`,
@@ -130,6 +140,7 @@ significando algo con más de un usuario activo, que es exactamente el escenario
 | Paleta, tipografía, logo e ícono — la identidad de marca | [docs/IDENTIDAD.md](docs/IDENTIDAD.md) |
 | Cómo hace el sistema para que dos personas no se pisen | [docs/MULTIUSUARIO.md](docs/MULTIUSUARIO.md) |
 | Selector de tema claro/oscuro | `public/src/tema.js` |
+| Opciones políticas de la instancia (qué se puede marcar al relevar) | `src/modules/padron/opciones.js`, `public/src/lib/opciones.js`, pantalla `configuracion.html` |
 
 Cada módulo sigue el mismo corte: `routes` (HTTP) → `service` (reglas) → `repository`
 (SQL). `routes` no escribe SQL; `repository` no conoce `req`/`res`.
