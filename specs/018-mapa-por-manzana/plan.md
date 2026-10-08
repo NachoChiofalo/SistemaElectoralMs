@@ -132,13 +132,13 @@ filtro): milisegundos de CPU. La base gana una tabla de ~5.500 filas y un índic
 
 | Qué | Resultado |
 |---|---|
-|  completo | 0,9 s la primera corrida, 0,5 s las siguientes; dos simultáneas no se pisan |
+| `reubicar()` completo | 0,9 s la primera corrida, 0,5 s las siguientes; dos simultáneas no se pisan |
 | Ubicados (padrón sintético) | 74,5 % (el real medido: 73,0 %) |
 | Estadísticas de todas las manzanas (una consulta) | 7,8 ms |
 | Detalle de una manzana (4 consultas en paralelo) | 0,8 a 3 ms cada una |
-| Lista de una manzana | 2,9 ms, por el índice de . Con 5.500 votantes Postgres prefiere leer el padrón entero (0,5 ms); con 55.000 pasa solo al índice del padrón (4 ms) |
+| Lista de una manzana | 2,9 ms, por el índice de `manzana_id`. Con 5.500 votantes Postgres prefiere leer el padrón entero (0,5 ms); con 55.000 pasa solo al índice del padrón (4 ms) |
 
-La API usa  (no ) como tipo de zona: .
+La API usa `barrio` (no `sector`) como tipo de zona: `GET /zonas/barrio/:id`.
 
 ## Orden de trabajo
 

@@ -665,7 +665,15 @@ puede dejar una ficha marcada para siempre.
 
 ---
 
-### 🔴 018 — Mapa sectorizado por domicilio del votante · **L**
+### 🟢 018 — Mapa sectorizado por domicilio del votante · **L**
+
+**Etapa 1 implementada (2026-10-08), sin desplegar.** Módulo `territorio`, carga de capas
+(`npm run territorio:cargar`), ubicación en lote al importar, API con el umbral en el servidor y pantalla
+`mapa.html` (solo administrador). Verificado con tests (unitarios y contra Postgres real) y en Chrome con las
+capas reales de Alcira y un padrón sintético de 5.500 votantes: 0,9 s para ubicarlos, geometría de 5,4 KB
+comprimida, contrato de los 28 endpoints existentes sin cambios. Falta: desplegar (F8 de
+[tareas](../specs/018-mapa-por-manzana/tareas.md), lo corre el dueño) y revisar a mano la pantalla en una
+ventana angosta.
 
 **Especificado el 2026-10-08:** [specs/018-mapa-por-manzana](../specs/018-mapa-por-manzana/spec.md) (spec y
 plan). Etapa 1 acordada: ubicar a cada votante en una **manzana** al importar el padrón, mapa por **manzana y

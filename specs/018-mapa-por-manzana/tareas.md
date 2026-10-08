@@ -149,49 +149,49 @@ Todas las rutas con `requirePermission('territorio.view')`.
 
 ## F6 — Pantalla
 
-- [ ] **6.1** Tokens `--ds-mapa-0..5` (0 = sin datos o bajo el umbral) en `design-system.css`, con modo oscuro.
+- [x] **6.1** Tokens `--ds-mapa-0..5` (0 = sin datos o bajo el umbral) en `design-system.css`, con modo oscuro.
       *Verifica:* el test de colores sueltos pasa.
-- [ ] **6.2** `public/src/lib/geometria-svg.js`: proyección equirrectangular con corrección por latitud y paso de
+- [x] **6.2** `public/src/lib/geometria-svg.js`: proyección equirrectangular con corrección por latitud y paso de
       anillos a `path` SVG, ajustado a un `viewBox`. Función pura.
       *Verifica:* test en node: un cuadrado conocido da el `path` esperado y el norte queda arriba.
-- [ ] **6.3** `mapa.html`, `pages/mapa.js` (si no tiene `territorio.view`, vuelve al inicio) y el ítem "Mapa" en
+- [x] **6.3** `mapa.html`, `pages/mapa.js` (si no tiene `territorio.view`, vuelve al inicio) y el ítem "Mapa" en
       `NavbarComponent` con `permission: 'territorio.view'`.
       *Verifica:* como encargado el ítem no aparece y la URL directa redirige.
-- [ ] **6.4** `MapaComponent`: pide geometría y estadísticas en paralelo; dibuja manzanas y contornos de barrio;
+- [x] **6.4** `MapaComponent`: pide geometría y estadísticas en paralelo; dibuja manzanas y contornos de barrio;
       selectores de nivel (barrio / manzana) y de color (avance / opción líder); leyenda con texto; contador
       de "sin ubicar" siempre visible.
       *Verifica:* recorrido manual (6.11).
-- [ ] **6.5** Panel de zona: la manzana y su barrio lado a lado, con las mismas métricas; el aviso de
+- [x] **6.5** Panel de zona: la manzana y su barrio lado a lado, con las mismas métricas; el aviso de
       "menos de 10 relevados" cuando corresponde.
       *Verifica:* recorrido manual.
-- [ ] **6.6** Pestaña "Votantes" de la manzana, paginada, con enlace a la ficha.
+- [x] **6.6** Pestaña "Votantes" de la manzana, paginada, con enlace a la ficha.
       *Verifica:* recorrido manual.
-- [ ] **6.7** El padrón abre una ficha desde la URL (`index.html?dni=…`), que hoy no existe y la lista necesita.
+- [x] **6.7** El padrón abre una ficha desde la URL (`index.html?dni=…`), que hoy no existe y la lista necesita.
       *Verifica:* abrir la URL con un DNI muestra su panel; con un DNI inexistente, el listado normal.
-- [ ] **6.8** Panel de "sin ubicar" (motivos y detalles más frecuentes) y botón "Recalcular" con confirmación en
+- [x] **6.8** Panel de "sin ubicar" (motivos y detalles más frecuentes) y botón "Recalcular" con confirmación en
       un modal propio (no `confirm()` del navegador).
       *Verifica:* recorrido manual.
-- [ ] **6.9** Accesibilidad: cada zona es enfocable con teclado, con `aria-label` que dice zona, votantes y avance;
+- [x] **6.9** Accesibilidad: cada zona es enfocable con teclado, con `aria-label` que dice zona, votantes y avance;
       el color nunca es la única señal (la leyenda tiene texto).
       *Verifica:* recorrer el mapa solo con Tab y Enter.
-- [ ] **6.10** `npm run build:assets` y tests estáticos (escapado, CSP, colores, `?v=`).
+- [x] **6.10** `npm run build:assets` y tests estáticos (escapado, CSP, colores, `?v=`).
       *Verifica:* `npm test`.
-- [ ] **6.11** Recorrido manual en Chrome contra la base descartable con las capas de Alcira y un padrón
+- [x] **6.11** Recorrido manual en Chrome contra la base descartable con las capas de Alcira y un padrón
       sintético: administrador ve todo; encargado no; zona bajo el umbral sin desglose (también en la
       respuesta de red); lista ordenada y enlace a la ficha; modo claro y oscuro; ventana angosta.
-      *Verifica:* capturas en la descripción del commit de cierre.
+      *Verifica:* hecho en Chrome (claro y oscuro, administrador y encargado, teclado, umbral, lista y enlace a la ficha). **Pendiente: la ventana angosta**, que el entorno de prueba no dejó achicar; el CSS tiene la regla para menos de 900 px.
 
 ## F7 — Rendimiento y documentación
 
-- [ ] **7.1** Medir y anotar en el plan: `reubicar()` con 5.500 votantes sintéticos (< 2 s), tamaños de
+- [x] **7.1** Medir y anotar en el plan: `reubicar()` con 5.500 votantes sintéticos (< 2 s), tamaños de
       `/geometria` y `/estadisticas`, y el `EXPLAIN` de 5.11.
       *Verifica:* los números de la spec se cumplen; si no, se corrige antes de seguir.
-- [ ] **7.2** Snapshot después y comparación con el de 0.2.
-      *Verifica:* `--compare`: ningún endpoint existente cambió.
-- [ ] **7.3** `CLAUDE.md`: el módulo en el mapa, la regla "la ubicación se calcula en lote y ninguna ruta hace
+- [x] **7.2** Snapshot después y comparación con el de 0.2.
+      *Verifica:* `--compare`: ningún endpoint existente cambió. La línea base se tomó con el código anterior a 018 levantado contra la misma base (la de 0.2 era con la base vacía y no servía para comparar).
+- [x] **7.3** `CLAUDE.md`: el módulo en el mapa, la regla "la ubicación se calcula en lote y ninguna ruta hace
       geometría en vivo", el comando de carga, y el conteo de tests.
       *Verifica:* lectura.
-- [ ] **7.4** `BACKLOG.md`: avance de 018.
+- [x] **7.4** `BACKLOG.md`: avance de 018.
       *Verifica:* lectura.
 
 ## F8 — Despliegue (lo corre el dueño)
@@ -202,7 +202,7 @@ escribe únicamente en `territorio`.
 - [ ] **8.1** `npm run migrate:status` y backup.
 - [ ] **8.2** `npm run migrate` (crea `territorio` y el permiso), y recién después `git push`.
 - [ ] **8.3** `npm run territorio:cargar -- --localidad ALCIRA` **sin** `--si` contra producción: revisar el host
-      que muestra y los conteos (431 / 163 / 19).
+      que muestra y los conteos (431 tramos, 163 manzanas, 15 radios con manzanas).
 - [ ] **8.4** Con `--si`: carga y ubicación del padrón real.
       *Verifica:* el resumen da ~73 % ubicado, como la medición.
 - [ ] **8.5** Prueba en producción como administrador: el mapa de Alcira, una manzana con su lista, una zona bajo el

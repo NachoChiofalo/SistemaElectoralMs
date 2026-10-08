@@ -1,6 +1,6 @@
 {
-  "base": "http://localhost:8099",
-  "capturedAt": "2026-10-08T23:09:46.171Z",
+  "base": "http://localhost:8098",
+  "capturedAt": "2026-10-08T23:41:57.188Z",
   "endpoints": {
     "POST /api/auth/login": {
       "status": 200,
@@ -205,7 +205,9 @@
       "contentType": "application/json",
       "shape": {
         "data": {
-          "circuitos": [],
+          "circuitos": [
+            "<string>"
+          ],
           "mesas": [],
           "opciones": [
             {
@@ -219,7 +221,9 @@
           "opcionesPoliticas": [
             "<string>"
           ],
-          "sexos": []
+          "sexos": [
+            "<string>"
+          ]
         },
         "success": "<boolean>"
       }
@@ -228,7 +232,22 @@
       "status": 200,
       "contentType": "application/json",
       "shape": {
-        "data": [],
+        "data": [
+          {
+            "relevamiento": "null",
+            "votante": {
+              "anioNac": "<number>",
+              "apellido": "<string>",
+              "circuito": "<string>",
+              "dni": "<string>",
+              "domicilio": "<string>",
+              "edad": "<number>",
+              "nombre": "<string>",
+              "sexo": "<string>",
+              "tipoEjempl": "null"
+            }
+          }
+        ],
         "detallesIncluidos": "<boolean>",
         "paginacion": {
           "fin": "<number>",
@@ -245,7 +264,22 @@
       "status": 200,
       "contentType": "application/json",
       "shape": {
-        "data": [],
+        "data": [
+          {
+            "relevamiento": "null",
+            "votante": {
+              "anioNac": "<number>",
+              "apellido": "<string>",
+              "circuito": "<string>",
+              "dni": "<string>",
+              "domicilio": "<string>",
+              "edad": "<number>",
+              "nombre": "<string>",
+              "sexo": "<string>",
+              "tipoEjempl": "null"
+            }
+          }
+        ],
         "detallesIncluidos": "<boolean>",
         "paginacion": {
           "fin": "<number>",
@@ -262,7 +296,22 @@
       "status": 200,
       "contentType": "application/json",
       "shape": {
-        "data": [],
+        "data": [
+          {
+            "relevamiento": "null",
+            "votante": {
+              "anioNac": "<number>",
+              "apellido": "<string>",
+              "circuito": "<string>",
+              "dni": "<string>",
+              "domicilio": "<string>",
+              "edad": "<number>",
+              "nombre": "<string>",
+              "sexo": "<string>",
+              "tipoEjempl": "null"
+            }
+          }
+        ],
         "detallesIncluidos": "<boolean>",
         "paginacion": {
           "fin": "<number>",
@@ -280,11 +329,11 @@
       "contentType": "application/json",
       "shape": {
         "data": {
-          "porcentaje_participacion": "null",
+          "porcentaje_participacion": "<string>",
           "porcentajes": {
-            "Indeciso": "null",
-            "PJ": "null",
-            "UCR": "null"
+            "Indeciso": "<number>",
+            "PJ": "<number>",
+            "UCR": "<number>"
           },
           "total_relevados": "<string>",
           "total_votantes": "<string>",
@@ -301,7 +350,24 @@
       "status": 200,
       "contentType": "application/json",
       "shape": {
-        "data": [],
+        "data": [
+          {
+            "porcentaje_participacion": "<string>",
+            "porcentajes": {
+              "Indeciso": "<number>",
+              "PJ": "<number>",
+              "UCR": "<number>"
+            },
+            "sexo": "<string>",
+            "total_relevados": "<string>",
+            "total_votantes": "<string>",
+            "votos": {
+              "Indeciso": "<number>",
+              "PJ": "<number>",
+              "UCR": "<number>"
+            }
+          }
+        ],
         "success": "<boolean>"
       }
     },
@@ -309,7 +375,24 @@
       "status": 200,
       "contentType": "application/json",
       "shape": {
-        "data": [],
+        "data": [
+          {
+            "porcentaje_participacion": "<string>",
+            "porcentajes": {
+              "Indeciso": "<number>",
+              "PJ": "<number>",
+              "UCR": "<number>"
+            },
+            "rango_etario": "<string>",
+            "total_relevados": "<string>",
+            "total_votantes": "<string>",
+            "votos": {
+              "Indeciso": "<number>",
+              "PJ": "<number>",
+              "UCR": "<number>"
+            }
+          }
+        ],
         "success": "<boolean>"
       }
     },
@@ -317,7 +400,24 @@
       "status": 200,
       "contentType": "application/json",
       "shape": {
-        "data": [],
+        "data": [
+          {
+            "circuito": "<string>",
+            "porcentaje_participacion": "<string>",
+            "porcentajes": {
+              "Indeciso": "<number>",
+              "PJ": "<number>",
+              "UCR": "<number>"
+            },
+            "total_relevados": "<string>",
+            "total_votantes": "<string>",
+            "votos": {
+              "Indeciso": "<number>",
+              "PJ": "<number>",
+              "UCR": "<number>"
+            }
+          }
+        ],
         "success": "<boolean>"
       }
     },
@@ -363,7 +463,32 @@
       "status": 200,
       "contentType": "application/json",
       "shape": {
-        "data": [],
+        "data": [
+          {
+            "detalle": {
+              "dni": "<string>",
+              "esEmpleadoMunicipal": "<boolean>",
+              "esNuevoVotante": "<boolean>",
+              "estaFallecido": "<boolean>",
+              "fechaCreacion": "null",
+              "fechaModificacion": "null",
+              "observacionesDetalle": "<string>",
+              "recibeAyudaSocial": "<boolean>"
+            },
+            "relevamiento": {
+              "observacion": "null",
+              "opcionPolitica": "<string>"
+            },
+            "votante": {
+              "apellido": "<string>",
+              "circuito": "<string>",
+              "dni": "<string>",
+              "edad": "<number>",
+              "nombre": "<string>",
+              "sexo": "<string>"
+            }
+          }
+        ],
         "success": "<boolean>"
       }
     },

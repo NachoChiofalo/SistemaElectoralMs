@@ -74,6 +74,17 @@ traen una columna por opción sino objetos `votos` y `porcentajes` `{ codigo: n 
 entrar. El `codigo` de una opción no se renombra (lo guardan los relevamientos); una opción con
 relevamientos no se borra. Ver [021](specs/021-instancia-por-municipio/spec.md).
 
+**La ubicación de los votantes en el mapa se calcula en lote; ninguna ruta hace geometría en vivo.**
+`territorio` ubica a cada votante en una manzana al importar el padrón (se suscribe a
+`PadronService.alCambiar`; el padrón no sabe que el mapa existe) o con el botón "Recalcular", y lo deja
+en `territorio.ubicaciones`. Las rutas leen agregados con una consulta indexada. Las capas (calles con
+alturas, manzanas, radios censales) se copian a la base con `npm run territorio:cargar`: ninguna ruta
+le pide nada al portal de Estadística, y nada del padrón sale del servidor. Un domicilio que no se
+puede resolver queda pendiente con su motivo, **nunca** con un punto inventado (la base lo impide). Y
+**el umbral de privacidad lo aplica el servidor**: una zona con menos relevados que el umbral (10 por
+defecto) responde solo totales y avance; un test recorre todas las rutas del mapa buscando un desglose
+que se escape. Ver [018](specs/018-mapa-por-manzana/spec.md).
+
 **Ningún dato de usuario entra a una plantilla sin `escaparHtml`.** Está en
 `public/src/lib/escapar.js` y lo cargan todas las páginas. Escapa las comillas además de
 `<`, `>` y `&`, porque este frontend interpola dentro de atributos (`value=`, `title=`,
@@ -141,6 +152,7 @@ significando algo con más de un usuario activo, que es exactamente el escenario
 | Cómo hace el sistema para que dos personas no se pisen | [docs/MULTIUSUARIO.md](docs/MULTIUSUARIO.md) |
 | Selector de tema claro/oscuro | `public/src/tema.js` |
 | Opciones políticas de la instancia (qué se puede marcar al relevar) | `src/modules/padron/opciones.js`, `public/src/lib/opciones.js`, pantalla `configuracion.html` |
+| Mapa por manzana y radio censal (018) | `src/modules/territorio/` (esquema `territorio`, solo administrador por `territorio.view`). Cómo se ubica un domicilio: `ubicacion.js`; de dónde salen las capas: `capas.js`; el umbral de privacidad: `aplicarUmbral` en `service.js`; el dibujo: `public/src/components/MapaComponent.js` y `lib/geometria-svg.js` |
 
 Cada módulo sigue el mismo corte: `routes` (HTTP) → `service` (reglas) → `repository`
 (SQL). `routes` no escribe SQL; `repository` no conoce `req`/`res`.
@@ -151,11 +163,13 @@ Cada módulo sigue el mismo corte: `routes` (HTTP) → `service` (reglas) → `r
 
 ```bash
 npm run dev              # con --watch
-npm test                 # ~210 tests; los de Postgres real se saltean sin DATABASE_URL_TEST
+npm test                 # ~330 tests; los de Postgres real se saltean sin DATABASE_URL_TEST
 npm run migrate:status   # qué está aplicado
 npm run migrate          # aplicar pendientes
 npm run seed:usuarios    # crear el administrador
 npm run build:assets     # iconos, fuentes, ?v= y precomprimidos de public/
+npm run territorio:cargar -- --localidad ALCIRA        # capas del mapa: sin --si solo muestra qué haría (018)
+npm run medir:geocodificacion                          # solo lectura: cuánto del padrón se ubica en una manzana
 ```
 
 ---
