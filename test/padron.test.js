@@ -211,10 +211,18 @@ test('el detalle mantiene la forma que consume el frontend', () => {
 
 // ------------------------------------------------------ cache y validacion
 
+/** Las tres opciones de la instancia original (padron/009 las siembra). */
+const OPCIONES_DE_PRUEBA = [
+  { codigo: 'PJ', etiqueta: 'PJ', color: 1, orden: 1, es_neutra: false },
+  { codigo: 'UCR', etiqueta: 'UCR', color: 2, orden: 2, es_neutra: false },
+  { codigo: 'Indeciso', etiqueta: 'Indeciso', color: null, orden: 3, es_neutra: true },
+];
+
 function servicioDePrueba(repo = {}) {
   const auditoria = { eventos: [], async registrarDeRequest(req, e) { this.eventos.push(e); } };
   const logger = { info() {}, warn() {}, error() {}, debug() {} };
-  return { servicio: new PadronService(repo, auditoria, logger, { ttlCacheMs: 10_000 }), auditoria };
+  const conOpciones = { async opcionesPoliticas() { return OPCIONES_DE_PRUEBA; }, ...repo };
+  return { servicio: new PadronService(conOpciones, auditoria, logger, { ttlCacheMs: 10_000 }), auditoria };
 }
 
 test('las estadisticas se calculan una sola vez mientras el cache este vigente', async () => {
@@ -222,7 +230,7 @@ test('las estadisticas se calculan una sola vez mientras el cache este vigente',
   const { servicio } = servicioDePrueba({
     async estadisticasBasicas() {
       llamadas += 1;
-      return { total_votantes: '5512', total_relevados: '1200', votos_pj: '600', votos_ucr: '400', votos_indeciso: '200' };
+      return { total_votantes: '5512', total_relevados: '1200', votos: { PJ: 600, UCR: 400, Indeciso: 200 } };
     },
   });
 
@@ -450,6 +458,7 @@ function repoConVersion(fila = { dni: '1', opcion_politica: 'Indeciso', observac
   const estado = { ...fila };
 
   const repo = {
+    async opcionesPoliticas() { return OPCIONES_DE_PRUEBA; },
     async votantePorDni() { return { ...estado }; },
     async relevamientoCrudo() { return { ...estado }; },
     async upsertRelevamiento(dni, campos) {

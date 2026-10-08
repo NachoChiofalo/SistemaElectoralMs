@@ -276,21 +276,149 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     }
     await db.query("INSERT INTO padron.relevamientos (dni, opcion_politica) VALUES ('30555001', 'PJ'), ('30555002', 'UCR')");
 
-    const { familias, resumen } = await repo.estadisticasPorFamilia(2, 100);
+    const { familias, resumen } = await repo.estadisticasPorFamilia(2, 100, ['PJ', 'UCR', 'Indeciso']);
     const x = familias.find((f) => f.apellido === 'FAMILIAX');
     const y = familias.find((f) => f.apellido === 'FAMILIAY');
 
     assert.equal(Number(x.total_votantes), 3);
     assert.equal(Number(x.total_relevados), 2);
-    assert.equal(Number(x.votos_pj), 1);
-    assert.equal(Number(x.votos_ucr), 1);
+    assert.equal(x.votos.PJ, 1);
+    assert.equal(x.votos.UCR, 1);
+    assert.equal(x.votos.Indeciso, 0);
+    assert.equal(x.porcentajes.PJ, 50);
     assert.equal(Number(y.total_votantes), 2);
     assert.ok(!familias.some((f) => f.apellido === 'SOLITARIO'), 'un apellido de una sola persona no es una familia');
     assert.ok(familias.indexOf(x) < familias.indexOf(y), 'ordenadas por integrantes, de mas a menos');
     assert.ok(resumen.apellidos >= 2 && resumen.personas >= 5);
 
-    const acotado = await repo.estadisticasPorFamilia(2, 1);
+    const acotado = await repo.estadisticasPorFamilia(2, 1, ['PJ', 'UCR', 'Indeciso']);
     assert.equal(acotado.familias.length, 1, 'el LIMIT lo aplica Postgres');
+  });
+
+  await t.test('opciones politicas (021): se siembran y reemplazan al CHECK de la columna', async () => {
+    const filas = await db.filas('SELECT codigo, color, es_neutra FROM padron.opciones_politicas ORDER BY orden');
+    assert.deepEqual(filas.map((f) => f.codigo), ['PJ', 'UCR', 'Indeciso']);
+    assert.equal(filas.filter((f) => f.es_neutra).length, 1, 'hay exactamente una opcion neutra');
+    assert.equal(filas.find((f) => f.es_neutra).color, null, 'la neutra no lleva color');
+
+    const checks = await db.filas(
+      `SELECT conname FROM pg_constraint
+       WHERE conrelid = 'padron.relevamientos'::regclass AND contype = 'c'
+         AND pg_get_constraintdef(oid) ILIKE '%opcion_politica%'`,
+    );
+    assert.equal(checks.length, 0, 'el CHECK con las tres opciones escritas ya no existe');
+
+    await db.query("INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre) VALUES ('30800001', 1980, 'FK', 'PRUEBA')");
+    await assert.rejects(
+      db.query("INSERT INTO padron.relevamientos (dni, opcion_politica) VALUES ('30800001', 'NO-EXISTE')"),
+      (e) => e.code === '23503',
+      'una opcion inexistente la rechaza la clave foranea',
+    );
+  });
+
+  await t.test('opciones politicas (021): una instancia con otras opciones funciona de punta a punta', async () => {
+    const { PadronService } = require('../src/modules/padron/service');
+    const { PadronRepository } = require('../src/modules/padron/repository');
+    const auditoria = { eventos: [], async registrarDeRequest(req, e) { this.eventos.push(e); } };
+    const logger = { info() {}, warn() {}, error() {}, debug() {} };
+    const servicio = new PadronService(new PadronRepository(db), auditoria, logger, { ttlCacheMs: 60_000 });
+    const req = { user: { id: 1, username: 'admin' }, headers: {} };
+
+    // Un codigo con espacio y tilde: viaja como clave de un objeto JSON y como parametro SQL.
+    const creada = await servicio.opciones.crear({ codigo: 'Frente Cívico', etiqueta: 'Frente Cívico', color: 3 }, req);
+    assert.equal(creada.color, 3);
+    assert.equal(creada.orden, 4, 'va al final');
+    assert.ok(auditoria.eventos.some((e) => e.entidad === 'opcion_politica' && e.operacion === 'CREAR'));
+
+    await assert.rejects(
+      servicio.opciones.crear({ codigo: 'frente cívico', etiqueta: 'otra', color: 4 }, req),
+      (e) => e.status === 409,
+      'dos codigos que solo difieren en mayusculas son la misma opcion',
+    );
+
+    await db.query("INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre) VALUES ('30800002', 1980, 'OPCION', 'NUEVA')");
+    const antes = await servicio.estadisticasAvanzadas();
+    assert.ok('Frente Cívico' in antes.votos, 'la opcion nueva aparece en el resultado aunque no tenga votos');
+
+    await servicio.actualizarRelevamiento('30800002', { opcionPolitica: 'Frente Cívico', version: 0 }, req);
+    const despues = await servicio.estadisticasAvanzadas();
+    assert.equal(despues.votos['Frente Cívico'], 1);
+    assert.equal(Number(despues.total_relevados), Number(antes.total_relevados) + 1, 'cache invalidado al escribir');
+    assert.ok(despues.porcentajes['Frente Cívico'] > 0);
+
+    const basicas = await servicio.estadisticas();
+    assert.deepEqual(Object.keys(basicas.estadisticasPoliticas), ['PJ', 'UCR', 'Indeciso', 'Frente Cívico']);
+    assert.equal(basicas.estadisticasPoliticas['Frente Cívico'], 1);
+
+    // Las demas agregaciones tambien traen una clave por opcion.
+    for (const f of await servicio.estadisticasPorSexo()) assert.ok('Frente Cívico' in f.votos);
+    for (const f of await servicio.estadisticasPorCircuito()) assert.ok('Frente Cívico' in f.votos);
+    const rangos = await servicio.estadisticasPorRangoEtario();
+    assert.ok(rangos.length > 0 && rangos.every((f) => 'Frente Cívico' in f.votos));
+    const cond = await servicio.estadisticasCondicionesDetalladas();
+    for (const clave of ['empleados_por_opcion', 'ayuda_social_por_opcion', 'nuevos_por_opcion', 'fallecidos_por_opcion']) {
+      assert.deepEqual(Object.keys(cond[clave]).sort(), ['Frente Cívico', 'Indeciso', 'PJ', 'UCR']);
+    }
+
+    // Un votante sin relevamiento previo queda en la opcion neutra al cargar solo un telefono.
+    await db.query("INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre) VALUES ('30800003', 1980, 'SOLO', 'TELEFONO')");
+    const nuevo = await servicio.actualizarRelevamiento('30800003', { telefono: '3511234', version: 0 }, req);
+    assert.equal(nuevo.opcion_politica, 'Indeciso');
+
+    // Un relevamiento con una opcion invalida es un 400, no un 500 de la base.
+    await assert.rejects(
+      servicio.actualizarRelevamiento('30800002', { opcionPolitica: 'OTRA', version: 2 }, req),
+      (e) => e.status === 400 && /Frente Cívico/.test(e.message),
+    );
+  });
+
+  await t.test('opciones politicas (021): editar, y los borrados que no se permiten', async () => {
+    const { PadronService } = require('../src/modules/padron/service');
+    const { PadronRepository } = require('../src/modules/padron/repository');
+    const auditoria = { async registrarDeRequest() {} };
+    const logger = { info() {}, warn() {}, error() {}, debug() {} };
+    const servicio = new PadronService(new PadronRepository(db), auditoria, logger, { ttlCacheMs: 60_000 });
+    const req = { user: { id: 1, username: 'admin' }, headers: {} };
+
+    const editada = await servicio.opciones.actualizar('Frente Cívico', { etiqueta: 'Frente Cívico 2027', color: 5 }, req);
+    assert.deepEqual([editada.etiqueta, editada.color], ['Frente Cívico 2027', 5]);
+    assert.equal(editada.codigo, 'Frente Cívico', 'el codigo no cambia');
+
+    await assert.rejects(servicio.opciones.actualizar('Frente Cívico', { codigo: 'otro' }, req), (e) => e.status === 400);
+    await assert.rejects(servicio.opciones.actualizar('Indeciso', { color: 4 }, req), (e) => e.status === 400, 'la neutra no lleva color');
+    await assert.rejects(servicio.opciones.actualizar('no-existe', { etiqueta: 'x' }, req), (e) => e.status === 404);
+
+    await assert.rejects(servicio.opciones.eliminar('Indeciso', req), (e) => e.status === 409, 'la neutra no se borra');
+    await assert.rejects(
+      servicio.opciones.eliminar('Frente Cívico', req),
+      (e) => e.status === 409 && /1 relevamiento/.test(e.message),
+      'una opcion con relevamientos no se borra',
+    );
+
+    // Sin relevamientos, si.
+    await servicio.opciones.crear({ codigo: 'Temporal', etiqueta: 'Temporal', color: 6 }, req);
+    await servicio.opciones.eliminar('Temporal', req);
+    assert.ok(!(await servicio.opciones.codigos()).includes('Temporal'));
+
+    // La clave foranea es la red de seguridad si algo se saltea el servicio.
+    await assert.rejects(
+      db.query("DELETE FROM padron.opciones_politicas WHERE codigo = 'Frente Cívico'"),
+      (e) => e.code === '23503',
+    );
+  });
+
+  await t.test('opciones politicas (021): padron/009 es idempotente y respeta lo que ya hay', async () => {
+    const fs = require('fs');
+    const path = require('path');
+    const sql = fs.readFileSync(
+      path.join(__dirname, '../src/modules/padron/migrations/009_opciones_politicas.sql'), 'utf8',
+    );
+    await db.query("UPDATE padron.opciones_politicas SET etiqueta = 'Editada a mano' WHERE codigo = 'PJ'");
+    await db.query(sql);
+    await db.query(sql);
+    const pj = await db.unaFila("SELECT etiqueta FROM padron.opciones_politicas WHERE codigo = 'PJ'");
+    assert.equal(pj.etiqueta, 'Editada a mano', 'volver a correrla no pisa la configuracion de la instancia');
+    await db.query("UPDATE padron.opciones_politicas SET etiqueta = 'PJ' WHERE codigo = 'PJ'");
   });
 
   await t.test('el exportador recorre todos los lotes por keyset, sin repetir ni saltear filas (003)', async () => {
@@ -416,7 +544,7 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
 
     const contar = async () => {
       const por = {};
-      for (const f of await repo.estadisticasPorRangoEtario()) por[f.rango_etario] = Number(f.total_votantes);
+      for (const f of await repo.estadisticasPorRangoEtario(['PJ', 'UCR', 'Indeciso'])) por[f.rango_etario] = Number(f.total_votantes);
       return por;
     };
     const antes = await contar();

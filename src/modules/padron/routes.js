@@ -196,9 +196,32 @@ function construirRutas(padron, db) {
     });
   }));
 
-  router.get('/configuracion', verPadron, (req, res) => {
-    res.json({ success: true, data: padron.configuracion() });
-  });
+  router.get('/configuracion', verPadron, asyncHandler(async (req, res) => {
+    res.json({ success: true, data: await padron.configuracion() });
+  }));
+
+  // ==================== opciones politicas (021) ====================
+  // Las ve cualquiera que muestre resultados o el padron (el consultor no tiene padron.view);
+  // las edita solo el administrador de la instancia.
+
+  const verOpciones = requirePermission('padron.view', 'resultados.view', 'dashboard.view');
+
+  router.get('/opciones-politicas', verOpciones, asyncHandler(async (req, res) => {
+    res.json({ success: true, data: await padron.opciones.listar() });
+  }));
+
+  router.post('/opciones-politicas', requireAdmin, asyncHandler(async (req, res) => {
+    res.status(201).json({ success: true, data: await padron.opciones.crear(req.body, req) });
+  }));
+
+  router.patch('/opciones-politicas/:codigo', requireAdmin, asyncHandler(async (req, res) => {
+    res.json({ success: true, data: await padron.opciones.actualizar(req.params.codigo, req.body, req) });
+  }));
+
+  router.delete('/opciones-politicas/:codigo', requireAdmin, asyncHandler(async (req, res) => {
+    await padron.opciones.eliminar(req.params.codigo, req);
+    res.json({ success: true });
+  }));
 
   router.get('/filtros', verPadron, asyncHandler(async (req, res) => {
     res.json({ success: true, data: await padron.filtrosDisponibles() });

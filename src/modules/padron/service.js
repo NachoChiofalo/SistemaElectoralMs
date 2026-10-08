@@ -7,8 +7,8 @@
 
 const { errores } = require('../../core/errors');
 const { importarCsv } = require('./importer');
+const { OpcionesPoliticas } = require('./opciones');
 
-const OPCIONES_POLITICAS = ['PJ', 'UCR', 'Indeciso'];
 const REGISTROS_POR_PAGINA = 50;
 const LIMITE_MAXIMO_PAGINA = 500;
 
@@ -46,6 +46,9 @@ class PadronService {
     this.auditoria = auditoria;
     this.logger = logger;
     this.cache = new CacheResultados(ttlCacheMs);
+    // Las opciones politicas son configurables por instancia (021). Cambiarlas cambia las
+    // columnas de todos los resultados, asi que tambien tira el cache de agregaciones.
+    this.opciones = new OpcionesPoliticas(repositorio, auditoria, () => this.cache.invalidar());
   }
 
   // ------------------------------------------------------------- consulta
@@ -75,28 +78,35 @@ class PadronService {
     return {
       votantesCargados: total,
       relevamientosRegistrados: Number(estadisticas.total_relevados || 0),
-      opcionesPoliticasDisponibles: OPCIONES_POLITICAS,
+      opcionesPoliticasDisponibles: await this.opciones.codigos(),
       // El flag viejo (csvCargado) era estado en memoria que se perdia al reiniciar.
       // Que haya padron cargado se deduce de la base.
       csvCargado: total > 0,
     };
   }
 
-  configuracion() {
-    return { opcionesPoliticas: OPCIONES_POLITICAS, registrosPorPagina: REGISTROS_POR_PAGINA };
+  async configuracion() {
+    const opciones = await this.opciones.listar();
+    return {
+      opcionesPoliticas: opciones.map((o) => o.codigo),
+      opciones,
+      registrosPorPagina: REGISTROS_POR_PAGINA,
+    };
   }
 
   async filtrosDisponibles() {
-    const [circuitos, sexos] = await Promise.all([
+    const [circuitos, sexos, opciones] = await Promise.all([
       this.repo.circuitosDisponibles(),
       this.repo.sexosDisponibles(),
+      this.opciones.listar(),
     ]);
 
     return {
       circuitos: circuitos.map((f) => f.circuito),
       mesas: [], // en este padron el circuito cumple el rol de la mesa
       sexos: sexos.map((f) => f.sexo),
-      opcionesPoliticas: OPCIONES_POLITICAS,
+      opcionesPoliticas: opciones.map((o) => o.codigo),
+      opciones,
     };
   }
 
@@ -171,10 +181,11 @@ class PadronService {
       );
     }
 
-    if (campos.opcion_politica !== null && !OPCIONES_POLITICAS.includes(campos.opcion_politica)) {
-      throw errores.solicitudInvalida(
-        `opcionPolitica debe ser una de: ${OPCIONES_POLITICAS.join(', ')}`,
-      );
+    if (campos.opcion_politica !== null) {
+      const validas = await this.opciones.codigos();
+      if (!validas.includes(campos.opcion_politica)) {
+        throw errores.solicitudInvalida(`opcionPolitica debe ser una de: ${validas.join(', ')}`);
+      }
     }
 
     // Sin version no se escribe. La ruta ya lo valida; esto esta aca porque el `WHERE
@@ -254,12 +265,12 @@ class PadronService {
 
     throw errores.conflicto(
       'Otra persona modifico esta ficha mientras la editabas',
-      { actual: aRelevamiento(actual) },
+      { actual: aRelevamiento(actual, await this.opciones.neutra()) },
     );
   }
 
   async relevamientoPorDni(dni) {
-    return aRelevamiento(await this.votantePorDni(dni));
+    return aRelevamiento(await this.votantePorDni(dni), await this.opciones.neutra());
   }
 
   /**
@@ -380,7 +391,8 @@ class PadronService {
 
   async estadisticas() {
     return this.cache.resolver('basicas', async () => {
-      const fila = await this.repo.estadisticasBasicas();
+      const codigos = await this.opciones.codigos();
+      const fila = await this.repo.estadisticasBasicas(codigos);
 
       const totalVotantes = Number(fila?.total_votantes) || 0;
       const totalRelevados = Number(fila?.total_relevados) || 0;
@@ -391,30 +403,38 @@ class PadronService {
         porcentajeRelevados: totalVotantes > 0
           ? Number(((totalRelevados / totalVotantes) * 100).toFixed(2))
           : 0,
-        estadisticasPoliticas: {
-          PJ: Number(fila?.votos_pj) || 0,
-          UCR: Number(fila?.votos_ucr) || 0,
-          Indeciso: Number(fila?.votos_indeciso) || 0,
-        },
+        // { codigo: cantidad }, una clave por opcion configurada, en el orden de la instancia.
+        estadisticasPoliticas: Object.fromEntries(
+          codigos.map((codigo) => [codigo, Number(fila?.votos?.[codigo]) || 0]),
+        ),
         sinRelevar: Math.max(0, totalVotantes - totalRelevados),
       };
     });
   }
 
+  /**
+   * Las cinco agregaciones por opcion politica comparten forma: cada fila trae `votos` y
+   * `porcentajes` como objetos { codigo: n } con una clave por opcion configurada. El
+   * frontend los recorre junto con la lista de opciones, no con nombres fijos.
+   */
+  agregadoPorOpcion(clave, consulta) {
+    return this.cache.resolver(clave, async () => consulta(await this.opciones.codigos()));
+  }
+
   estadisticasAvanzadas() {
-    return this.cache.resolver('avanzadas', () => this.repo.estadisticasAvanzadas());
+    return this.agregadoPorOpcion('avanzadas', (c) => this.repo.estadisticasAvanzadas(c));
   }
 
   estadisticasPorSexo() {
-    return this.cache.resolver('por-sexo', () => this.repo.estadisticasPorSexo());
+    return this.agregadoPorOpcion('por-sexo', (c) => this.repo.estadisticasPorSexo(c));
   }
 
   estadisticasPorRangoEtario() {
-    return this.cache.resolver('por-rango-etario', () => this.repo.estadisticasPorRangoEtario());
+    return this.agregadoPorOpcion('por-rango-etario', (c) => this.repo.estadisticasPorRangoEtario(c));
   }
 
   estadisticasPorCircuito() {
-    return this.cache.resolver('por-circuito', () => this.repo.estadisticasPorCircuito());
+    return this.agregadoPorOpcion('por-circuito', (c) => this.repo.estadisticasPorCircuito(c));
   }
 
   /**
@@ -424,11 +444,11 @@ class PadronService {
   estadisticasPorFamilia({ minimo, limite } = {}) {
     const min = Math.min(Math.max(Number.parseInt(minimo, 10) || 2, 2), 50);
     const lim = Math.min(Math.max(Number.parseInt(limite, 10) || 50, 1), 100);
-    return this.cache.resolver(`por-familia:${min}:${lim}`, () => this.repo.estadisticasPorFamilia(min, lim));
+    return this.agregadoPorOpcion(`por-familia:${min}:${lim}`, (c) => this.repo.estadisticasPorFamilia(min, lim, c));
   }
 
   estadisticasCondicionesDetalladas() {
-    return this.cache.resolver('condiciones-detalladas', () => this.repo.estadisticasCondicionesDetalladas());
+    return this.agregadoPorOpcion('condiciones-detalladas', (c) => this.repo.estadisticasCondicionesDetalladas(c));
   }
 
   // ------------------------------------------------------------- importar
@@ -461,10 +481,11 @@ class PadronService {
  * detalle: es como el cliente dice "yo lei que esto no existia". Si en el medio otra
  * persona la creo, la fila real esta en 1, el 0 no matchea y sale el 409 que corresponde.
  */
-function aRelevamiento(fila) {
+function aRelevamiento(fila, opcionNeutra = null) {
   return {
     dni: fila.dni,
-    opcionPolitica: fila.opcion_politica || 'Indeciso',
+    // Sin fila de relevamiento, el votante figura en la opcion neutra de la instancia.
+    opcionPolitica: fila.opcion_politica || opcionNeutra,
     observacion: fila.observacion || '',
     telefono: fila.telefono || '',
     fechaRelevamiento: fila.fecha_relevamiento || null,
@@ -544,4 +565,4 @@ function aDetalle(fila) {
   };
 }
 
-module.exports = { PadronService, OPCIONES_POLITICAS, normalizarCondiciones, aDetalle };
+module.exports = { PadronService, normalizarCondiciones, aDetalle };

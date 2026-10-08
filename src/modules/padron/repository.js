@@ -16,18 +16,38 @@ const CAMPOS_ORDEN = {
   sexo: 'v.sexo',
 };
 
-/** Bloque de agregados de voto, identico en las cuatro consultas de resultados. */
-const AGREGADOS_VOTO = `
+/**
+ * Una expresion jsonb `{ codigo: valor }` con un valor por opcion politica.
+ *
+ * Las opciones son configurables por instancia (021), asi que no hay una columna fija por
+ * opcion: el codigo viaja como parametro (jamas se interpola, viene de la base pero es texto
+ * libre) y la respuesta trae un objeto. `desde` es el primer numero de parametro libre.
+ *
+ * `valor(filtro)` recibe la expresion booleana "esta fila tiene esta opcion" y devuelve el SQL
+ * del valor; el mismo parametro se reutiliza, asi que el costo es una pasada por la tabla igual
+ * que con las columnas fijas.
+ */
+function porOpcion(codigos, desde, valor) {
+  const partes = codigos.map((_, i) => {
+    const p = `$${desde + i}::text`;
+    return `${p}, ${valor(`r.opcion_politica = ${p}`)}`;
+  });
+  return `jsonb_build_object(${partes.join(', ')})`;
+}
+
+/**
+ * Bloque de agregados de voto, identico en las cinco consultas de resultados.
+ * `votos` y `porcentajes` son objetos { codigo: n }; el porcentaje es sobre los relevados.
+ */
+function agregadosVoto(codigos, desde) {
+  return `
   COUNT(*)                                              AS total_votantes,
   COUNT(r.dni)                                          AS total_relevados,
   ROUND(COUNT(r.dni) * 100.0 / NULLIF(COUNT(*), 0), 2)  AS porcentaje_participacion,
-  COUNT(*) FILTER (WHERE r.opcion_politica = 'PJ')       AS votos_pj,
-  COUNT(*) FILTER (WHERE r.opcion_politica = 'UCR')      AS votos_ucr,
-  COUNT(*) FILTER (WHERE r.opcion_politica = 'Indeciso') AS votos_indeciso,
-  ROUND(COUNT(*) FILTER (WHERE r.opcion_politica = 'PJ')       * 100.0 / NULLIF(COUNT(r.dni), 0), 2) AS porcentaje_pj,
-  ROUND(COUNT(*) FILTER (WHERE r.opcion_politica = 'UCR')      * 100.0 / NULLIF(COUNT(r.dni), 0), 2) AS porcentaje_ucr,
-  ROUND(COUNT(*) FILTER (WHERE r.opcion_politica = 'Indeciso') * 100.0 / NULLIF(COUNT(r.dni), 0), 2) AS porcentaje_indeciso
+  ${porOpcion(codigos, desde, (f) => `COUNT(*) FILTER (WHERE ${f})`)} AS votos,
+  ${porOpcion(codigos, desde, (f) => `ROUND(COUNT(*) FILTER (WHERE ${f}) * 100.0 / NULLIF(COUNT(r.dni), 0), 2)`)} AS porcentajes
 `;
+}
 
 class PadronRepository {
   constructor(db) {
@@ -162,7 +182,7 @@ class PadronRepository {
    *
    * El COALESCE de la rama DO UPDATE va contra el **parametro**, no contra EXCLUDED:
    * EXCLUDED ya trae el default aplicado en VALUES, y usarlo volveria a escribir
-   * 'Indeciso' o '' sobre lo que hubiera en la fila.
+   * la opcion neutra o '' sobre lo que hubiera en la fila.
    *
    * NULL significa "no tocar"; cadena vacia significa "vaciar". Son dos cosas distintas
    * y el service es el que las traduce desde el cuerpo del request.
@@ -175,7 +195,7 @@ class PadronRepository {
       `INSERT INTO padron.relevamientos
          (dni, opcion_politica, observacion, telefono,
           actualizado_por, actualizado_por_username)
-       VALUES ($1, COALESCE($2, 'Indeciso'), COALESCE($3, ''), COALESCE($4, ''), $5, $6)
+       VALUES ($1, COALESCE($2, (SELECT codigo FROM padron.opciones_politicas WHERE es_neutra)), COALESCE($3, ''), COALESCE($4, ''), $5, $6)
        ON CONFLICT (dni) DO UPDATE SET
          opcion_politica          = COALESCE($2, padron.relevamientos.opcion_politica),
          observacion              = COALESCE($3, padron.relevamientos.observacion),
@@ -263,7 +283,8 @@ class PadronRepository {
          (dni, opcion_politica, observacion, es_nuevo_votante, esta_fallecido,
           es_empleado_municipal, recibe_ayuda_social, observaciones_detalle, fecha_detalle,
           actualizado_por, actualizado_por_username)
-       VALUES ($1, 'Indeciso', '', $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, $7, $8)
+       VALUES ($1, (SELECT codigo FROM padron.opciones_politicas WHERE es_neutra), '',
+               $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, $7, $8)
        ON CONFLICT (dni) DO UPDATE SET
          es_nuevo_votante         = EXCLUDED.es_nuevo_votante,
          esta_fallecido           = EXCLUDED.esta_fallecido,
@@ -348,34 +369,35 @@ class PadronRepository {
 
   // ----------------------------------------------------------- resultados
 
-  estadisticasBasicas() {
+  estadisticasBasicas(codigos) {
     return this.db.unaFila(
       `SELECT
          COUNT(*)     AS total_votantes,
          COUNT(r.dni) AS total_relevados,
-         COUNT(*) FILTER (WHERE r.opcion_politica = 'PJ')       AS votos_pj,
-         COUNT(*) FILTER (WHERE r.opcion_politica = 'UCR')      AS votos_ucr,
-         COUNT(*) FILTER (WHERE r.opcion_politica = 'Indeciso') AS votos_indeciso
+         ${porOpcion(codigos, 1, (f) => `COUNT(*) FILTER (WHERE ${f})`)} AS votos
        FROM padron.votantes v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni`,
+      codigos,
     );
   }
 
-  estadisticasAvanzadas() {
+  estadisticasAvanzadas(codigos) {
     return this.db.unaFila(
-      `SELECT ${AGREGADOS_VOTO}
+      `SELECT ${agregadosVoto(codigos, 1)}
        FROM padron.votantes v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni`,
+      codigos,
     );
   }
 
-  estadisticasPorSexo() {
+  estadisticasPorSexo(codigos) {
     return this.db.filas(
-      `SELECT v.sexo, ${AGREGADOS_VOTO}
+      `SELECT v.sexo, ${agregadosVoto(codigos, 1)}
        FROM padron.votantes v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni
        GROUP BY v.sexo
        ORDER BY v.sexo`,
+      codigos,
     );
   }
 
@@ -384,9 +406,9 @@ class PadronRepository {
    * columna, una en el GROUP BY y tres en el ORDER BY); con una subconsulta se
    * escribe una sola vez y Postgres lo evalua una vez por fila.
    */
-  estadisticasPorRangoEtario() {
+  estadisticasPorRangoEtario(codigos) {
     return this.db.filas(
-      `SELECT rango_etario, ${AGREGADOS_VOTO}
+      `SELECT rango_etario, ${agregadosVoto(codigos, 1)}
        FROM (
          SELECT v.*,
                 CASE
@@ -413,16 +435,18 @@ class PadronRepository {
                   WHEN '60+'   THEN 4
                   ELSE 5
                 END`,
+      codigos,
     );
   }
 
-  estadisticasPorCircuito() {
+  estadisticasPorCircuito(codigos) {
     return this.db.filas(
-      `SELECT v.circuito, ${AGREGADOS_VOTO}
+      `SELECT v.circuito, ${agregadosVoto(codigos, 1)}
        FROM padron.votantes v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni
        GROUP BY v.circuito
        ORDER BY v.circuito`,
+      codigos,
     );
   }
 
@@ -430,17 +454,17 @@ class PadronRepository {
    * Apellidos que comparten al menos `minimo` votantes. Consultas agregadas: el HAVING y
    * el LIMIT los aplica Postgres, no el servicio.
    */
-  async estadisticasPorFamilia(minimo, limite) {
+  async estadisticasPorFamilia(minimo, limite, codigos) {
     const [familias, resumen] = await Promise.all([
       this.db.filas(
-        `SELECT v.apellido, ${AGREGADOS_VOTO}
+        `SELECT v.apellido, ${agregadosVoto(codigos, 3)}
          FROM padron.votantes v
          LEFT JOIN padron.relevamientos r ON v.dni = r.dni
          GROUP BY v.apellido
          HAVING COUNT(*) >= $1
          ORDER BY COUNT(*) DESC, v.apellido
          LIMIT $2`,
-        [minimo, limite],
+        [minimo, limite, ...codigos],
       ),
       this.db.unaFila(
         `SELECT COUNT(*)::int AS apellidos, COALESCE(SUM(n), 0)::int AS personas
@@ -451,7 +475,15 @@ class PadronRepository {
     return { familias, resumen };
   }
 
-  estadisticasCondicionesDetalladas() {
+  /**
+   * Cuatro condiciones especiales, cada una cruzada con las opciones politicas. Las opciones
+   * son configurables (021), asi que el cruce sale como un objeto { codigo: n } por condicion.
+   */
+  estadisticasCondicionesDetalladas(codigos) {
+    const cruce = (condicion) => porOpcion(
+      codigos, 1, (f) => `COUNT(*) FILTER (WHERE r.${condicion} AND ${f})`,
+    );
+
     return this.db.unaFila(
       `SELECT
          COUNT(r.dni) AS total_relevados,
@@ -460,21 +492,10 @@ class PadronRepository {
          COUNT(*) FILTER (WHERE r.esta_fallecido)        AS total_fallecidos,
          COUNT(*) FILTER (WHERE r.es_nuevo_votante)      AS total_nuevos_votantes,
 
-         COUNT(*) FILTER (WHERE r.es_empleado_municipal AND r.opcion_politica = 'PJ')       AS empleados_pj,
-         COUNT(*) FILTER (WHERE r.es_empleado_municipal AND r.opcion_politica = 'UCR')      AS empleados_ucr,
-         COUNT(*) FILTER (WHERE r.es_empleado_municipal AND r.opcion_politica = 'Indeciso') AS empleados_indeciso,
-
-         COUNT(*) FILTER (WHERE r.recibe_ayuda_social AND r.opcion_politica = 'PJ')       AS ayuda_social_pj,
-         COUNT(*) FILTER (WHERE r.recibe_ayuda_social AND r.opcion_politica = 'UCR')      AS ayuda_social_ucr,
-         COUNT(*) FILTER (WHERE r.recibe_ayuda_social AND r.opcion_politica = 'Indeciso') AS ayuda_social_indeciso,
-
-         COUNT(*) FILTER (WHERE r.es_nuevo_votante AND r.opcion_politica = 'PJ')       AS nuevos_pj,
-         COUNT(*) FILTER (WHERE r.es_nuevo_votante AND r.opcion_politica = 'UCR')      AS nuevos_ucr,
-         COUNT(*) FILTER (WHERE r.es_nuevo_votante AND r.opcion_politica = 'Indeciso') AS nuevos_indeciso,
-
-         COUNT(*) FILTER (WHERE r.esta_fallecido AND r.opcion_politica = 'PJ')       AS fallecidos_pj,
-         COUNT(*) FILTER (WHERE r.esta_fallecido AND r.opcion_politica = 'UCR')      AS fallecidos_ucr,
-         COUNT(*) FILTER (WHERE r.esta_fallecido AND r.opcion_politica = 'Indeciso') AS fallecidos_indeciso,
+         ${cruce('es_empleado_municipal')} AS empleados_por_opcion,
+         ${cruce('recibe_ayuda_social')}   AS ayuda_social_por_opcion,
+         ${cruce('es_nuevo_votante')}      AS nuevos_por_opcion,
+         ${cruce('esta_fallecido')}        AS fallecidos_por_opcion,
 
          COUNT(*) FILTER (WHERE r.es_empleado_municipal AND v.sexo = 'M') AS empleados_masculino,
          COUNT(*) FILTER (WHERE r.es_empleado_municipal AND v.sexo = 'F') AS empleados_femenino,
@@ -482,7 +503,57 @@ class PadronRepository {
          COUNT(*) FILTER (WHERE r.recibe_ayuda_social AND v.sexo = 'F')   AS ayuda_social_femenino
        FROM padron.votantes v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni`,
+      codigos,
     );
+  }
+
+  // ---------------------------------------------------- opciones politicas
+
+  opcionesPoliticas() {
+    return this.db.filas(
+      'SELECT codigo, etiqueta, color, orden, es_neutra FROM padron.opciones_politicas ORDER BY orden, codigo',
+    );
+  }
+
+  opcionPoliticaPorCodigo(codigo) {
+    return this.db.unaFila(
+      'SELECT codigo, etiqueta, color, orden, es_neutra FROM padron.opciones_politicas WHERE codigo = $1',
+      [codigo],
+    );
+  }
+
+  crearOpcionPolitica({ codigo, etiqueta, color, orden }) {
+    return this.db.unaFila(
+      `INSERT INTO padron.opciones_politicas (codigo, etiqueta, color, orden)
+       VALUES ($1, $2, $3, $4)
+       RETURNING codigo, etiqueta, color, orden, es_neutra`,
+      [codigo, etiqueta, color, orden],
+    );
+  }
+
+  /** Solo cambia lo que viene; el codigo no se toca nunca. */
+  actualizarOpcionPolitica(codigo, { etiqueta = null, color = null, orden = null }) {
+    return this.db.unaFila(
+      `UPDATE padron.opciones_politicas SET
+         etiqueta = COALESCE($2, etiqueta),
+         color    = COALESCE($3, color),
+         orden    = COALESCE($4, orden)
+       WHERE codigo = $1
+       RETURNING codigo, etiqueta, color, orden, es_neutra`,
+      [codigo, etiqueta, color, orden],
+    );
+  }
+
+  async contarRelevamientosDeOpcion(codigo) {
+    const fila = await this.db.unaFila(
+      'SELECT COUNT(*)::int AS total FROM padron.relevamientos WHERE opcion_politica = $1',
+      [codigo],
+    );
+    return fila.total;
+  }
+
+  eliminarOpcionPolitica(codigo) {
+    return this.db.query('DELETE FROM padron.opciones_politicas WHERE codigo = $1', [codigo]);
   }
 
   circuitosDisponibles() {

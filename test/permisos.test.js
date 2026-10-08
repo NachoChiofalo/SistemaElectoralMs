@@ -49,7 +49,13 @@ function padronStub() {
     relevamientoPorDni: async () => ({}),
     actualizarRelevamiento: async () => ({}),
     estado: async () => ({}),
-    configuracion: () => ({}),
+    configuracion: async () => ({}),
+    opciones: {
+      listar: async () => ([]),
+      crear: async () => ({}),
+      actualizar: async () => ({}),
+      eliminar: async () => {},
+    },
     filtrosDisponibles: async () => ({}),
     estadisticas: async () => ({}),
     estadisticasAvanzadas: async () => ({}),
@@ -87,6 +93,7 @@ const RUTAS_PADRON = [
   { metodo: 'get', ruta: '/health', permiso: 'padron.view' },
   { metodo: 'get', ruta: '/configuracion', permiso: 'padron.view' },
   { metodo: 'get', ruta: '/filtros', permiso: 'padron.view' },
+  { metodo: 'get', ruta: '/opciones-politicas', permiso: 'padron.view' },
   { metodo: 'get', ruta: '/estadisticas', permiso: 'padron.view' },
   { metodo: 'get', ruta: '/resultados/estadisticas-avanzadas', permiso: 'resultados.view' },
   { metodo: 'get', ruta: '/resultados/por-sexo', permiso: 'resultados.view' },
@@ -175,6 +182,64 @@ test('exportar-padron y exportar-relevamientos siguen exigiendo rol administrado
     await new Promise((resolve) => servidor.close(resolve));
 
     assert.equal(res.status, 403, `${ruta} deberia rechazar a un no-administrador aunque tenga los permisos de padron`);
+  }
+});
+
+test('las opciones politicas las ve quien muestre padron, resultados o dashboard', async () => {
+  const router = express.Router();
+  router.use('/padron', construirRutasPadron(padronStub(), {}));
+
+  // El consultor tiene resultados.view y dashboard.view pero no padron.view: sin esto el
+  // dashboard y Resultados no podrian dibujar las opciones de la instancia.
+  for (const permiso of ['padron.view', 'resultados.view', 'dashboard.view']) {
+    const app = appConUsuario(router, [permiso]);
+    const servidor = await new Promise((resolve) => { const s = app.listen(0, () => resolve(s)); });
+    const res = await fetch(`http://127.0.0.1:${servidor.address().port}/api/padron/opciones-politicas`);
+    await new Promise((resolve) => servidor.close(resolve));
+    assert.equal(res.status, 200, `con ${permiso} deberia poder verlas`);
+  }
+
+  const app = appConUsuario(router, ['fiscales.view']);
+  const servidor = await new Promise((resolve) => { const s = app.listen(0, () => resolve(s)); });
+  const res = await fetch(`http://127.0.0.1:${servidor.address().port}/api/padron/opciones-politicas`);
+  await new Promise((resolve) => servidor.close(resolve));
+  assert.equal(res.status, 403);
+});
+
+test('crear, editar y borrar opciones politicas es solo del administrador', async () => {
+  const router = express.Router();
+  router.use('/padron', construirRutasPadron(padronStub(), {}));
+
+  const casos = [
+    { metodo: 'POST', ruta: '/opciones-politicas', body: { codigo: 'X', etiqueta: 'X', color: 3 } },
+    { metodo: 'PATCH', ruta: '/opciones-politicas/X', body: { etiqueta: 'Y' } },
+    { metodo: 'DELETE', ruta: '/opciones-politicas/X' },
+  ];
+
+  for (const caso of casos) {
+    for (const [rol, esperado] of [['encargado_relevamiento', 403], ['consultor', 403], ['administrador', 'no-403']]) {
+      const app = express();
+      app.use(express.json());
+      app.use((req, res, next) => {
+        // Con todos los permisos de padron, para que lo unico que decida sea el rol.
+        req.user = { id: 1, username: 'test', rol, permisos: ['padron.view', 'padron.edit', 'padron.relevamiento', 'resultados.view'] };
+        next();
+      });
+      app.use('/api', router);
+      app.use(manejadorNoEncontrado);
+      app.use(manejadorErrores);
+
+      const servidor = await new Promise((resolve) => { const s = app.listen(0, () => resolve(s)); });
+      const res = await fetch(`http://127.0.0.1:${servidor.address().port}/api/padron${caso.ruta}`, {
+        method: caso.metodo,
+        headers: caso.body ? { 'Content-Type': 'application/json' } : undefined,
+        body: caso.body ? JSON.stringify(caso.body) : undefined,
+      });
+      await new Promise((resolve) => servidor.close(resolve));
+
+      if (esperado === 403) assert.equal(res.status, 403, `${caso.metodo} ${caso.ruta} deberia rechazar a ${rol}`);
+      else assert.notEqual(res.status, 403, `${caso.metodo} ${caso.ruta} deberia dejar pasar a ${rol}`);
+    }
   }
 });
 
