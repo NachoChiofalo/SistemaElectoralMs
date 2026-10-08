@@ -168,7 +168,7 @@ npm run migrate:status   # qué está aplicado
 npm run migrate          # aplicar pendientes
 npm run seed:usuarios    # crear el administrador
 npm run build:assets     # iconos, fuentes, ?v= y precomprimidos de public/
-npm run territorio:cargar -- --localidad ALCIRA        # capas del mapa: sin --si solo muestra qué haría (018)
+npm run territorio:cargar -- ALCIRA      # capas del mapa (018): muestra qué haría; con "si" al final, carga
 npm run medir:geocodificacion                          # solo lectura: cuánto del padrón se ubica en una manzana
 ```
 

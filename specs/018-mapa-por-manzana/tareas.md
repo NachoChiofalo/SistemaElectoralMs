@@ -201,9 +201,9 @@ escribe únicamente en `territorio`.
 
 - [ ] **8.1** `npm run migrate:status` y backup.
 - [ ] **8.2** `npm run migrate` (crea `territorio` y el permiso), y recién después `git push`.
-- [ ] **8.3** `npm run territorio:cargar -- --localidad ALCIRA` **sin** `--si` contra producción: revisar el host
+- [ ] **8.3** `npm run territorio:cargar -- ALCIRA` (**sin** `si`) contra producción: revisar el host
       que muestra y los conteos (431 tramos, 163 manzanas, 15 radios con manzanas).
-- [ ] **8.4** Con `--si`: carga y ubicación del padrón real.
+- [ ] **8.4** `npm run territorio:cargar -- ALCIRA si`: carga y ubicación del padrón real. (En PowerShell, npm se traga las opciones con guiones: por eso la confirmación es la palabra suelta `si`.)
       *Verifica:* el resumen da ~73 % ubicado, como la medición.
 - [ ] **8.5** Prueba en producción como administrador: el mapa de Alcira, una manzana con su lista, una zona bajo el
       umbral, "sin ubicar". Y como encargado: sin acceso.
