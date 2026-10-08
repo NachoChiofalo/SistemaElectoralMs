@@ -1,0 +1,484 @@
+{
+  "base": "http://localhost:8099",
+  "capturedAt": "2026-10-08T23:09:46.171Z",
+  "endpoints": {
+    "POST /api/auth/login": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "accessToken": "<string>",
+          "expiresIn": "<string>",
+          "refreshToken": "<string>",
+          "user": {
+            "email": "<string>",
+            "id": "<number>",
+            "nombre_completo": "<string>",
+            "permisos": [
+              "<string>"
+            ],
+            "rol": "<string>",
+            "rol_descripcion": "<string>",
+            "username": "<string>"
+          }
+        },
+        "message": "<string>",
+        "success": "<boolean>"
+      }
+    },
+    "GET /health": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "db": {
+          "conectada": "<boolean>",
+          "latenciaMs": "<number>",
+          "pool": {
+            "esperando": "<number>",
+            "max": "<number>",
+            "ociosas": "<number>",
+            "total": "<number>"
+          }
+        },
+        "memoria": {
+          "rssMb": "<number>"
+        },
+        "service": "<string>",
+        "sesiones": {
+          "actividadPendiente": "<number>",
+          "sesionesCacheadas": "<number>"
+        },
+        "status": "<string>",
+        "timestamp": "<string>",
+        "uptime": "<number>"
+      }
+    },
+    "POST /api/auth/verify": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "activo": "<boolean>",
+          "email": "<string>",
+          "id": "<number>",
+          "nombre_completo": "<string>",
+          "permisos": [
+            "<string>"
+          ],
+          "rol": "<string>",
+          "username": "<string>"
+        },
+        "message": "<string>",
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/auth/me": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "email": "<string>",
+          "id": "<number>",
+          "modulos_disponibles": [
+            "<string>"
+          ],
+          "nombre_completo": "<string>",
+          "permisos": [
+            "<string>"
+          ],
+          "rol": "<string>",
+          "rol_descripcion": "<string>",
+          "username": "<string>"
+        },
+        "message": "<string>",
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/users": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [
+          {
+            "activo": "<boolean>",
+            "created_at": "<string>",
+            "email": "<string>",
+            "id": "<number>",
+            "nombre_completo": "<string>",
+            "rol": "<string>",
+            "username": "<string>"
+          }
+        ],
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/users/profile": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "activo": "<boolean>",
+          "created_at": "<string>",
+          "email": "<string>",
+          "id": "<number>",
+          "nombre_completo": "<string>",
+          "rol": "<string>",
+          "username": "<string>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/users/roles": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [
+          {
+            "descripcion": "<string>",
+            "id": "<number>",
+            "nombre": "<string>"
+          }
+        ],
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/health": {
+      "status": 500,
+      "contentType": "application/json",
+      "shape": {
+        "detail": "<string>",
+        "message": "<string>",
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/estado": {
+      "status": 500,
+      "contentType": "application/json",
+      "shape": {
+        "detail": "<string>",
+        "message": "<string>",
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/estadisticas": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "estadisticasPoliticas": {
+            "Indeciso": "<number>",
+            "PJ": "<number>",
+            "UCR": "<number>"
+          },
+          "porcentajeRelevados": "<number>",
+          "sinRelevar": "<number>",
+          "totalRelevamientos": "<number>",
+          "totalVotantes": "<number>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/configuracion": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "opciones": [
+            {
+              "codigo": "<string>",
+              "color": "<number>",
+              "esNeutra": "<boolean>",
+              "etiqueta": "<string>",
+              "orden": "<number>"
+            }
+          ],
+          "opcionesPoliticas": [
+            "<string>"
+          ],
+          "registrosPorPagina": "<number>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/filtros": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "circuitos": [],
+          "mesas": [],
+          "opciones": [
+            {
+              "codigo": "<string>",
+              "color": "<number>",
+              "esNeutra": "<boolean>",
+              "etiqueta": "<string>",
+              "orden": "<number>"
+            }
+          ],
+          "opcionesPoliticas": [
+            "<string>"
+          ],
+          "sexos": []
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/votantes?pagina=1": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [],
+        "detallesIncluidos": "<boolean>",
+        "paginacion": {
+          "fin": "<number>",
+          "inicio": "<number>",
+          "paginaActual": "<number>",
+          "registrosPorPagina": "<number>",
+          "totalPaginas": "<number>",
+          "totalRegistros": "<number>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/votantes?pagina=2&limite=10": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [],
+        "detallesIncluidos": "<boolean>",
+        "paginacion": {
+          "fin": "<number>",
+          "inicio": "<number>",
+          "paginaActual": "<number>",
+          "registrosPorPagina": "<number>",
+          "totalPaginas": "<number>",
+          "totalRegistros": "<number>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/votantes?apellido=a": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [],
+        "detallesIncluidos": "<boolean>",
+        "paginacion": {
+          "fin": "<number>",
+          "inicio": "<number>",
+          "paginaActual": "<number>",
+          "registrosPorPagina": "<number>",
+          "totalPaginas": "<number>",
+          "totalRegistros": "<number>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/resultados/estadisticas-avanzadas": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "porcentaje_participacion": "null",
+          "porcentajes": {
+            "Indeciso": "null",
+            "PJ": "null",
+            "UCR": "null"
+          },
+          "total_relevados": "<string>",
+          "total_votantes": "<string>",
+          "votos": {
+            "Indeciso": "<number>",
+            "PJ": "<number>",
+            "UCR": "<number>"
+          }
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/resultados/por-sexo": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [],
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/resultados/por-rango-etario": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [],
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/resultados/por-circuito": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [],
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/resultados/condiciones-detalladas": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "ayuda_social_femenino": "<string>",
+          "ayuda_social_masculino": "<string>",
+          "ayuda_social_por_opcion": {
+            "Indeciso": "<number>",
+            "PJ": "<number>",
+            "UCR": "<number>"
+          },
+          "empleados_femenino": "<string>",
+          "empleados_masculino": "<string>",
+          "empleados_por_opcion": {
+            "Indeciso": "<number>",
+            "PJ": "<number>",
+            "UCR": "<number>"
+          },
+          "fallecidos_por_opcion": {
+            "Indeciso": "<number>",
+            "PJ": "<number>",
+            "UCR": "<number>"
+          },
+          "nuevos_por_opcion": {
+            "Indeciso": "<number>",
+            "PJ": "<number>",
+            "UCR": "<number>"
+          },
+          "total_ayuda_social": "<string>",
+          "total_empleados_municipales": "<string>",
+          "total_fallecidos": "<string>",
+          "total_nuevos_votantes": "<string>",
+          "total_relevados": "<string>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/condiciones-especiales": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [],
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/estadisticas-condiciones-especiales": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "totalAyudaSocial": "<number>",
+          "totalConCondicionesEspeciales": "<number>",
+          "totalEmpleadosMunicipales": "<number>",
+          "totalFallecidos": "<number>",
+          "totalNuevosVotantes": "<number>",
+          "totalRelevamientos": "<number>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/auditoria": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": [
+          {
+            "created_at": "<string>",
+            "datos_anteriores": "null",
+            "datos_nuevos": "null",
+            "detalles": "<string>",
+            "entidad": "<string>",
+            "entidad_id": "<string>",
+            "id": "<number>",
+            "ip_address": "<string>",
+            "operacion": "<string>",
+            "usuario_id": "<string>",
+            "usuario_nombre": "<string>",
+            "usuario_username": "<string>"
+          }
+        ],
+        "message": "<string>",
+        "paginacion": {
+          "paginaActual": "<number>",
+          "registrosPorPagina": "<number>",
+          "totalPaginas": "<number>",
+          "totalRegistros": "<number>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/auditoria/estadisticas": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": {
+          "porDia": [
+            {
+              "fecha": "<string>",
+              "total": "<string>"
+            }
+          ],
+          "porTipo": [
+            {
+              "operacion": "<string>",
+              "total": "<string>"
+            }
+          ],
+          "porUsuario": [
+            {
+              "total_operaciones": "<string>",
+              "usuario_id": "<string>",
+              "usuario_nombre": "<string>",
+              "usuario_username": "<string>"
+            }
+          ],
+          "totalOperaciones": "<number>",
+          "usuariosActivos": "<number>"
+        },
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/votantes": {
+      "status": 401,
+      "contentType": "application/json",
+      "shape": {
+        "code": "<string>",
+        "message": "<string>",
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/votantes/00000000": {
+      "status": 404,
+      "contentType": "application/json",
+      "shape": {
+        "code": "<string>",
+        "message": "<string>",
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/padron/detalle-votante/00000000": {
+      "status": 200,
+      "contentType": "application/json",
+      "shape": {
+        "data": "null",
+        "message": "<string>",
+        "notFound": "<boolean>",
+        "success": "<boolean>"
+      }
+    },
+    "GET /api/no-existe": {
+      "status": 404,
+      "contentType": "application/json",
+      "shape": {
+        "message": "<string>",
+        "path": "<string>",
+        "success": "<boolean>"
+      }
+    }
+  }
+}

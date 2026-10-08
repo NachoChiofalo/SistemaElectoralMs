@@ -15,7 +15,8 @@
     "snapshot": "node scripts/api-snapshot.js",
     "build:assets": "node scripts/build-assets.js",
     "test": "node --test \"test/**/*.test.js\"",
-    "seed:usuarios": "node scripts/seed-usuarios.js"
+    "seed:usuarios": "node scripts/seed-usuarios.js",
+    "medir:geocodificacion": "node scripts/medir-geocodificacion.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

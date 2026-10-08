@@ -667,6 +667,13 @@ puede dejar una ficha marcada para siempre.
 
 ### 🔴 018 — Mapa sectorizado por domicilio del votante · **L**
 
+**Especificado el 2026-10-08:** [specs/018-mapa-por-manzana](../specs/018-mapa-por-manzana/spec.md) (spec y
+plan). Etapa 1 acordada: ubicar a cada votante en una **manzana** al importar el padrón, mapa por **manzana y
+barrio** (radios censales del INDEC) con toda la información de ambos niveles, color por avance y por opción
+líder, **lista de votantes por manzana** para el casa por casa, contador de "sin ubicar" siempre visible y
+**umbral de privacidad de 10 relevados** aplicado en el servidor. Todo **solo para el administrador**. El resto
+queda para la etapa 2 (ítem 024). Lo que sigue es el historial de la investigación.
+
 No existe una vista geográfica del padrón. El pedido es un mapa que sectorice por barrio
 o manzana de una localidad y ubique automáticamente a los votantes según su domicilio,
 para sacar estadísticas y trabajar sobre esa información. Incluye una subsección para
@@ -690,7 +697,39 @@ note. Dos problemas distintos que conviene no mezclar:
   dependencia externa acá no choca con la regla de "`public/` no le pide nada a ningún
   tercero": queda confinada a un script de importación, nunca al frontend.
 
-Criterios candidatos:
+**Hallazgo de factibilidad (2026-10-08) — reemplaza a Georef como fuente.** Georef **no sirve**
+para localidades chicas: tiene las calles pero con rango de numeración `0-0`, y toda dirección con
+número devuelve vacío (probado en Alcira y Berrotarán). La fuente que sí sirve es la de la **Dirección
+de Estadística y Censos de Córdoba** (portal ArcGIS Hub `estadistica-censos-cba-smart-geo-data`, pública,
+publicada en 2025): `Visualizador_de_calles` (un tramo por cuadra con altura inicial/final de cada lado,
+268.882 tramos en la provincia) y `Manzanas_callejero` (93.853 polígonos de manzana). Alcira: 431 tramos
+y 163 manzanas; Berrotarán: 553 y 223. Con ellas, un domicilio `CALLE NÚMERO` se ubica sobre la cuadra,
+se corre al lado que le toca (impares a la izquierda al crecer la numeración) y se asigna a su **manzana**
+por punto en polígono, sin dibujar nada a mano: 92 % de los lados de cuadra caen en una manzana y la
+posición a lo largo de la calle tiene error mediano de 8 m contra OpenStreetMap. Todo corre una vez al
+importar, sin llamadas externas en uso. **Pendiente de verificar:** el lado de la calle (a mano, con
+`--probar` y Google Maps), la licencia de uso (no declarada; consultar a estadistica@cba.gov.ar antes de
+usarlo en un producto vendido) y el porcentaje del padrón real que se resuelve:
+`npm run medir:geocodificacion` (solo lectura; ver `scripts/medir-geocodificacion.js`). Las líneas del
+eje no vienen dibujadas en el sentido de la numeración: se deduce encadenando cuadras vecinas.
+
+**Medición sobre el padrón real de Alcira (2026-10-08, 5.518 votantes, `npm run medir:geocodificacion`):
+73,0 % ubicado en una manzana** (la primera corrida dio 59,4 %; el resto fue normalizar el texto del
+padrón). Lo que queda: 10,3 % con número 0 ("sin número": solo se puede ubicar la calle, no la manzana),
+2,8 % zona rural, 2,1 % esquinas, 4,6 % cuadras que el callejero no cubre (calles nuevas o extensiones),
+3,4 % sentido de numeración dudoso (se estima por cercanía al centro solo en cuadras de 600 o más,
+donde acierta 99 %), 0,9 % borde sin manzana, 0,9 % calles parecidas por revisar, 2 % otros. Techo
+realista del enfoque: ~80 % a nivel manzana; el ~20 % restante se resuelve por calle o a mano.
+Hallazgo colateral: el propio padrón trae caracteres rotos en algunos domicilios ("PEÃ‘A").
+
+**Verificación del lado de la calle contra Google Maps (2026-10-08, Alcira, 7 domicilios impares y pares):**
+la predicción normal (impares a la izquierda al crecer la numeración) queda más cerca del punto de Google
+en 6 de 7 casos (a 5, 9 y 12 m en los tres más claros), y en la vista satelital los puntos de `Gral. Paz 353`
+(impar) y `Entre Ríos 668` (par) caen en la misma vereda que los de Google. El séptimo (`Grito de Alcorta 62`)
+se debe a que Google es inconsistente en esa calle (su 10, 62 y 98 no avanzan en orden). Google no es una
+verdad absoluta: confirma que no hay un error sistemático de lado, no la precisión de cada casa.
+
+Criterios candidatos (los de Georef quedan como contexto; el fallback manual sigue valiendo para lo que no se resuelva):
 - Geocoding en batch contra **Georef** (API oficial de datos.gob.ar, normaliza
   direcciones contra el callejero del INDEC) en vez de Nominatim — mejor cobertura de
   nomenclatura argentina en localidades chicas. Medir qué porcentaje del padrón actual
@@ -706,6 +745,49 @@ Criterios candidatos:
   de barrio/manzana en SVG/canvas propio, mismo enfoque liviano que `microchart.js`— y
   sumar una capa de calles estática y propia después si hace falta más referencia
   visual.
+
+### 🔴 022 — Corroborar que los radios censales sirven como "barrio" · **S**
+
+018 arranca usando los **radios censales** del INDEC como el nivel de barrio (Alcira: 15 radios, el 100 % de
+sus manzanas cae dentro de uno; Berrotarán: 16). Un radio es una unidad del censo, no un barrio como lo
+nombra la gente: puede cortar uno por la mitad o juntar dos. Hay que mirarlos con alguien que conozca la
+localidad **antes de mostrárselos a un cliente**.
+
+Criterios candidatos: superponer los radios sobre el mapa de manzanas y revisar con una persona del lugar si
+cada uno corresponde a una zona reconocible; comparar los votantes del padrón por radio contra la población
+del Censo 2022 de la misma capa (`Radios2022`: `POB_2022`, `VIVIENDAS`) para detectar radios mal cortados o
+que el padrón cubre mal; y, si no sirven, definir los barrios reales con un CSV "manzana → barrio" (el modelo
+de 018 ya lo admite).
+
+### 🔴 023 — Ciclo de vida de las capas territoriales y licencia de los datos · **M**
+
+018 carga las capas (calles, manzanas, radios) con un script que corre el dueño, una sola vez por localidad.
+Quedó sin definir **cada cuánto se refrescan**, cómo se da de alta una localidad nueva dentro del runbook de
+instancias ([021](../specs/021-instancia-por-municipio/spec.md)) y qué pasa con lo ya cargado cuando el
+origen cambia. Además, **el portal no declara licencia** para esos datos y esto se va a vender.
+
+Criterios candidatos: confirmar por escrito el uso comercial con la Dirección de Estadística y Censos de
+Córdoba (estadistica@cba.gov.ar) y la atribución que exigen; refrescar sin cambiar el ID de ninguna
+manzana (la etapa 2 se apoya en esos ids); y un paso de "cargar territorio" en el alta de cada instancia.
+
+### 🔴 024 — Mapa, etapa 2: manzanas visitadas, más roles, asignación manual y alias · **L**
+
+Lo que 018 deja afuera a propósito. **Manzanas visitadas**: se marca la manzana entera con quién y cuándo, con
+versión y 409 como en 012. **Acceso del encargado y del consultor**: qué ve cada uno **no está definido**; y
+antes de abrirlo hay que resolver que, restando las manzanas visibles de un barrio, se puede descubrir el
+desglose de la que está oculta por el umbral. **Asignación manual** de una manzana a un votante que no se
+pudo ubicar, auditada. **Alias de calles** confirmados por el administrador ("M MIGUEL DE GUEMES" →
+"MARTIN DE GUEMES": hoy 48 votantes en Alcira quedan como "calle parecida").
+
+### 🔴 025 — Caracteres rotos en los domicilios del padrón · **S**
+
+El padrón de Alcira trae texto roto en algunos domicilios: "SAENZ PEÃ‘A" (la ñ) y "BØ BELLA VISTA" (el
+símbolo de barrio). Se ve igual en la pantalla de padrón. El algoritmo del mapa lo repara al comparar, pero
+el dato guardado sigue mal. Falta ver si lo causa la importación (decodificación del archivo, ver
+`padron/importer.js`) o ya viene así de la fuente.
+
+Criterios candidatos: reproducir con el archivo original; si es el importador, corregirlo y reimportar sin
+perder relevamientos (la importación hace `ON CONFLICT`); si viene de la fuente, limpiar al importar.
 
 ---
 
