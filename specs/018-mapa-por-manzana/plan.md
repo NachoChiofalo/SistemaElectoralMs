@@ -21,8 +21,8 @@ módulo reutilizable; el script de medición pasa a importarla.
 ```
 territorio.configuracion    (una fila)  localidad, departamento, umbral_privacidad DEFAULT 10,
                                          etiqueta_barrio DEFAULT 'Radio censal', cargado_en, fuente
-territorio.calles_tramos    id, nombre, aii, afi, aid, afd, camino JSONB, bajo SMALLINT NULL, estimado BOOLEAN
-territorio.manzanas         id BIGINT PK (el ID de la capa de origen), anillos JSONB, caja, sector_id → sectores
+territorio.calles_tramos    id, nombre, aii, afi, aid, afd, camino JSONB   (el sentido de la numeracion se deduce en cada calculo)
+territorio.manzanas         id BIGINT PK (el ID de la capa de origen), anillos JSONB, sector_id → sectores
 territorio.sectores         id, codigo (LINK del radio), nombre ('Radio 3.2'), tipo ('radio_censal'),
                             anillos JSONB, poblacion_2022, viviendas_2022
 territorio.ubicaciones      dni PK → padron.votantes ON DELETE CASCADE,

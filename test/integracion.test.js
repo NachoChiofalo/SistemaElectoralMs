@@ -36,7 +36,13 @@ test.after(() => new Promise((resolve) => servidor.close(resolve)));
 const pedir = (ruta, opciones) => fetch(`${base}${ruta}`, opciones);
 
 test('los modulos se registran en el orden declarado', () => {
-  assert.deepEqual(modulos.map((m) => m.name), ['auditoria', 'auth', 'padron', 'listas', 'comicio', 'fiscales']);
+  assert.deepEqual(modulos.map((m) => m.name), ['auditoria', 'auth', 'padron', 'listas', 'comicio', 'fiscales', 'territorio']);
+});
+
+test('territorio se registra despues de padron, porque consume su servicio (018)', () => {
+  const padron = modulos.findIndex((m) => m.name === 'padron');
+  const territorio = modulos.findIndex((m) => m.name === 'territorio');
+  assert.ok(padron < territorio, 'un modulo solo puede consumir servicios de los anteriores');
 });
 
 test('auditoria se monta antes que padron para capturar su prefijo', () => {

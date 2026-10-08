@@ -40,6 +40,8 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
   t.after(() => db.cerrar());
 
   await t.test('limpia el esquema de una corrida anterior', async () => {
+    // territorio (018) depende de padron: se borra primero para no dejar tablas huerfanas.
+    await db.query('DROP SCHEMA IF EXISTS territorio CASCADE');
     await db.query('DROP SCHEMA IF EXISTS padron CASCADE');
     await db.query(`
       DROP TABLE IF EXISTS
@@ -61,19 +63,56 @@ test('migraciones contra Postgres real', { skip: SKIP && 'requiere DATABASE_URL_
     assert.equal(aplicadas, 0);
   });
 
-  await t.test('sembraron los roles y los 16 permisos esperados', async () => {
+  await t.test('sembraron los roles y los 17 permisos esperados', async () => {
     const roles = await db.filas('SELECT nombre FROM roles ORDER BY nombre');
     assert.deepEqual(roles.map((r) => r.nombre), ['administrador', 'consultor', 'encargado_relevamiento']);
 
     const { total } = await db.unaFila('SELECT COUNT(*)::int AS total FROM permisos');
-    assert.equal(total, 16);
+    assert.equal(total, 17, '16 + territorio.view (018)');
 
     const { total: totalAdmin } = await db.unaFila(`
       SELECT COUNT(*)::int AS total FROM rol_permisos rp
       JOIN roles r ON r.id = rp.rol_id
       WHERE r.nombre = 'administrador'
     `);
-    assert.equal(totalAdmin, 16, 'el administrador tiene que tener los 16 permisos');
+    assert.equal(totalAdmin, 17, 'el administrador tiene que tener los 17 permisos');
+  });
+
+  await t.test('territorio (018): el mapa es solo del administrador', async () => {
+    const conPermiso = await db.filas(`
+      SELECT r.nombre FROM rol_permisos rp
+      JOIN roles r ON r.id = rp.rol_id JOIN permisos p ON p.id = rp.permiso_id
+      WHERE p.codigo = 'territorio.view' ORDER BY r.nombre`);
+    assert.deepEqual(conPermiso.map((r) => r.nombre), ['administrador']);
+  });
+
+  await t.test('territorio (018): esquema, configuracion por defecto y la regla ubicado <=> manzana', async () => {
+    const conf = await db.unaFila('SELECT umbral_privacidad, etiqueta_barrio FROM territorio.configuracion');
+    assert.deepEqual(conf, { umbral_privacidad: 10, etiqueta_barrio: 'Radio censal' });
+
+    await db.query("INSERT INTO padron.votantes (dni, anio_nac, apellido, nombre) VALUES ('39000001', 1980, 'MAPA', 'UNO')");
+    await db.query("INSERT INTO territorio.manzanas (id, anillos) VALUES (1, '[]')");
+    // Un pendiente con manzana, o un ubicado sin manzana, los rechaza la base.
+    await assert.rejects(
+      db.query("INSERT INTO territorio.ubicaciones (dni, estado, manzana_id) VALUES ('39000001', 'sin_tramo', 1)"),
+      (e) => e.code === '23514',
+    );
+    await assert.rejects(
+      db.query("INSERT INTO territorio.ubicaciones (dni, estado) VALUES ('39000001', 'ok')"),
+      (e) => e.code === '23514',
+    );
+    await assert.rejects(
+      db.query("INSERT INTO territorio.ubicaciones (dni, estado) VALUES ('39000001', 'otro_estado')"),
+      (e) => e.code === '23514',
+    );
+    await db.query("INSERT INTO territorio.ubicaciones (dni, estado, manzana_id) VALUES ('39000001', 'ok', 1)");
+
+    // Borrar al votante borra su ubicacion; recargar una manzana la invalida.
+    await db.query("DELETE FROM territorio.manzanas WHERE id = 1");
+    assert.equal((await db.unaFila("SELECT COUNT(*)::int AS n FROM territorio.ubicaciones WHERE dni = '39000001'")).n, 0);
+    await db.query("INSERT INTO territorio.ubicaciones (dni, estado) VALUES ('39000001', 'sin_domicilio')");
+    await db.query("DELETE FROM padron.votantes WHERE dni = '39000001'");
+    assert.equal((await db.unaFila("SELECT COUNT(*)::int AS n FROM territorio.ubicaciones WHERE dni = '39000001'")).n, 0);
   });
 
   await t.test('pg_trgm quedo instalada para la busqueda del padron', async () => {

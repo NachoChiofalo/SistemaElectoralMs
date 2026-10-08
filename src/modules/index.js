@@ -20,4 +20,6 @@ module.exports = [
   require('./listas/module'),
   require('./comicio/module'),
   require('./fiscales/module'),
+  // territorio (018) consume el servicio del padron; el padron no lo conoce.
+  require('./territorio/module'),
 ];

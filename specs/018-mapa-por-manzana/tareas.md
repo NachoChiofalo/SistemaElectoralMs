@@ -62,19 +62,19 @@ F0 ─► F1 ─► F2 ─► F3 ─► F4 ─► F5 ─► F6 ─► F7 ─► 
 
 ## F2 — Esquema, permiso y módulo
 
-- [ ] **2.1** `territorio/migrations/001_esquema_territorio.sql`: esquema `territorio` y las tablas del plan
+- [x] **2.1** `territorio/migrations/001_esquema_territorio.sql`: esquema `territorio` y las tablas del plan
       (`configuracion` de una sola fila, `calles_tramos`, `manzanas` con id `BIGINT` de la fuente, `sectores`,
       `ubicaciones` con `detalle`), `CHECK` del estado contra la lista de `ESTADOS`, índices en
       `ubicaciones (manzana_id)` y `manzanas (sector_id)`, y `ubicaciones.dni` con `ON DELETE CASCADE`.
       Todo con `IF NOT EXISTS`.
       *Verifica:* migrar dos veces seguidas en la base descartable no falla ni cambia nada.
-- [ ] **2.2** `territorio/migrations/002_permiso_territorio.sql`: permiso `territorio.view` y su asignación al
+- [x] **2.2** `territorio/migrations/002_permiso_territorio.sql`: permiso `territorio.view` y su asignación al
       administrador, con el mismo patrón que `listas/002`.
       *Verifica:* test de integración: el administrador lo tiene; el encargado y el consultor no.
-- [ ] **2.3** `territorio/module.js` (`basePath: '/api/territorio'`, `requiresAuth: true`) y su línea en
+- [x] **2.3** `territorio/module.js` (`basePath: '/api/territorio'`, `requiresAuth: true`) y su línea en
       `src/modules/index.js`, **después de `padron`**. Router vacío por ahora.
       *Verifica:* el subtest "la app arranca contra esta base" sigue pasando.
-- [ ] **2.4** `test/migraciones.test.js` borra también el esquema `territorio` al limpiar.
+- [x] **2.4** `test/migraciones.test.js` borra también el esquema `territorio` al limpiar.
       *Verifica:* la suite con base corre dos veces seguidas sin restos de la anterior.
 
 ## F3 — Carga de capas
