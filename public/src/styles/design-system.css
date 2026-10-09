@@ -233,11 +233,14 @@
     --ds-z-modal:   1100;
     --ds-z-toast:   1200;
 
-    /* —— Radios —— */
-    --ds-radius-sm:  6px;
-    --ds-radius-md:  8px;
-    --ds-radius-lg:  12px;
-    --ds-radius-xl:  16px;
+    /* —— Radios ——
+       Más angulares que antes (6/8/12/16): el logo es geometría isométrica de vértices
+       rectos, y las esquinas muy redondeadas le quedaban de otra familia. Una sola
+       escala: controles md, paneles lg, modales xl; full solo para avatares y chips. */
+    --ds-radius-sm:  4px;
+    --ds-radius-md:  6px;
+    --ds-radius-lg:  8px;
+    --ds-radius-xl:  12px;
     --ds-radius-full: 9999px;
 
     /* —— Espaciado (escala de 4px) —— */
@@ -250,10 +253,11 @@
     --ds-space-8: 32px;
     --ds-space-10: 40px;
     --ds-space-12: 48px;
+    --ds-space-16: 64px;
 
     /* —— Escala tipográfica ——
        Misma familia que antes; lo que cambia es cómo se usa. La escala arranca más
-       abajo (13px de base en vez de 16) porque esto es una herramienta de trabajo con
+       abajo (14px de base en vez de 16) porque esto es una herramienta de trabajo con
        mucho dato en pantalla, no una página para leer de corrido: con 16px las tablas
        de once columnas no entran y todo obliga a hacer scroll.
 
@@ -262,8 +266,9 @@
     --ds-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --ds-font-xs:   0.6875rem;  /* 11px — etiquetas de columna, badges */
     --ds-font-sm:   0.75rem;    /* 12px — texto auxiliar */
-    --ds-font-base: 0.8125rem;  /* 13px — cuerpo y celdas */
-    --ds-font-lg:   0.9375rem;  /* 15px — subtítulos */
+    --ds-font-base: 0.875rem;   /* 14px — cuerpo y celdas */
+    --ds-font-chrome: 0.8125rem; /* 13px — navegación y controles densos de la barra: no crece con la base, o los nueve ítems más el usuario no entran en 1280 */
+    --ds-font-lg:   1rem;       /* 16px — subtítulos */
     --ds-font-xl:   1.125rem;   /* 18px — títulos de sección */
     --ds-font-2xl:  1.375rem;   /* 22px — título de página */
     --ds-font-3xl:  1.75rem;    /* 28px — cifras destacadas */

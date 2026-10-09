@@ -73,7 +73,7 @@
     text-decoration: none;
     border-radius: var(--ds-radius-sm);
     font-weight: var(--ds-weight-medium);
-    font-size: var(--ds-font-base);
+    font-size: var(--ds-font-chrome);
     transition: color var(--ds-transition-smooth), background-color var(--ds-transition-smooth), border-color var(--ds-transition-smooth), box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), opacity var(--ds-transition-smooth);
     position: relative;
     white-space: nowrap;
@@ -261,19 +261,46 @@
     display: none;
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
+/* Responsive Design
+   La barra tiene que entrar en UNA fila en cualquier ancho de escritorio. Antes la regla
+   de 1200px agrandaba los ítems (padding 16px, 0,85rem) y entre 769 y ~1340px la barra se
+   desbordaba: el selector de tema y el botón de salir quedaban fuera de pantalla y la
+   página ganaba scroll horizontal (336px de más a 1100px). Dos escalones:
+   - hasta 1360px: padding compacto;
+   - hasta 1260px: solo el ícono. El texto sigue en el DOM, visualmente oculto, para que el
+     lector de pantalla siga leyendo el nombre de cada destino. */
+@media (min-width: 769px) and (max-width: 1360px) {
     .navbar-content {
-        padding: 12px 20px;
+        padding: 10px 16px;
+        gap: 12px;
+    }
+
+    .navbar-collapse {
+        gap: 12px;
     }
 
     .nav-item {
-        padding: 10px 16px;
-        font-size: 0.85rem;
+        padding: 7px 8px;
     }
 
     .navbar-logo {
-        height: 22px;
+        height: 24px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1260px) {
+    .nav-item .nav-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .nav-item {
+        padding: 8px 10px;
     }
 }
 

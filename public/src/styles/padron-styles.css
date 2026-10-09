@@ -2077,6 +2077,25 @@ select.form-input {
     text-decoration: underline;
 }
 
+/* En un teléfono la fila no entra (cifras + barra de 80px mínimo + % + enlace): el panel
+   ganaba 61px de scroll horizontal. La barra pasa a su propia línea, debajo de lo demás. */
+@media (max-width: 480px) {
+    .avance {
+        flex-wrap: wrap;
+        gap: 8px 12px;
+    }
+
+    .avance-barra {
+        order: 3;
+        flex: 1 0 100%;
+    }
+
+    .avance-enlace {
+        margin-left: auto;
+        padding-left: 12px;
+    }
+}
+
 /* ==================== MARCAS DE FILA ====================
    Sólo aparece lo que está cargado. Una fila sin nada no muestra nada, que es
    la lectura correcta: antes cuatro casillas vacías ocupaban el mismo lugar

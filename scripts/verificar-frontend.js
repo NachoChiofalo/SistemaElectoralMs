@@ -151,6 +151,7 @@ async function main() {
 
           const etiqueta = `${pantalla.id}__${tema}__${vp.id}`;
           let violaciones = [];
+          let desborde = 0;
           let error = null;
           try {
             await pagina.goto(opciones.url + pantalla.ruta, { waitUntil: 'networkidle' });
@@ -161,6 +162,9 @@ async function main() {
             if (opciones.capturas) {
               await pagina.screenshot({ path: path.join(salida, `${etiqueta}.png`) });
             }
+            // Scroll horizontal de página: en una pantalla de trabajo es siempre un defecto
+            // (la barra de navegación se salía de 1280px y nadie lo notó en meses).
+            desborde = await pagina.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
             const axe = await new AxeBuilder({ page: pagina }).analyze();
             violaciones = axe.violations.map((v) => ({
               regla: v.id,
@@ -172,9 +176,9 @@ async function main() {
           } catch (e) {
             error = e.message;
           }
-          resumen.push({ etiqueta, error, violaciones, consola });
+          resumen.push({ etiqueta, error, desborde, violaciones, consola });
           await contexto.close();
-          process.stdout.write(`${error ? 'ERR ' : 'ok  '} ${etiqueta} (${violaciones.length} reglas axe)\n`);
+          process.stdout.write(`${error ? 'ERR ' : 'ok  '} ${etiqueta} (${violaciones.length} reglas axe${desborde > 1 ? `, DESBORDA +${desborde}px` : ''})\n`);
         }
       }
     }
@@ -188,8 +192,10 @@ async function main() {
     r.violaciones.filter((v) => v.impacto === 'serious' || v.impacto === 'critical').map((v) => ({ ...v, en: r.etiqueta }))
   );
   console.log(`\nResumen en ${path.relative(process.cwd(), salida)}/resumen.json`);
+  const desbordadas = resumen.filter((r) => r.desborde > 1).map((r) => `${r.etiqueta} +${r.desborde}px`);
   console.log(`Violaciones serious/critical: ${graves.length}`);
-  process.exit(graves.length ? 1 : 0);
+  console.log(`Pantallas con scroll horizontal: ${desbordadas.length}${desbordadas.length ? ' (' + desbordadas.join(', ') + ')' : ''}`);
+  process.exit(graves.length || desbordadas.length ? 1 : 0);
 }
 
 main().catch((e) => {
