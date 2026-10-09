@@ -674,6 +674,19 @@ textarea::placeholder {
     color: var(--ds-danger-on-tint);
 }
 
+/* La acción secundaria de un diálogo es el botón con borde, no un relleno oscuro: las
+   pantallas que definen su propio .btn-secondary (el padrón lo pintaba de gris sólido) la
+   dejaban tan pesada como la primaria, y "Cancelar" competía con "Guardar". */
+.dialogo-pie .btn-secondary {
+    background: var(--ds-bg-card);
+    color: var(--ds-text-primary);
+    border-color: var(--ds-border-strong);
+}
+
+.dialogo-pie .btn-secondary:hover {
+    background: var(--ds-bg-subtle);
+}
+
 /* Tinte de la cabecera según el tono del mensaje. */
 .dialogo--peligro .dialogo-cabecera { background: var(--ds-danger-100); }
 .dialogo--peligro .dialogo-icono    { color: var(--ds-danger-on-tint); }
