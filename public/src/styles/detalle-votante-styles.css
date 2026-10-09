@@ -56,7 +56,7 @@
     border: 1px solid var(--ds-border-light);
     border-radius: var(--ds-radius-md);
     padding: 1.5rem;
-    transition: all var(--ds-transition-smooth);
+    transition: color var(--ds-transition-smooth), background-color var(--ds-transition-smooth), border-color var(--ds-transition-smooth), box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), opacity var(--ds-transition-smooth);
 }
 
 .condicion-item:hover {
@@ -86,7 +86,7 @@
     border: 2px solid var(--ds-border-default);
     border-radius: 4px;
     position: relative;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
     flex-shrink: 0;
 }
 
@@ -299,7 +299,7 @@
     color: var(--ds-text-muted);
     border: 1px solid var(--ds-border-default);
     border-radius: var(--ds-radius-sm);
-    transition: all var(--ds-transition-base);
+    transition: color var(--ds-transition-base), background-color var(--ds-transition-base), border-color var(--ds-transition-base), box-shadow var(--ds-transition-base), transform var(--ds-transition-base), opacity var(--ds-transition-base);
 }
 
 .tabla-padron .acciones .btn-gestionar:hover {
@@ -354,7 +354,7 @@
     position: relative;
     padding: 6px;
     border-radius: 6px;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .checkbox-inline:hover {
@@ -370,7 +370,7 @@
 
 .checkbox-inline i {
     font-size: 18px;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
     opacity: 0.4;
 }
 
@@ -438,7 +438,7 @@
     color: var(--ds-text-muted);
     border: 1px solid var(--ds-border-default);
     border-radius: var(--ds-radius-sm);
-    transition: all var(--ds-transition-base);
+    transition: color var(--ds-transition-base), background-color var(--ds-transition-base), border-color var(--ds-transition-base), box-shadow var(--ds-transition-base), transform var(--ds-transition-base), opacity var(--ds-transition-base);
 }
 
 .btn-guardar-inline:hover {

@@ -225,9 +225,9 @@ class LoginComponent {
         const errorDiv = this.element.querySelector('#loginError');
         errorDiv.textContent = message;
         errorDiv.style.display = 'block';
-        errorDiv.style.background = '#d4edda';
-        errorDiv.style.color = '#155724';
-        errorDiv.style.borderColor = '#c3e6cb';
+        errorDiv.style.background = 'var(--ds-success-100)';
+        errorDiv.style.color = 'var(--ds-success-on-tint)';
+        errorDiv.style.borderColor = 'var(--ds-success-200)';
     }
 }
 

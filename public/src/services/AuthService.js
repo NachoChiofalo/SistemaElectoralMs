@@ -44,7 +44,7 @@ class AuthService {
      */
     showSessionExpiredMessage() {
         this._showModal({
-            headerBg: 'linear-gradient(135deg,#dc2626,#ef4444)',
+            tinte: 'danger',
             icon: 'fa-clock',
             title: 'Sesion Expirada',
             body: 'Su sesion ha expirado por inactividad.',
@@ -57,7 +57,7 @@ class AuthService {
      */
     showSessionKickedMessage() {
         this._showModal({
-            headerBg: 'linear-gradient(135deg,#7c3aed,#6d28d9)',
+            tinte: 'info',
             icon: 'fa-desktop',
             title: 'Sesion Cerrada',
             body: 'Su cuenta fue accedida desde otro dispositivo.',
@@ -65,27 +65,27 @@ class AuthService {
         });
     }
 
-    _showModal({ headerBg, icon, title, body, sub }) {
+    _showModal({ tinte, icon, title, body, sub }) {
         const existing = document.getElementById('session-expired-modal');
         if (existing) existing.remove();
 
         const overlay = document.createElement('div');
         overlay.id = 'session-expired-modal';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:var(--ds-scrim);display:flex;align-items:center;justify-content:center;z-index:9999;';
         overlay.innerHTML = `
-            <div style="background:white;border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.25);max-width:440px;width:90%;overflow:hidden;">
-                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:${headerBg};">
-                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.2);color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+            <div style="background:var(--ds-bg-card);border:1px solid var(--ds-border-default);border-radius:var(--ds-radius-xl);box-shadow:var(--ds-shadow-xl);max-width:440px;width:90%;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:var(--ds-${tinte}-100);">
+                    <div style="width:44px;height:44px;border-radius:var(--ds-radius-lg);background:var(--ds-bg-card);color:var(--ds-${tinte}-on-tint);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
                         <i class="fas ${icon}"></i>
                     </div>
-                    <h3 style="color:white;margin:0;font-size:1.1rem;">${title}</h3>
+                    <h3 style="color:var(--ds-text-primary);margin:0;font-size:1.1rem;">${title}</h3>
                 </div>
                 <div style="text-align:center;padding:2rem 1.5rem;">
-                    <p style="font-size:1rem;color:#1e293b;margin:0 0 8px;">${body}</p>
-                    <p style="font-size:0.9rem;color:#475569;margin:0;">${sub}</p>
+                    <p style="font-size:1rem;color:var(--ds-text-primary);margin:0 0 8px;">${body}</p>
+                    <p style="font-size:0.9rem;color:var(--ds-text-secondary);margin:0;">${sub}</p>
                 </div>
-                <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid #e2e8f0;">
-                    <button type="button" id="session-expired-login-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#334e68,#102a43);color:white;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;">
+                <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid var(--ds-border-default);">
+                    <button type="button" id="session-expired-login-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--ds-primary-600);color:var(--ds-on-primary);border:none;border-radius:var(--ds-radius-md);font-size:0.95rem;font-weight:600;cursor:pointer;">
                         <i class="fas fa-sign-in-alt"></i> Iniciar Sesion
                     </button>
                 </div>
@@ -339,23 +339,23 @@ class InactivityService {
 
         const overlay = document.createElement('div');
         overlay.id = 'inactivity-warning-modal';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:var(--ds-scrim);display:flex;align-items:center;justify-content:center;z-index:9999;';
         overlay.innerHTML = `
-            <div style="background:white;border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.25);max-width:440px;width:90%;overflow:hidden;">
-                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:linear-gradient(135deg,#f59e0b,#d97706);">
-                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.2);color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+            <div style="background:var(--ds-bg-card);border:1px solid var(--ds-border-default);border-radius:var(--ds-radius-xl);box-shadow:var(--ds-shadow-xl);max-width:440px;width:90%;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:var(--ds-warning-100);">
+                    <div style="width:44px;height:44px;border-radius:var(--ds-radius-lg);background:var(--ds-bg-card);color:var(--ds-warning-on-tint);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
                         <i class="fas fa-clock"></i>
                     </div>
-                    <h3 style="color:white;margin:0;font-size:1.1rem;">Inactividad Detectada</h3>
+                    <h3 style="color:var(--ds-text-primary);margin:0;font-size:1.1rem;">Inactividad Detectada</h3>
                 </div>
                 <div style="text-align:center;padding:2rem 1.5rem;">
-                    <p style="font-size:1rem;color:#1e293b;margin:0 0 12px;">
-                        Su sesion se cerrara en <strong id="inactivity-countdown" style="font-size:1.3rem;color:#dc2626;">120</strong> segundos por inactividad.
+                    <p style="font-size:1rem;color:var(--ds-text-primary);margin:0 0 12px;">
+                        Su sesion se cerrara en <strong id="inactivity-countdown" style="font-size:1.3rem;color:var(--ds-danger-on-tint);">120</strong> segundos por inactividad.
                     </p>
-                    <p style="font-size:0.9rem;color:#475569;margin:0;">Haga clic en el boton para continuar trabajando.</p>
+                    <p style="font-size:0.9rem;color:var(--ds-text-secondary);margin:0;">Haga clic en el boton para continuar trabajando.</p>
                 </div>
-                <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid #e2e8f0;">
-                    <button type="button" id="inactivity-continue-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#334e68,#102a43);color:white;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;">
+                <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid var(--ds-border-default);">
+                    <button type="button" id="inactivity-continue-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--ds-primary-600);color:var(--ds-on-primary);border:none;border-radius:var(--ds-radius-md);font-size:0.95rem;font-weight:600;cursor:pointer;">
                         <i class="fas fa-hand-pointer"></i> Continuar Trabajando
                     </button>
                 </div>

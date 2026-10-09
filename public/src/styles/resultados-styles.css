@@ -258,7 +258,7 @@
 }
 
 .stat-percentage {
-    color: var(--ds-success-600);
+    color: var(--ds-success-on-tint);
     font-weight: 600;
     font-size: 14px;
     margin-top: 2px;
@@ -321,7 +321,7 @@
     font-size: 14px;
     font-weight: 500;
     color: var(--ds-text-muted);
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
     white-space: nowrap;
     position: relative;
     font-family: inherit;

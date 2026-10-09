@@ -122,6 +122,19 @@
     --ds-fuerza-7: #db2777;
     --ds-fuerza-8: #57534e;
 
+    /* Texto sobre cada relleno de fuerza (píldora de opción seleccionada). No puede ser
+       blanco siempre: sobre el verde, el ámbar y el cian de claro no llega a 4,5:1, y en
+       oscuro los ocho rellenos son pasteles. Lo mide test/design-tokens.test.js. */
+    --ds-on-fuerza-1: #ffffff;
+    --ds-on-fuerza-2: #ffffff;
+    --ds-on-fuerza-3: #1c1c1c;
+    --ds-on-fuerza-4: #1c1c1c;
+    --ds-on-fuerza-5: #ffffff;
+    --ds-on-fuerza-6: #1c1c1c;
+    --ds-on-fuerza-7: #ffffff;
+    --ds-on-fuerza-8: #ffffff;
+    --ds-on-party-indeciso: #ffffff;
+
     /* —— Escala del mapa (018) ——
        El avance de relevamiento de una zona, de nada a todo, en un solo tono que crece. Verde porque
        avance es progreso (el mismo sentido que --ds-success). El 0 es "sin datos" o "no se puede
@@ -138,7 +151,9 @@
        representan y escriben encima con ese mismo color, más oscuro. En claro eso sale
        bien con los pasos -500/-600 de cada rampa, pero en oscuro el fondo se oscurece y
        el texto sigue siendo oscuro: el badge desaparece. Estos tokens son ese texto, y
-       son lo único que se invierte entre un tema y el otro. */
+       son lo único que se invierte entre un tema y el otro.
+       Cada uno llega a 4,5:1 sobre su tinte -100 (test/design-tokens.test.js): el paso
+       -500/-600 de la rampa no alcanzaba, de ahí que acá sean un paso más oscuros. */
     /* Texto sobre una superficie pintada con el acento (botón primario, ítem activo).
        No alcanza con `--ds-text-inverse`: ese es blanco siempre, porque también rotula
        las píldoras de PJ y UCR, que son azul y rojo en los dos temas. El acento, en
@@ -147,10 +162,10 @@
     --ds-on-primary: #ffffff;
 
     --ds-primary-on-tint: #1c1c1c;
-    --ds-success-on-tint: #059669;
-    --ds-warning-on-tint: #b37d1a;
-    --ds-danger-on-tint:  #dc2626;
-    --ds-info-on-tint:    #2563eb;
+    --ds-success-on-tint: #047857;
+    --ds-warning-on-tint: #8f6410;
+    --ds-danger-on-tint:  #b91c1c;
+    --ds-info-on-tint:    #1d4ed8;
     --ds-accent-on-tint:  #1c1c1c;
 
     /* —— Superficies ——
@@ -175,7 +190,11 @@
        de nítido y vibra menos. */
     --ds-text-primary:   #1c1c1c;
     --ds-text-secondary: #525252;
-    --ds-text-muted:     #a1a1a1;
+    /* Muted era #a1a1a1: 2,6:1 sobre blanco, bajo el 4,5:1 de WCAG AA para texto. Es el
+       texto de etiquetas, ayudas y placeholders, o sea el que más se lee en una tabla.
+       #666666 da 5,7:1 sobre blanco y 4,8:1 sobre --ds-bg-muted, la superficie más oscura
+       donde aparece. Lo cuida test/design-tokens.test.js. */
+    --ds-text-muted:     #666666;
     --ds-text-inverse:   #ffffff;
 
     /* Negro puro, sólo para `prefers-contrast: high`. Es un token y no un literal para
@@ -196,7 +215,23 @@
     --ds-shadow-md:  none;
     --ds-shadow-lg:  0 8px 24px -8px rgba(0, 0, 0, 0.12);
     --ds-shadow-xl:  0 16px 40px -12px rgba(0, 0, 0, 0.16);
-    --ds-shadow-focus: 0 0 0 3px rgba(28, 28, 28, 0.18);
+    /* Anillo de foco: sólido, con un separador del color de la superficie para que se
+       lea sobre cualquier fondo. Antes era un halo al 18% de opacidad (casi invisible)
+       y las hojas que sacaban el `outline` dejaban al teclado sin indicador. Vale para
+       los dos temas porque --ds-primary-700 y --ds-bg-card se invierten juntos. */
+    --ds-shadow-focus: 0 0 0 2px var(--ds-bg-card), 0 0 0 4px var(--ds-primary-700);
+
+    /* Fondo de modales y del cajón de navegación. */
+    --ds-scrim: rgba(28, 28, 28, 0.45);
+
+    /* —— Capas ——
+       Una escala en vez de literales sueltos (había desde 5 hasta 9999 repartidos en
+       once hojas). Las hojas de pantalla migran a estos nombres cuando se tocan. */
+    --ds-z-raised:  5;
+    --ds-z-sticky:  50;
+    --ds-z-nav:     1000;
+    --ds-z-modal:   1100;
+    --ds-z-toast:   1200;
 
     /* —— Radios —— */
     --ds-radius-sm:  6px;
@@ -313,6 +348,58 @@ body {
     padding: 0;
 }
 
+/* —— Base de interacción y lectura ——
+   Reglas de elemento (especificidad mínima): cualquier hoja de pantalla las pisa. */
+
+/* Sin la espera de ~300 ms del doble toque para hacer zoom en controles táctiles. */
+a, button, input, select, textarea, label, summary,
+[role="button"], [role="tab"], [role="switch"] {
+    touch-action: manipulation;
+}
+
+/* Cifras de ancho fijo: las columnas numéricas alinean y no "bailan" al cambiar un dato. */
+table,
+.ds-num {
+    font-variant-numeric: tabular-nums;
+}
+
+h1, h2, h3, h4 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* Contenido solo para lectores de pantalla. Vivía únicamente en padron-styles.css, así
+   que el resto de las pantallas no podía usarlo. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Salto al contenido: invisible hasta que el teclado le da foco. El markup lo agrega la
+   navbar (Fase 2); el estilo vive acá para que sea uno solo. */
+.skip-link {
+    position: absolute;
+    top: var(--ds-space-2);
+    left: var(--ds-space-2);
+    z-index: calc(var(--ds-z-nav) + 1);
+    padding: var(--ds-space-2) var(--ds-space-4);
+    background: var(--ds-primary-600);
+    color: var(--ds-on-primary);
+    border-radius: var(--ds-radius-md);
+    font-weight: var(--ds-weight-semibold);
+    text-decoration: none;
+    transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+    transform: translateY(0);
+}
+
 /* ==================== 4. ESCALA TIPOGRÁFICA ==================== */
 
 h1, h2, h3, h4, h5, h6 {
@@ -352,7 +439,7 @@ p {
     border-radius: var(--ds-radius-md);
     cursor: pointer;
     text-decoration: none;
-    transition: all var(--ds-transition-base);
+    transition: color var(--ds-transition-base), background-color var(--ds-transition-base), border-color var(--ds-transition-base), box-shadow var(--ds-transition-base), transform var(--ds-transition-base);
     white-space: nowrap;
     min-height: 40px;
 }
@@ -458,7 +545,7 @@ textarea::placeholder {
     background: var(--ds-bg-card);
     border: 1.5px solid var(--ds-border-default);
     border-radius: var(--ds-radius-md);
-    transition: all var(--ds-transition-base);
+    transition: color var(--ds-transition-base), background-color var(--ds-transition-base), border-color var(--ds-transition-base), box-shadow var(--ds-transition-base), transform var(--ds-transition-base);
     line-height: 1.5;
 }
 
@@ -704,7 +791,7 @@ textarea::placeholder {
     display: flex;
     align-items: center;
     gap: var(--ds-space-3);
-    z-index: 9999;
+    z-index: var(--ds-z-toast);
     animation: ds-slideInRight 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
@@ -718,12 +805,11 @@ textarea::placeholder {
 .ds-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    background: var(--ds-scrim);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: var(--ds-z-modal);
     animation: ds-fadeIn 200ms ease both;
 }
 
@@ -785,7 +871,7 @@ textarea::placeholder {
 /* ==================== 13. FOCUS VISIBLE GLOBAL ==================== */
 
 :focus-visible {
-    outline: 2px solid var(--ds-primary-500);
+    outline: 2px solid var(--ds-primary-700);
     outline-offset: 2px;
 }
 
@@ -813,8 +899,8 @@ textarea::placeholder {
 
 @media (prefers-contrast: high) {
     :root {
-        --ds-border-light: #8e9aab;
-        --ds-border-default: #324054;
+        --ds-border-light: #767676;
+        --ds-border-default: #4d4d4d;
         --ds-shadow-sm: none;
         --ds-shadow-md: none;
     }
@@ -827,9 +913,9 @@ textarea::placeholder {
    Mientras las hojas tenían `var(--ds-x, #hexviejo)` por todos lados, un modo oscuro
    habría dejado islas claras en cada lugar donde el fallback se hubiera usado.
 
-   No es una inversión: las superficies llevan el mismo navy de la identidad, y los
-   colores de partido se aclaran en vez de conservarse. `--ds-party-pj` es #1e3a8a,
-   que sobre un fondo oscuro queda prácticamente invisible; los gráficos son el lugar
+   No es una inversión: las superficies son grafito (no negro), y los
+   colores de partido se aclaran en vez de conservarse. un azul
+   oscuro sobre un fondo oscuro queda prácticamente invisible; los gráficos son el lugar
    donde ese detalle se nota más.
 
    Los valores viven una sola vez, en `--modo-oscuro-*`, y se asignan dos veces: una
@@ -852,10 +938,12 @@ textarea::placeholder {
     --modo-oscuro-border-default: #454545;
     --modo-oscuro-border-strong:  #5c5c5c;
 
-    /* —— Texto: blanco puro, la "versión invertida" de la identidad —— */
-    --modo-oscuro-text-primary:   #ffffff;
-    --modo-oscuro-text-secondary: #a1a1a1;
-    --modo-oscuro-text-muted:     #737373;
+    /* —— Texto: off-white, no blanco puro: sobre #2a2a2a el #fff vibra y cansa en una
+       pantalla de lectura larga. Secundario y muted suben para llegar a 4,5:1 sobre
+       las superficies más claras del tema (--modo-oscuro-bg-muted). —— */
+    --modo-oscuro-text-primary:   #f2f2f2;
+    --modo-oscuro-text-secondary: #b8b8b8;
+    --modo-oscuro-text-muted:     #a0a0a0;
 
     /* —— Partidos, aclarados para que se lean sobre fondo oscuro —— */
     --modo-oscuro-party-pj:       #60a5fa;
@@ -871,6 +959,7 @@ textarea::placeholder {
     --modo-oscuro-fuerza-6: #67e8f9;
     --modo-oscuro-fuerza-7: #f9a8d4;
     --modo-oscuro-fuerza-8: #a8a29e;
+    --modo-oscuro-on-fuerza: #1c1c1c;
 
     /* —— Escala del mapa: en oscuro crece hacia el claro, para que "mas" siga siendo "mas visible" —— */
     --modo-oscuro-mapa-0: #2c2c2c;
@@ -889,7 +978,7 @@ textarea::placeholder {
     --modo-oscuro-accent-on-tint:  #ffffff;
 
     /* —— Tintes: los -50/-100 se usan como fondo de badges y en claro son casi
-           blancos. Acá son navys apenas teñidos del color que representan. —— */
+           blancos. Acá son grises oscuros apenas teñidos del color que representan. —— */
     --modo-oscuro-primary-50:   #292929;
     --modo-oscuro-primary-100:  #353535;
     --modo-oscuro-primary-200:  #424242;
@@ -929,7 +1018,8 @@ textarea::placeholder {
     --modo-oscuro-shadow-md: none;
     --modo-oscuro-shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
     --modo-oscuro-shadow-xl: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
-    --modo-oscuro-shadow-focus: 0 0 0 3px rgba(255, 255, 255, 0.25);
+    --modo-oscuro-shadow-focus: 0 0 0 2px var(--ds-bg-card), 0 0 0 4px var(--ds-primary-700);
+    --modo-oscuro-scrim: rgba(0, 0, 0, 0.6);
 }
 
 /* La lista de asignaciones se repite en los dos selectores porque uno vive dentro de
@@ -965,6 +1055,15 @@ textarea::placeholder {
         --ds-fuerza-6: var(--modo-oscuro-fuerza-6);
         --ds-fuerza-7: var(--modo-oscuro-fuerza-7);
         --ds-fuerza-8: var(--modo-oscuro-fuerza-8);
+        --ds-on-fuerza-1: var(--modo-oscuro-on-fuerza);
+        --ds-on-fuerza-2: var(--modo-oscuro-on-fuerza);
+        --ds-on-fuerza-3: var(--modo-oscuro-on-fuerza);
+        --ds-on-fuerza-4: var(--modo-oscuro-on-fuerza);
+        --ds-on-fuerza-5: var(--modo-oscuro-on-fuerza);
+        --ds-on-fuerza-6: var(--modo-oscuro-on-fuerza);
+        --ds-on-fuerza-7: var(--modo-oscuro-on-fuerza);
+        --ds-on-fuerza-8: var(--modo-oscuro-on-fuerza);
+        --ds-on-party-indeciso: var(--modo-oscuro-on-fuerza);
         --ds-mapa-0: var(--modo-oscuro-mapa-0);
         --ds-mapa-1: var(--modo-oscuro-mapa-1);
         --ds-mapa-2: var(--modo-oscuro-mapa-2);
@@ -1013,6 +1112,7 @@ textarea::placeholder {
         --ds-shadow-lg: var(--modo-oscuro-shadow-lg);
         --ds-shadow-xl: var(--modo-oscuro-shadow-xl);
         --ds-shadow-focus: var(--modo-oscuro-shadow-focus);
+        --ds-scrim: var(--modo-oscuro-scrim);
     }
 }
 
@@ -1045,6 +1145,15 @@ textarea::placeholder {
     --ds-fuerza-6: var(--modo-oscuro-fuerza-6);
     --ds-fuerza-7: var(--modo-oscuro-fuerza-7);
     --ds-fuerza-8: var(--modo-oscuro-fuerza-8);
+    --ds-on-fuerza-1: var(--modo-oscuro-on-fuerza);
+    --ds-on-fuerza-2: var(--modo-oscuro-on-fuerza);
+    --ds-on-fuerza-3: var(--modo-oscuro-on-fuerza);
+    --ds-on-fuerza-4: var(--modo-oscuro-on-fuerza);
+    --ds-on-fuerza-5: var(--modo-oscuro-on-fuerza);
+    --ds-on-fuerza-6: var(--modo-oscuro-on-fuerza);
+    --ds-on-fuerza-7: var(--modo-oscuro-on-fuerza);
+    --ds-on-fuerza-8: var(--modo-oscuro-on-fuerza);
+    --ds-on-party-indeciso: var(--modo-oscuro-on-fuerza);
     --ds-mapa-0: var(--modo-oscuro-mapa-0);
     --ds-mapa-1: var(--modo-oscuro-mapa-1);
     --ds-mapa-2: var(--modo-oscuro-mapa-2);
@@ -1093,6 +1202,7 @@ textarea::placeholder {
     --ds-shadow-lg: var(--modo-oscuro-shadow-lg);
     --ds-shadow-xl: var(--modo-oscuro-shadow-xl);
     --ds-shadow-focus: var(--modo-oscuro-shadow-focus);
+    --ds-scrim: var(--modo-oscuro-scrim);
 }
 
 /* ==================== COLOR DE UNA OPCIÓN POLÍTICA (021) ====================
@@ -1101,12 +1211,12 @@ textarea::placeholder {
    o `op-neutra`, y las reglas de cada pantalla pintan con `var(--opcion-color)`.
    Los ocho colores son los de las fuerzas de comicio (--ds-fuerza-N), que ya tienen su
    variante de modo oscuro: el 1 y el 2 son el azul y el rojo de siempre. */
-.op-1 { --opcion-color: var(--ds-fuerza-1); }
-.op-2 { --opcion-color: var(--ds-fuerza-2); }
-.op-3 { --opcion-color: var(--ds-fuerza-3); }
-.op-4 { --opcion-color: var(--ds-fuerza-4); }
-.op-5 { --opcion-color: var(--ds-fuerza-5); }
-.op-6 { --opcion-color: var(--ds-fuerza-6); }
-.op-7 { --opcion-color: var(--ds-fuerza-7); }
-.op-8 { --opcion-color: var(--ds-fuerza-8); }
-.op-neutra { --opcion-color: var(--ds-party-indeciso); }
+.op-1 { --opcion-color: var(--ds-fuerza-1); --opcion-on: var(--ds-on-fuerza-1); }
+.op-2 { --opcion-color: var(--ds-fuerza-2); --opcion-on: var(--ds-on-fuerza-2); }
+.op-3 { --opcion-color: var(--ds-fuerza-3); --opcion-on: var(--ds-on-fuerza-3); }
+.op-4 { --opcion-color: var(--ds-fuerza-4); --opcion-on: var(--ds-on-fuerza-4); }
+.op-5 { --opcion-color: var(--ds-fuerza-5); --opcion-on: var(--ds-on-fuerza-5); }
+.op-6 { --opcion-color: var(--ds-fuerza-6); --opcion-on: var(--ds-on-fuerza-6); }
+.op-7 { --opcion-color: var(--ds-fuerza-7); --opcion-on: var(--ds-on-fuerza-7); }
+.op-8 { --opcion-color: var(--ds-fuerza-8); --opcion-on: var(--ds-on-fuerza-8); }
+.op-neutra { --opcion-color: var(--ds-party-indeciso); --opcion-on: var(--ds-on-party-indeciso); }

@@ -74,7 +74,7 @@
     border-radius: var(--ds-radius-sm);
     font-weight: var(--ds-weight-medium);
     font-size: var(--ds-font-base);
-    transition: all var(--ds-transition-smooth);
+    transition: color var(--ds-transition-smooth), background-color var(--ds-transition-smooth), border-color var(--ds-transition-smooth), box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), opacity var(--ds-transition-smooth);
     position: relative;
     white-space: nowrap;
 }
@@ -241,7 +241,7 @@
        desaparecerían en modo oscuro, porque ahí esa superficie es casi negra. */
     background: var(--ds-text-primary);
     border-radius: 2px;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
 .navbar-toggle.open .hamburger-line:nth-child(1) {

@@ -173,14 +173,27 @@ test('los estilos usan tokens y no colores sueltos', () => {
     .replace(/rgba\([^)]*\)/g, '')
     .replace(/\b(box-shadow|text-shadow|filter|drop-shadow)\s*:[^;]*;/g, '');
 
+  // En un .js los colores se cuelan por `style="..."` dentro de plantillas y por
+  // `el.style.color = '...'`: este test los salteaba (solo miraba css y html) y ahi
+  // estaban los modales de sesion, blancos en pleno modo oscuro. Se descartan los
+  // comentarios (que citan colores viejos) y las entidades HTML (&#39;).
+  const colorEnJs = js => {
+    const codigo = sinEfectos(js)
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1')
+      .replace(/&#x?[0-9a-fA-F]+;/g, '');
+    return [...codigo.matchAll(/(#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b(?![\w-])|\bwhite\b)/g)].map(m => m[1]);
+  };
+
   const culpables = [];
 
   for (const archivo of archivosDeFrontend(DIR_PUBLICO)) {
-    if (EXENTOS.test(archivo) || archivo.endsWith('.js')) continue;
+    if (EXENTOS.test(archivo)) continue;
 
     const relativa = path.relative(DIR_PUBLICO, archivo);
-    const encontrados = [...sinEfectos(leer(archivo)).matchAll(/(#[0-9a-fA-F]{3,6}\b|:\s*white\b)/g)]
-      .map(m => m[1]);
+    const encontrados = archivo.endsWith('.js')
+      ? colorEnJs(leer(archivo))
+      : [...sinEfectos(leer(archivo)).matchAll(/(#[0-9a-fA-F]{3,6}\b|:\s*white\b)/g)].map(m => m[1]);
 
     if (encontrados.length > 0) {
       culpables.push(`${relativa}: ${[...new Set(encontrados)].join(', ')}`);

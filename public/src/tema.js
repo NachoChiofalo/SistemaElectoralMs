@@ -62,7 +62,33 @@
         return siguiente;
     }
 
+    /**
+     * Color de la barra del navegador en móvil (`<meta name="theme-color">`). Se lee del
+     * token en vez de escribirlo en cada HTML: así sigue al tema sin un hex suelto fuera
+     * de design-system.css, y un cambio de paleta lo arrastra solo. Necesita las hojas
+     * ya cargadas, por eso corre en `load` y no en la carga inicial del script.
+     */
+    function sincronizarBarra() {
+        const fondo = getComputedStyle(document.documentElement).getPropertyValue('--ds-bg-page').trim();
+        if (!fondo) return;
+        let meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'theme-color';
+            document.head.appendChild(meta);
+        }
+        meta.content = fondo;
+    }
+
     aplicar(leerGuardado());
+
+    global.addEventListener('load', sincronizarBarra);
+    global.addEventListener('tema:cambiado', sincronizarBarra);
+    if (global.matchMedia) {
+        const sistema = global.matchMedia('(prefers-color-scheme: dark)');
+        // Safari viejo sólo conoce addListener.
+        (sistema.addEventListener ? sistema.addEventListener.bind(sistema, 'change') : sistema.addListener.bind(sistema))(sincronizarBarra);
+    }
 
     global.tema = { elegido: leerGuardado, efectivo, cambiar, aplicar };
 })(window);

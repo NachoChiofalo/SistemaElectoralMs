@@ -165,7 +165,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    transition: all var(--ds-transition-smooth);
+    transition: color var(--ds-transition-smooth), background-color var(--ds-transition-smooth), border-color var(--ds-transition-smooth), box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), opacity var(--ds-transition-smooth);
     font-size: 0.875rem;
 }
 
@@ -205,12 +205,14 @@ body {
 }
 
 .btn-secondary {
-    background: var(--padron-text-light);
+    /* Era --padron-text-light (el texto secundario): en oscuro eso es un gris claro y el
+       blanco encima daba 2:1. secondary-600/700 no se invierten entre temas. */
+    background: var(--ds-secondary-600);
     color: var(--ds-text-inverse);
 }
 
 .btn-secondary:hover {
-    background: var(--ds-secondary-700);
+    background: var(--ds-secondary-800);
 }
 
 /* ==================== FILTROS ==================== */
@@ -671,7 +673,7 @@ body {
     background: transparent;
     color: var(--ds-text-muted);
     border: 1px solid var(--ds-border-default);
-    transition: all 0.15s ease;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .radio-label:hover .radio-custom {
@@ -680,7 +682,9 @@ body {
 }
 
 .radio-label.selected .radio-custom {
-    color: var(--ds-text-inverse);
+    /* Cada relleno trae su texto (--opcion-on, ver design-system.css): blanco sobre un
+       relleno claro no llega a 3:1, y en oscuro todos los rellenos son claros. */
+    color: var(--opcion-on, var(--ds-text-inverse));
 }
 
 /* El color de cada opción lo fija la clase op-N de la píldora (design-system.css, 021). */
@@ -775,7 +779,7 @@ body {
     padding: 0.5rem;
     border-radius: 4px;
     color: var(--padron-text-light);
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .btn-icon:hover {
@@ -810,7 +814,7 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .btn-paginacion:hover {
@@ -899,7 +903,7 @@ body {
     padding: 0.5rem;
     color: var(--padron-text-light);
     border-radius: 4px;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .modal-close:hover {
@@ -989,7 +993,7 @@ select.form-input {
     font-size: 0.88rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 150ms ease;
+    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, opacity 150ms ease;
 }
 
 .modal-footer .btn-primary {
