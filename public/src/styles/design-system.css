@@ -437,104 +437,19 @@ p {
     line-height: 1.7;
 }
 
-/* ==================== 5. COMPONENTES ATÓMICOS ==================== */
+/* ==================== 5. COMPONENTES ====================
+   Un patrón, un componente. Antes cada pantalla redefinía su botón, su modal, su toast y
+   su formulario (cinco copias del modal, cinco del toast), y los `.ds-*` que existían acá
+   no los usaba nadie.
 
-/* —— Botones —— */
-.ds-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--ds-space-2);
-    padding: var(--ds-space-3) var(--ds-space-5);
-    font-family: var(--ds-font-family);
-    font-size: var(--ds-font-sm);
-    font-weight: 500;
-    line-height: 1.5;
-    border: 1px solid transparent;
-    border-radius: var(--ds-radius-md);
-    cursor: pointer;
-    text-decoration: none;
-    transition: color var(--ds-transition-base), background-color var(--ds-transition-base), border-color var(--ds-transition-base), box-shadow var(--ds-transition-base), transform var(--ds-transition-base);
-    white-space: nowrap;
-    min-height: 40px;
-}
+   Las bases van dentro de `:where()`: especificidad cero. Las hojas de pantalla que ya
+   tienen su propio `.btn` o `.form-input` siguen ganando sin pelea mientras migran, y lo
+   que no definen —foco, estado deshabilitado, carga— lo heredan de acá. */
 
-.ds-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--ds-shadow-md);
-}
-
-.ds-btn:active {
-    transform: translateY(0);
-}
-
-.ds-btn:focus-visible {
-    outline: none;
-    box-shadow: var(--ds-shadow-focus);
-}
-
-.ds-btn--primary {
-    background: var(--ds-primary-600);
-    color: var(--ds-on-primary);
-    border-color: var(--ds-primary-600);
-}
-
-.ds-btn--primary:hover {
-    background: var(--ds-primary-700);
-    border-color: var(--ds-primary-700);
-}
-
-.ds-btn--secondary {
-    background: var(--ds-bg-card);
-    color: var(--ds-text-secondary);
-    border-color: var(--ds-border-default);
-}
-
-.ds-btn--secondary:hover {
-    background: var(--ds-bg-subtle);
-    color: var(--ds-text-primary);
-    border-color: var(--ds-border-strong);
-}
-
-.ds-btn--ghost {
-    background: transparent;
-    color: var(--ds-text-secondary);
-    border-color: transparent;
-}
-
-.ds-btn--ghost:hover {
-    background: var(--ds-bg-subtle);
-    color: var(--ds-text-primary);
-}
-
-.ds-btn--danger {
-    background: var(--ds-danger-600);
-    color: var(--ds-text-inverse);
-    border-color: var(--ds-danger-600);
-}
-
-.ds-btn--danger:hover {
-    background: var(--ds-danger-700);
-    border-color: var(--ds-danger-700);
-}
-
-.ds-btn--sm {
-    padding: var(--ds-space-2) var(--ds-space-3);
-    font-size: var(--ds-font-xs);
-    min-height: 32px;
-}
-
-.ds-btn--lg {
-    padding: var(--ds-space-4) var(--ds-space-6);
-    font-size: var(--ds-font-base);
-    min-height: 48px;
-}
-
-/* —— Inputs —— */
-/* Base de los controles de formulario.
-   `.ds-input` existe desde siempre, pero las páginas estilan sus campos con sus propias
-   clases (`.form-group input`, `.filtro-group select`) y nunca declararon color ni
-   fondo: heredaban el del navegador, que en claro era blanco y coincidía de casualidad.
+/* —— Controles nativos: base de color ——
+   Las páginas estilan sus campos con sus propias clases (`.form-group input`,
+   `.filtro-group select`) y nunca declararon color ni fondo: heredaban el del navegador,
+   que en claro era blanco y coincidía de casualidad.
    Con `color-scheme: dark` el navegador los pinta a su manera y dejan de pertenecer a
    la paleta. Esta regla va sobre el elemento —la especificidad más baja que existe—
    así que cualquier regla de página la sigue ganando. */
@@ -551,87 +466,376 @@ textarea::placeholder {
     color: var(--ds-text-muted);
 }
 
-.ds-input {
-    width: 100%;
-    padding: var(--ds-space-3) var(--ds-space-4);
-    font-family: var(--ds-font-family);
-    font-size: var(--ds-font-sm);
+/* —— Botón —— */
+:where(.btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ds-space-2);
+    min-height: 36px;
+    padding: 0 var(--ds-space-4);
+    font-family: inherit;
+    font-size: var(--ds-font-base);
+    font-weight: var(--ds-weight-medium);
+    line-height: 1.25;
     color: var(--ds-text-primary);
-    background: var(--ds-bg-card);
-    border: 1.5px solid var(--ds-border-default);
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: var(--ds-radius-md);
-    transition: color var(--ds-transition-base), background-color var(--ds-transition-base), border-color var(--ds-transition-base), box-shadow var(--ds-transition-base), transform var(--ds-transition-base);
-    line-height: 1.5;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--ds-dur-fast) var(--ds-ease-out),
+                background-color var(--ds-dur-fast) var(--ds-ease-out),
+                border-color var(--ds-dur-fast) var(--ds-ease-out),
+                transform var(--ds-dur-fast) var(--ds-ease-out);
 }
 
-.ds-input:hover {
-    border-color: var(--ds-border-strong);
+:where(.btn):active { transform: translateY(1px); }
+
+:where(.btn)[disabled],
+:where(.btn)[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
-.ds-input:focus {
+/* En curso: el botón sigue habilitado hasta que arranca la petición y después muestra un
+   spinner (no se bloquea antes, y no se deja sin respuesta visible). */
+:where(.btn)[aria-busy="true"] { pointer-events: none; }
+:where(.btn)[aria-busy="true"]::before {
+    content: "";
+    flex: none;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: var(--ds-radius-full);
+    animation: ds-spin 0.7s linear infinite;
+}
+
+:where(.btn-primary)   { background: var(--ds-primary-600); color: var(--ds-on-primary); border-color: var(--ds-primary-600); }
+:where(.btn-primary):hover { background: var(--ds-primary-700); border-color: var(--ds-primary-700); }
+
+:where(.btn-secondary) { background: var(--ds-bg-card); color: var(--ds-text-primary); border-color: var(--ds-border-strong); }
+:where(.btn-secondary):hover { background: var(--ds-bg-subtle); }
+
+:where(.btn-ghost):hover { background: var(--ds-bg-subtle); }
+
+:where(.btn-danger)    { background: var(--ds-danger-600); color: var(--ds-text-inverse); border-color: var(--ds-danger-600); }
+:where(.btn-danger):hover { background: var(--ds-danger-700); border-color: var(--ds-danger-700); }
+
+:where(.btn-sm)   { min-height: 28px; padding: 0 var(--ds-space-3); font-size: var(--ds-font-sm); }
+/* Botón de solo ícono: cuadrado, y SIEMPRE con aria-label (no tiene texto que lo nombre). */
+:where(.btn-icono) { width: 36px; padding: 0; }
+:where(.btn-icono.btn-sm) { width: 28px; }
+
+/* —— Campos de formulario ——
+   Etiqueta arriba, ayuda opcional, error abajo. El error se asocia con `aria-describedby`
+   y el control con `aria-invalid="true"`; el contenedor del error lleva `role="alert"`
+   para que se anuncie cuando aparece. */
+:where(.campo) { display: grid; gap: var(--ds-space-1); }
+:where(.campo-etiqueta) { font-size: var(--ds-font-sm); font-weight: var(--ds-weight-medium); color: var(--ds-text-secondary); }
+:where(.campo-ayuda)    { font-size: var(--ds-font-sm); color: var(--ds-text-muted); }
+:where(.campo-error)    { font-size: var(--ds-font-sm); color: var(--ds-danger-on-tint); }
+
+:where(.campo) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+    width: 100%;
+    min-height: 36px;
+    padding: var(--ds-space-2) var(--ds-space-3);
+    font-family: inherit;
+    font-size: var(--ds-font-base);
+    line-height: 1.4;
+    border: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-md);
+}
+
+:where(.campo) :is(input, select, textarea):hover { border-color: var(--ds-text-muted); }
+
+:where(.campo) :is(input, select, textarea):focus-visible {
     outline: none;
-    border-color: var(--ds-primary-500);
+    border-color: var(--ds-primary-700);
     box-shadow: var(--ds-shadow-focus);
 }
 
-.ds-input::placeholder {
-    color: var(--ds-text-muted);
-}
+:where(.campo) :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--ds-danger-600); }
 
-/* —— Cards —— */
-.ds-card {
-    background: var(--ds-bg-card);
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-lg);
-    box-shadow: var(--ds-shadow-sm);
-    transition: box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), border-color var(--ds-transition-smooth);
-    overflow: hidden;
-}
-
-.ds-card:hover {
-    box-shadow: var(--ds-shadow-md);
-}
-
-.ds-card--elevated {
-    box-shadow: var(--ds-shadow-md);
-}
-
-.ds-card--elevated:hover {
-    box-shadow: var(--ds-shadow-lg);
-    transform: translateY(-2px);
-}
-
-.ds-card--interactive {
+/* Casilla o radio con su etiqueta: un solo blanco de clic. */
+:where(.campo-opcion) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-2);
+    min-height: 28px;
     cursor: pointer;
 }
 
-.ds-card--interactive:hover {
-    border-color: var(--ds-primary-200);
-    box-shadow: var(--ds-shadow-lg);
-    transform: translateY(-3px);
-}
-
-/* —— Badges —— */
-.ds-badge {
+/* —— Insignia (estado en una palabra) ——
+   Texto sobre tinte con los tokens *-on-tint, que cumplen 4,5:1 en los dos temas. */
+:where(.insignia) {
     display: inline-flex;
     align-items: center;
     gap: var(--ds-space-1);
-    padding: 2px var(--ds-space-2);
+    padding: 1px var(--ds-space-2);
     font-size: var(--ds-font-xs);
-    font-weight: 600;
-    border-radius: var(--ds-radius-full);
+    font-weight: var(--ds-weight-semibold);
     line-height: 1.5;
+    border-radius: var(--ds-radius-full);
+    background: var(--ds-bg-muted);
+    color: var(--ds-text-secondary);
+}
+:where(.insignia--exito)  { background: var(--ds-success-100); color: var(--ds-success-on-tint); }
+:where(.insignia--aviso)  { background: var(--ds-warning-100); color: var(--ds-warning-on-tint); }
+:where(.insignia--error)  { background: var(--ds-danger-100);  color: var(--ds-danger-on-tint); }
+:where(.insignia--info)   { background: var(--ds-info-100);    color: var(--ds-info-on-tint); }
+
+/* —— Diálogo ——
+   Sobre el elemento nativo <dialog>: showModal() ya da capa superior, foco atrapado,
+   Escape y fondo inerte, que es lo que ninguno de los modales hechos a mano tenía.
+   Lo arma lib/dialogo.js; el markup propio de una pantalla puede usar estas mismas clases. */
+.dialogo {
+    width: min(440px, calc(100vw - var(--ds-space-8)));
+    max-height: min(90dvh, 760px);
+    padding: 0;
+    color: var(--ds-text-primary);
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-xl);
+    box-shadow: var(--ds-shadow-xl);
+    overscroll-behavior: contain;
 }
 
-.ds-badge--success { background: var(--ds-success-100); color: var(--ds-success-on-tint); }
-.ds-badge--warning { background: var(--ds-warning-100); color: var(--ds-warning-on-tint); }
-.ds-badge--danger  { background: var(--ds-danger-100);  color: var(--ds-danger-on-tint); }
-.ds-badge--info    { background: var(--ds-info-100);    color: var(--ds-info-on-tint); }
-.ds-badge--neutral { background: var(--ds-secondary-100); color: var(--ds-text-secondary); }
+.dialogo[open] { display: flex; flex-direction: column; }
+.dialogo::backdrop { background: var(--ds-scrim); }
+.dialogo--ancho { width: min(720px, calc(100vw - var(--ds-space-8))); }
 
-/* ==================== 6. ANIMACIONES Y MICRO-INTERACCIONES ==================== */
+@media (prefers-reduced-motion: no-preference) {
+    .dialogo[open] { animation: ds-fadeIn var(--ds-dur-base) var(--ds-ease-out); }
+}
 
-/* —— Entrada de elementos —— */
+.dialogo-cabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-3);
+    padding: var(--ds-space-4) var(--ds-space-5);
+    border-bottom: 1px solid var(--ds-border-light);
+}
+.dialogo-icono {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-bg-card);
+}
+.dialogo-titulo { margin: 0; font-size: var(--ds-font-lg); }
+.dialogo-cerrar { margin-left: auto; }
+.dialogo-cuerpo { padding: var(--ds-space-5); overflow-y: auto; }
+.dialogo-cuerpo > :first-child { margin-top: 0; }
+.dialogo-cuerpo > :last-child  { margin-bottom: 0; }
+.dialogo-pie {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ds-space-2);
+    padding: var(--ds-space-4) var(--ds-space-5);
+    border-top: 1px solid var(--ds-border-light);
+}
+
+/* Tinte de la cabecera según el tono del mensaje. */
+.dialogo--peligro .dialogo-cabecera { background: var(--ds-danger-100); }
+.dialogo--peligro .dialogo-icono    { color: var(--ds-danger-on-tint); }
+.dialogo--aviso   .dialogo-cabecera { background: var(--ds-warning-100); }
+.dialogo--aviso   .dialogo-icono    { color: var(--ds-warning-on-tint); }
+.dialogo--info    .dialogo-cabecera { background: var(--ds-info-100); }
+.dialogo--info    .dialogo-icono    { color: var(--ds-info-on-tint); }
+
+/* —— Avisos (toasts) ——
+   Dos regiones vivas permanentes: lo informativo se anuncia con cortesía (`status`) y los
+   errores interrumpen (`alert`). Las regiones tienen que existir ANTES de insertar el
+   mensaje, o varios lectores de pantalla no lo anuncian. Las crea lib/avisos.js. */
+.avisos {
+    position: fixed;
+    top: var(--ds-space-4);
+    right: var(--ds-space-4);
+    z-index: var(--ds-z-toast);
+    width: min(380px, calc(100vw - var(--ds-space-8)));
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-2);
+    pointer-events: none;
+}
+.avisos-region { display: flex; flex-direction: column; gap: var(--ds-space-2); }
+
+.aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ds-space-3);
+    padding: var(--ds-space-3) var(--ds-space-4);
+    color: var(--ds-text-primary);
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-default);
+    border-left-width: 4px;
+    border-radius: var(--ds-radius-lg);
+    box-shadow: var(--ds-shadow-lg);
+    pointer-events: auto;
+}
+.aviso--exito  { border-left-color: var(--ds-success-500); }
+.aviso--aviso  { border-left-color: var(--ds-warning-500); }
+.aviso--error  { border-left-color: var(--ds-danger-500); }
+.aviso--info   { border-left-color: var(--ds-info-500); }
+.aviso-texto   { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .aviso { animation: ds-fadeInUp var(--ds-dur-base) var(--ds-ease-out); }
+}
+@media (max-width: 480px) {
+    .avisos { top: auto; bottom: var(--ds-space-4); }
+}
+
+/* —— Estados: cargando, vacío y error ——
+   Los tres existen para cada lista o tabla que se llena con una llamada a la API. Un
+   fallo de carga que sólo mostraba un toast dejaba la pantalla en blanco. Los arma
+   lib/estados.js. */
+.estado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ds-space-2);
+    padding: var(--ds-space-10) var(--ds-space-4);
+    text-align: center;
+    color: var(--ds-text-secondary);
+}
+.estado-icono   { font-size: 1.75rem; color: var(--ds-text-muted); }
+.estado-titulo  { margin: 0; font-size: var(--ds-font-lg); font-weight: var(--ds-weight-semibold); color: var(--ds-text-primary); }
+.estado-texto   { margin: 0; max-width: 46ch; }
+.estado--error .estado-icono { color: var(--ds-danger-on-tint); }
+
+.spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid var(--ds-border-strong);
+    border-top-color: var(--ds-text-primary);
+    border-radius: var(--ds-radius-full);
+    animation: ds-spin 0.8s linear infinite;
+}
+
+/* Marcador de posición con la forma del contenido final. Pulso de opacidad, no un
+   degradado que barre: es plano, como el resto de las superficies. */
+.skeleton {
+    height: 1em;
+    background: var(--ds-bg-muted);
+    border-radius: var(--ds-radius-sm);
+}
+@media (prefers-reduced-motion: no-preference) {
+    .skeleton { animation: ds-pulse 1.4s ease-in-out infinite; }
+}
+
+/* —— Pestañas ——
+   Patrón WAI-ARIA: role="tablist" / "tab" / "tabpanel", flechas, Inicio y Fin. El
+   comportamiento lo cablea lib/pestanas.js. */
+.pestanas {
+    display: flex;
+    gap: var(--ds-space-1);
+    overflow-x: auto;
+    border-bottom: 1px solid var(--ds-border-default);
+}
+.pestana {
+    flex: none;
+    margin-bottom: -1px;
+    padding: var(--ds-space-2) var(--ds-space-4);
+    font: inherit;
+    font-weight: var(--ds-weight-medium);
+    color: var(--ds-text-secondary);
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+}
+.pestana:hover { color: var(--ds-text-primary); }
+.pestana[aria-selected="true"] {
+    color: var(--ds-text-primary);
+    border-bottom-color: var(--ds-primary-700);
+}
+
+/* —— Paginación —— (<nav aria-label>; la página actual lleva aria-current="page") */
+.paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--ds-space-1);
+}
+.paginacion-pagina {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0 var(--ds-space-2);
+    font: inherit;
+    color: var(--ds-text-primary);
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-md);
+    cursor: pointer;
+}
+.paginacion-pagina:hover:not([disabled]) { background: var(--ds-bg-subtle); }
+.paginacion-pagina[aria-current="page"] {
+    color: var(--ds-on-primary);
+    background: var(--ds-primary-600);
+    border-color: var(--ds-primary-600);
+}
+.paginacion-pagina[disabled] { opacity: 0.55; cursor: not-allowed; }
+.paginacion-puntos { align-self: center; color: var(--ds-text-muted); }
+
+/* —— Tabla ——
+   Contenedor con scroll horizontal que es una región enfocable y con nombre (sin eso el
+   teclado no puede desplazar una tabla ancha). Las columnas ordenables llevan un <button>
+   dentro del <th>, y `aria-sort` va en el <th>. */
+.tabla-contenedor {
+    overflow-x: auto;
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-lg);
+}
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+.tabla caption { padding: var(--ds-space-3) var(--ds-space-4); text-align: left; color: var(--ds-text-secondary); }
+.tabla th,
+.tabla td {
+    padding: var(--ds-space-2) var(--ds-space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--ds-border-light);
+}
+.tabla thead th {
+    font-size: var(--ds-font-xs);
+    font-weight: var(--ds-weight-semibold);
+    letter-spacing: var(--ds-tracking-wide);
+    text-transform: uppercase;
+    color: var(--ds-text-secondary);
+    background: var(--ds-bg-subtle);
+}
+.tabla .num { text-align: right; }
+.tabla tbody tr:last-child td { border-bottom: 0; }
+
+.th-orden {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-1);
+    padding: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+.th-orden::after { content: ""; width: 0.6em; }
+th[aria-sort="ascending"]  .th-orden::after { content: "\2191"; }
+th[aria-sort="descending"] .th-orden::after { content: "\2193"; }
+
+/* ==================== 6. ANIMACIONES ==================== */
+
 @keyframes ds-fadeIn {
     from { opacity: 0; }
     to   { opacity: 1; }
@@ -648,67 +852,6 @@ textarea::placeholder {
     }
 }
 
-@keyframes ds-fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-16px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes ds-slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(24px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes ds-slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-24px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes ds-scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes ds-modalIn {
-    from {
-        opacity: 0;
-        transform: translateY(-12px) scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* —— Animaciones de carga —— */
-@keyframes ds-shimmer {
-    0%   { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
-
 @keyframes ds-spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
@@ -719,147 +862,6 @@ textarea::placeholder {
     50%      { opacity: 0.5; }
 }
 
-/* —— Clases de animación —— */
-.ds-animate-fadeIn     { animation: ds-fadeIn 300ms var(--ds-transition-smooth) both; }
-.ds-animate-fadeInUp   { animation: ds-fadeInUp 350ms cubic-bezier(0.4, 0, 0.2, 1) both; }
-.ds-animate-fadeInDown { animation: ds-fadeInDown 350ms cubic-bezier(0.4, 0, 0.2, 1) both; }
-.ds-animate-slideInRight { animation: ds-slideInRight 300ms cubic-bezier(0.4, 0, 0.2, 1) both; }
-.ds-animate-scaleIn   { animation: ds-scaleIn 250ms cubic-bezier(0.4, 0, 0.2, 1) both; }
-
-/* Staggered delays for lists */
-.ds-stagger-1 { animation-delay: 50ms; }
-.ds-stagger-2 { animation-delay: 100ms; }
-.ds-stagger-3 { animation-delay: 150ms; }
-.ds-stagger-4 { animation-delay: 200ms; }
-.ds-stagger-5 { animation-delay: 250ms; }
-
-/* ==================== 7. SKELETON SCREENS ==================== */
-
-.ds-skeleton {
-    background: linear-gradient(
-        90deg,
-        var(--ds-secondary-100) 25%,
-        var(--ds-secondary-200) 50%,
-        var(--ds-secondary-100) 75%
-    );
-    background-size: 200% 100%;
-    animation: ds-shimmer 1.5s ease-in-out infinite;
-    border-radius: var(--ds-radius-md);
-}
-
-.ds-skeleton--text {
-    height: 14px;
-    margin-bottom: var(--ds-space-2);
-    border-radius: var(--ds-radius-sm);
-}
-
-.ds-skeleton--text:last-child {
-    width: 60%;
-}
-
-.ds-skeleton--heading {
-    height: 24px;
-    width: 40%;
-    margin-bottom: var(--ds-space-4);
-}
-
-.ds-skeleton--card {
-    height: 120px;
-    margin-bottom: var(--ds-space-4);
-}
-
-.ds-skeleton--avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--ds-radius-full);
-}
-
-.ds-skeleton--btn {
-    height: 40px;
-    width: 120px;
-}
-
-/* ==================== 8. TRANSICIONES DE PÁGINA ==================== */
-
-.ds-page-enter {
-    animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-.ds-section-transition {
-    transition: opacity var(--ds-transition-smooth), 
-                transform var(--ds-transition-smooth);
-}
-
-/* ==================== 9. TOAST / NOTIFICACIONES ==================== */
-
-.ds-toast {
-    position: fixed;
-    top: var(--ds-space-5);
-    right: var(--ds-space-5);
-    min-width: 320px;
-    max-width: 420px;
-    padding: var(--ds-space-4) var(--ds-space-5);
-    background: var(--ds-bg-card);
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-lg);
-    box-shadow: var(--ds-shadow-xl);
-    display: flex;
-    align-items: center;
-    gap: var(--ds-space-3);
-    z-index: var(--ds-z-toast);
-    animation: ds-slideInRight 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-.ds-toast--success { border-left: 4px solid var(--ds-success-500); }
-.ds-toast--warning { border-left: 4px solid var(--ds-warning-500); }
-.ds-toast--danger  { border-left: 4px solid var(--ds-danger-500); }
-.ds-toast--info    { border-left: 4px solid var(--ds-info-500); }
-
-/* ==================== 10. MODAL MEJORADO ==================== */
-
-.ds-modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--ds-scrim);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: var(--ds-z-modal);
-    animation: ds-fadeIn 200ms ease both;
-}
-
-.ds-modal-content {
-    background: var(--ds-bg-card);
-    border-radius: var(--ds-radius-xl);
-    box-shadow: var(--ds-shadow-xl);
-    max-width: 560px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: ds-modalIn 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-/* ==================== 11. UTILIDADES ==================== */
-
-.ds-text-center { text-align: center; }
-.ds-text-right  { text-align: right; }
-.ds-text-muted  { color: var(--ds-text-muted); }
-.ds-text-small  { font-size: var(--ds-font-sm); }
-.ds-font-medium { font-weight: 500; }
-.ds-font-semibold { font-weight: 600; }
-.ds-font-bold   { font-weight: 700; }
-
-.ds-flex        { display: flex; }
-.ds-flex-center { display: flex; align-items: center; justify-content: center; }
-.ds-flex-between { display: flex; align-items: center; justify-content: space-between; }
-.ds-gap-2       { gap: var(--ds-space-2); }
-.ds-gap-3       { gap: var(--ds-space-3); }
-.ds-gap-4       { gap: var(--ds-space-4); }
-
-.ds-mt-4 { margin-top: var(--ds-space-4); }
-.ds-mb-4 { margin-bottom: var(--ds-space-4); }
-.ds-p-4  { padding: var(--ds-space-4); }
-.ds-p-6  { padding: var(--ds-space-6); }
 
 /* ==================== 12. SCROLLBAR PERSONALIZADO ==================== */
 
