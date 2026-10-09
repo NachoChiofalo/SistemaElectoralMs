@@ -450,9 +450,11 @@ p {
    su formulario (cinco copias del modal, cinco del toast), y los `.ds-*` que existían acá
    no los usaba nadie.
 
-   Las bases van dentro de `:where()`: especificidad cero. Las hojas de pantalla que ya
-   tienen su propio `.btn` o `.form-input` siguen ganando sin pelea mientras migran, y lo
-   que no definen —foco, estado deshabilitado, carga— lo heredan de acá. */
+   Las hojas de pantalla cargan DESPUÉS de esta, así que con igual especificidad su propio
+   `.btn` o `.form-input` sigue ganando mientras migran, y lo que no definen —foco,
+   estado deshabilitado, carga— lo heredan de acá. Las bases NO van en `:where()`: con
+   especificidad cero pierden contra cualquier reset universal (`* { padding: 0 }`, que
+   varias páginas traen) y los botones salen sin relleno. */
 
 /* —— Controles nativos: base de color ——
    Las páginas estilan sus campos con sus propias clases (`.form-group input`,
@@ -475,7 +477,7 @@ textarea::placeholder {
 }
 
 /* —— Botón —— */
-:where(.btn) {
+.btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -499,10 +501,10 @@ textarea::placeholder {
                 transform var(--ds-dur-fast) var(--ds-ease-out);
 }
 
-:where(.btn):active { transform: translateY(1px); }
+.btn:active { transform: translateY(1px); }
 
-:where(.btn)[disabled],
-:where(.btn)[aria-disabled="true"] {
+.btn[disabled],
+.btn[aria-disabled="true"] {
     opacity: 0.55;
     cursor: not-allowed;
     pointer-events: none;
@@ -510,8 +512,8 @@ textarea::placeholder {
 
 /* En curso: el botón sigue habilitado hasta que arranca la petición y después muestra un
    spinner (no se bloquea antes, y no se deja sin respuesta visible). */
-:where(.btn)[aria-busy="true"] { pointer-events: none; }
-:where(.btn)[aria-busy="true"]::before {
+.btn[aria-busy="true"] { pointer-events: none; }
+.btn[aria-busy="true"]::before {
     content: "";
     flex: none;
     width: 1em;
@@ -522,32 +524,32 @@ textarea::placeholder {
     animation: ds-spin 0.7s linear infinite;
 }
 
-:where(.btn-primary)   { background: var(--ds-primary-600); color: var(--ds-on-primary); border-color: var(--ds-primary-600); }
-:where(.btn-primary):hover { background: var(--ds-primary-700); border-color: var(--ds-primary-700); }
+.btn-primary   { background: var(--ds-primary-600); color: var(--ds-on-primary); border-color: var(--ds-primary-600); }
+.btn-primary:hover { background: var(--ds-primary-700); border-color: var(--ds-primary-700); }
 
-:where(.btn-secondary) { background: var(--ds-bg-card); color: var(--ds-text-primary); border-color: var(--ds-border-strong); }
-:where(.btn-secondary):hover { background: var(--ds-bg-subtle); }
+.btn-secondary { background: var(--ds-bg-card); color: var(--ds-text-primary); border-color: var(--ds-border-strong); }
+.btn-secondary:hover { background: var(--ds-bg-subtle); }
 
-:where(.btn-ghost):hover { background: var(--ds-bg-subtle); }
+.btn-ghost:hover { background: var(--ds-bg-subtle); }
 
-:where(.btn-danger)    { background: var(--ds-danger-600); color: var(--ds-text-inverse); border-color: var(--ds-danger-600); }
-:where(.btn-danger):hover { background: var(--ds-danger-700); border-color: var(--ds-danger-700); }
+.btn-danger    { background: var(--ds-danger-600); color: var(--ds-text-inverse); border-color: var(--ds-danger-600); }
+.btn-danger:hover { background: var(--ds-danger-700); border-color: var(--ds-danger-700); }
 
-:where(.btn-sm)   { min-height: 28px; padding: 0 var(--ds-space-3); font-size: var(--ds-font-sm); }
+.btn-sm   { min-height: 28px; padding: 0 var(--ds-space-3); font-size: var(--ds-font-sm); }
 /* Botón de solo ícono: cuadrado, y SIEMPRE con aria-label (no tiene texto que lo nombre). */
-:where(.btn-icono) { width: 36px; padding: 0; }
-:where(.btn-icono.btn-sm) { width: 28px; }
+.btn-icono { width: 36px; padding: 0; }
+.btn-icono.btn-sm { width: 28px; }
 
 /* —— Campos de formulario ——
    Etiqueta arriba, ayuda opcional, error abajo. El error se asocia con `aria-describedby`
    y el control con `aria-invalid="true"`; el contenedor del error lleva `role="alert"`
    para que se anuncie cuando aparece. */
-:where(.campo) { display: grid; gap: var(--ds-space-1); }
-:where(.campo-etiqueta) { font-size: var(--ds-font-sm); font-weight: var(--ds-weight-medium); color: var(--ds-text-secondary); }
-:where(.campo-ayuda)    { font-size: var(--ds-font-sm); color: var(--ds-text-muted); }
-:where(.campo-error)    { font-size: var(--ds-font-sm); color: var(--ds-danger-on-tint); }
+.campo { display: grid; gap: var(--ds-space-1); }
+.campo-etiqueta { font-size: var(--ds-font-sm); font-weight: var(--ds-weight-medium); color: var(--ds-text-secondary); }
+.campo-ayuda    { font-size: var(--ds-font-sm); color: var(--ds-text-muted); }
+.campo-error    { font-size: var(--ds-font-sm); color: var(--ds-danger-on-tint); }
 
-:where(.campo) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+.campo :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
     width: 100%;
     min-height: 36px;
     padding: var(--ds-space-2) var(--ds-space-3);
@@ -558,18 +560,18 @@ textarea::placeholder {
     border-radius: var(--ds-radius-md);
 }
 
-:where(.campo) :is(input, select, textarea):hover { border-color: var(--ds-text-muted); }
+.campo :is(input, select, textarea):hover { border-color: var(--ds-text-muted); }
 
-:where(.campo) :is(input, select, textarea):focus-visible {
+.campo :is(input, select, textarea):focus-visible {
     outline: none;
     border-color: var(--ds-primary-700);
     box-shadow: var(--ds-shadow-focus);
 }
 
-:where(.campo) :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--ds-danger-600); }
+.campo :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--ds-danger-600); }
 
 /* Casilla o radio con su etiqueta: un solo blanco de clic. */
-:where(.campo-opcion) {
+.campo-opcion {
     display: inline-flex;
     align-items: center;
     gap: var(--ds-space-2);
@@ -579,7 +581,7 @@ textarea::placeholder {
 
 /* —— Insignia (estado en una palabra) ——
    Texto sobre tinte con los tokens *-on-tint, que cumplen 4,5:1 en los dos temas. */
-:where(.insignia) {
+.insignia {
     display: inline-flex;
     align-items: center;
     gap: var(--ds-space-1);
@@ -591,10 +593,10 @@ textarea::placeholder {
     background: var(--ds-bg-muted);
     color: var(--ds-text-secondary);
 }
-:where(.insignia--exito)  { background: var(--ds-success-100); color: var(--ds-success-on-tint); }
-:where(.insignia--aviso)  { background: var(--ds-warning-100); color: var(--ds-warning-on-tint); }
-:where(.insignia--error)  { background: var(--ds-danger-100);  color: var(--ds-danger-on-tint); }
-:where(.insignia--info)   { background: var(--ds-info-100);    color: var(--ds-info-on-tint); }
+.insignia--exito  { background: var(--ds-success-100); color: var(--ds-success-on-tint); }
+.insignia--aviso  { background: var(--ds-warning-100); color: var(--ds-warning-on-tint); }
+.insignia--error  { background: var(--ds-danger-100);  color: var(--ds-danger-on-tint); }
+.insignia--info   { background: var(--ds-info-100);    color: var(--ds-info-on-tint); }
 
 /* —— Diálogo ——
    Sobre el elemento nativo <dialog>: showModal() ya da capa superior, foco atrapado,
@@ -613,6 +615,8 @@ textarea::placeholder {
 }
 
 .dialogo[open] { display: flex; flex-direction: column; }
+/* El centrado nativo del modal es `margin: auto`; un `* { margin: 0 }` de página lo pisa. */
+.dialogo:modal { margin: auto; }
 .dialogo::backdrop { background: var(--ds-scrim); }
 .dialogo--ancho { width: min(720px, calc(100vw - var(--ds-space-8))); }
 
@@ -670,7 +674,8 @@ textarea::placeholder {
    mensaje, o varios lectores de pantalla no lo anuncian. Las crea lib/avisos.js. */
 .avisos {
     position: fixed;
-    top: var(--ds-space-4);
+    /* Debajo de la barra de navegación (que lleva tema y "salir" a la derecha). */
+    top: calc(var(--ds-space-16) + var(--ds-space-2));
     right: var(--ds-space-4);
     z-index: var(--ds-z-toast);
     width: min(380px, calc(100vw - var(--ds-space-8)));
