@@ -193,3 +193,14 @@ test('el design system define los componentes base del rediseño (panel, KPI, ca
   // La cifra de un KPI va en la mono: se compara en columna.
   assert.match(css, /\.kpi-valor\s*\{[^}]*font-family:\s*var\(--ds-font-mono\)/);
 });
+
+test('el shell de pantalla (contenedor, título, cabecera y encabezado de tabla) vive solo en design-system.css', () => {
+  const css = leer('src', 'styles', 'design-system.css');
+  for (const regla of ['main#contenido:not(.login-container)', 'main#contenido h1', 'main#contenido th', 'main#contenido :is(.inicio-header']) {
+    assert.ok(css.includes(regla), `falta la regla compartida ${regla}`);
+  }
+  // Cada pantalla tiene su h1: sin título no hay nada que unificar.
+  for (const archivo of ['PadronComponent', 'ResultadosComponent', 'MapaComponent', 'ListasComponent', 'UsuariosComponent', 'AuditoriaComponent', 'OpcionesPoliticasComponent']) {
+    assert.match(leer('src', 'components', `${archivo}.js`), /<h1[ >]/, `${archivo} sin <h1>`);
+  }
+});

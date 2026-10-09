@@ -170,7 +170,7 @@ body {
     background: var(--padron-card);
     border: 1px solid var(--ds-border-light);
     padding: 14px 16px;
-    border-radius: var(--ds-radius-md);
+    border-radius: var(--ds-radius-lg);
     margin-bottom: 16px;
 }
 
@@ -263,39 +263,8 @@ body {
     margin-left: auto;
 }
 
-.filtro-acciones .btn-sm {
-    height: 32px;
-    padding: 0 14px;
-    font-size: var(--ds-font-base);
-    font-weight: var(--ds-weight-medium);
-    border: 1px solid transparent;
-    border-radius: var(--ds-radius-sm);
-    white-space: nowrap;
-    cursor: pointer;
-}
-
 /* Filtrar es la acción; Limpiar la deshace. Una va en el acento y la otra en
    contorno: antes las dos eran bloques sólidos y competían. */
-.filtro-acciones .btn-primary {
-    background: var(--ds-primary-600);
-    color: var(--ds-on-primary);
-}
-
-.filtro-acciones .btn-primary:hover {
-    background: var(--ds-primary-700);
-}
-
-.filtro-acciones .btn-secondary {
-    background: transparent;
-    color: var(--ds-text-secondary);
-    border-color: var(--ds-border-default);
-}
-
-.filtro-acciones .btn-secondary:hover {
-    background: var(--ds-bg-subtle);
-    color: var(--ds-text-primary);
-}
-
 /* En pantallas chicas los filtros se apilan y los botones ocupan el ancho. */
 @media (max-width: 768px) {
     .filtro-item,

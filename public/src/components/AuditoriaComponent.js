@@ -59,7 +59,10 @@
             container.innerHTML = `
                 <div class="auditoria-container">
                     <div class="auditoria-header">
-                        <h1><i class="fas fa-clipboard-list" aria-hidden="true"></i> Auditoría del padrón</h1>
+                        <div class="auditoria-title">
+                            <h1><i class="fas fa-clipboard-list" aria-hidden="true"></i> Auditoría</h1>
+                            <p class="auditoria-subtitle">Quién tocó qué y cuándo: registro de operaciones del sistema</p>
+                        </div>
                     </div>
 
                     <div id="auditoria-stats" class="auditoria-stats">

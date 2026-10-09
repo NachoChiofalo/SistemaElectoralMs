@@ -42,7 +42,7 @@ class OpcionesPoliticasComponent {
         this.container.innerHTML = `
             <div class="usuarios-header">
                 <div class="usuarios-title">
-                    <h1><i class="fas fa-flag" aria-hidden="true"></i> Opciones políticas</h1>
+                    <h1><i class="fas fa-sliders-h" aria-hidden="true"></i> Opciones políticas</h1>
                     <p class="usuarios-subtitle">Lo que se puede marcar al relevar a un votante. Se usa en el padrón, los resultados y el inicio.</p>
                 </div>
                 <div class="usuarios-actions">

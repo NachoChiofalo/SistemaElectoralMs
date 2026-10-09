@@ -64,6 +64,9 @@ espacio de respeto = alto del tilde, solo sobre superficies neutras. En la barra
 **máscara** (`mask-image` sobre el PNG con canal alfa) con `background: var(--ds-text-primary)`:
 la tinta sigue al tema sin filtros. Lockup expandida, ícono colapsada.
 
+## Pantalla (igual en todas)
+Contenedor `main#contenido`: 1440 px máx., relleno 24 px (16 en móvil). Cabecera: `h1` de 24 px / 600 con el ícono de su destino de la barra, subtítulo de 13 px en tono atenuado debajo, acciones a la derecha, 20 px de aire hasta el contenido. Encabezado de tabla: 12 px, 600, mayúsculas, `--ds-bg-subtle`. Todo esto vive **una sola vez** en `design-system.css` (sección "Pantalla"), con `main#contenido` para ganarle a las hojas de pantalla sin `!important`. Una pantalla nueva usa esas clases de cabecera y no define su ancho, su título ni su botón.
+
 ## Barra lateral
 Columna fija a la izquierda en escritorio (240 px; 68 px colapsada a íconos; preferencia en
 `localStorage`, clave `sistema-electoral:nav`, reflejada en `data-nav` del `<html>`). De ese

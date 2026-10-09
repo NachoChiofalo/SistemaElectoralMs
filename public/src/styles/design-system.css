@@ -1013,6 +1013,69 @@ textarea::placeholder {
 th[aria-sort="ascending"]  .th-orden::after { content: "\2191"; }
 th[aria-sort="descending"] .th-orden::after { content: "\2193"; }
 
+/* —— Pantalla: contenedor, cabecera, título y tablas, iguales en todas ——
+   Cada pantalla tenía su propio ancho máximo (1280, 1400, 1440, 1600), su relleno (20 y 24),
+   su título (24, 25,6, 26 y 28 px; pesos 600 y 700) y sus encabezados de tabla (11, 12 y
+   12,5 px). Acá se fija una vez. Los selectores llevan `main#contenido` a propósito: el id
+   les da la especificidad para ganarle a las hojas de pantalla sin `!important`, y esas
+   hojas sólo conservan lo que es propio de su contenido. */
+main#contenido:not(.login-container) {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 var(--ds-space-6) var(--ds-space-12);
+    box-sizing: border-box;
+}
+@media (max-width: 768px) {
+    main#contenido:not(.login-container) { padding: var(--ds-space-4) var(--ds-space-4) var(--ds-space-8); }
+}
+
+main#contenido :is(.inicio-header, .padron-header, .resultados-header, .mapa-header, .listas-header,
+                   .comicio-header, .usuarios-header, .auditoria-header) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--ds-space-3) var(--ds-space-4);
+    margin: 0 0 var(--ds-space-5);
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+main#contenido h1 {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-2);
+    margin: 0;
+    font-size: var(--ds-font-2xl);
+    font-weight: var(--ds-weight-semibold);
+    line-height: 1.25;
+    letter-spacing: var(--ds-tracking-tight);
+    color: var(--ds-text-primary);
+}
+main#contenido h1 > i { flex: none; font-size: 1.1rem; color: var(--ds-text-muted); }
+main#contenido h1 + p {
+    margin: var(--ds-space-1) 0 0;
+    font-size: var(--ds-font-sm);
+    font-weight: var(--ds-weight-normal);
+    line-height: 1.5;
+    color: var(--ds-text-muted);
+}
+
+main#contenido th {
+    padding: 10px var(--ds-space-3);
+    font-size: var(--ds-font-xs);
+    font-weight: var(--ds-weight-semibold);
+    letter-spacing: var(--ds-tracking-wide);
+    text-transform: uppercase;
+    color: var(--ds-text-secondary);
+    background: var(--ds-bg-subtle);
+    border-bottom: 1px solid var(--ds-border-default);
+}
+
 /* ==================== 6. ANIMACIONES ==================== */
 
 @keyframes ds-fadeIn {
@@ -1416,3 +1479,7 @@ th[aria-sort="descending"] .th-orden::after { content: "\2193"; }
 .op-7 { --opcion-color: var(--ds-fuerza-7); --opcion-on: var(--ds-on-fuerza-7); }
 .op-8 { --opcion-color: var(--ds-fuerza-8); --opcion-on: var(--ds-on-fuerza-8); }
 .op-neutra { --opcion-color: var(--ds-party-indeciso); --opcion-on: var(--ds-on-party-indeciso); }
+
+/* El encabezado del inicio lleva el título y la fecha como hermanos directos: en bloque,
+   no en fila, para que la fecha quede bajo el título como el subtítulo de las demás. */
+main#contenido .inicio-header { display: block; }

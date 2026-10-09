@@ -43,7 +43,7 @@ class MapaComponent {
         this.contenedor.innerHTML = `
             <div class="mapa-header">
                 <div>
-                    <h2><i class="fas fa-map"></i> Mapa</h2>
+                    <h1><i class="fas fa-map" aria-hidden="true"></i> Mapa</h1>
                     <p class="mapa-subtitulo" id="mapa-subtitulo">Cargando…</p>
                 </div>
                 <button id="btn-recalcular" class="btn btn-secondary" type="button">
@@ -68,7 +68,7 @@ class MapaComponent {
             <div class="mapa-cuerpo">
                 <div class="mapa-columna">
                     <div class="mapa-lienzo" id="mapa-lienzo"><p class="mapa-vacio">Cargando el mapa…</p></div>
-                    <div class="mapa-leyenda" id="mapa-leyenda" aria-label="Referencias"></div>
+                    <div class="mapa-leyenda" id="mapa-leyenda" role="group" aria-label="Referencias"></div>
                 </div>
                 <aside class="mapa-panel" id="mapa-panel" aria-live="polite">
                     <p class="mapa-vacio">Tocá una manzana para ver sus datos y los de su radio censal.</p>

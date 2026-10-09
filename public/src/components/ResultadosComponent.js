@@ -77,7 +77,7 @@ class ResultadosComponent {
         this.container.innerHTML = `
             <div class="resultados-header">
                 <div class="resultados-title">
-                    <h1><i class="fas fa-chart-bar" aria-hidden="true"></i> Estadísticas y reportes</h1>
+                    <h1><i class="fas fa-chart-bar" aria-hidden="true"></i> Resultados</h1>
                     <p class="resultados-subtitle">Panel de análisis del relevamiento electoral</p>
                     <p class="resultados-update-time" id="ultima-actualizacion"></p>
                 </div>

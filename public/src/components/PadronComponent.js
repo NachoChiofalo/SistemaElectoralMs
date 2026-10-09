@@ -101,7 +101,7 @@ class PadronComponent {
         this.container.innerHTML = `
             <div class="padron-header">
                 <div class="padron-title">
-                    <h1><i class="fas fa-users-cog" aria-hidden="true"></i> Padrón Electoral</h1>
+                    <h1><i class="fas fa-list" aria-hidden="true"></i> Padrón electoral</h1>
                     <p class="padron-subtitle">Gestión y relevamiento del padrón electoral</p>
                 </div>
                 <div class="padron-actions">
