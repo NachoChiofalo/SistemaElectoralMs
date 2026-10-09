@@ -295,6 +295,16 @@
     --ds-weight-semibold: 600;
     --ds-weight-bold: 700;
 
+    /* —— Movimiento ——
+       Duración y curva por separado, para componer una transición con propiedades
+       explícitas (nunca `all`): `transition: color var(--ds-dur-fast) var(--ds-ease-out)`.
+       Los componentes nuevos de la Fase 2 usan estos; los --ds-transition-* de abajo
+       siguen para las hojas que todavía no migraron. Todo se apaga con
+       prefers-reduced-motion (sección 15). */
+    --ds-dur-fast: 120ms;
+    --ds-dur-base: 200ms;
+    --ds-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
     /* —— Transiciones —— */
     --ds-transition-fast:   150ms ease;
     --ds-transition-base:   250ms ease;
