@@ -21,32 +21,16 @@
 
     <!-- Estilos -->
     <link rel="stylesheet" href="src/styles/navbar-styles.css?v=4edf728d">
-    <link rel="stylesheet" href="src/styles/comicio-styles.css?v=f10b4e3a">
-    <link rel="stylesheet" href="src/styles/fiscales-styles.css?v=5bcc1a2f">
+    <link rel="stylesheet" href="src/styles/comicio-styles.css?v=15024971">
+    <link rel="stylesheet" href="src/styles/fiscales-styles.css?v=a5c4c50e">
     <link rel="stylesheet" href="src/styles/microchart.css?v=aadaea89">
-
-    <style>
-        body {
-            font-family: var(--ds-font-family);
-            background-color: var(--ds-bg-page);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-
-        .page-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px 20px;
-        }
-    </style>
 </head>
 <body>
     <!-- Barra de navegacion unificada -->
     <div id="navbar-container"></div>
 
     <main class="page-container" id="contenido" tabindex="-1">
-        <div id="comicio-container" aria-live="polite">
+        <div id="comicio-container">
             <!-- ComicioComponent se renderiza aqui -->
         </div>
     </main>
@@ -55,8 +39,10 @@
     <script src="src/components/NavbarComponent.js?v=12c40f67"></script>
     <script src="src/services/ApiService.js?v=20eebc7b"></script>
     <script src="src/services/AuthService.js?v=a6ec8d65"></script>
+    <script src="src/lib/estados.js?v=b3c74a8f"></script>
+    <script src="src/lib/pestanas.js?v=0a9e73b3"></script>
     <script src="src/lib/microchart.js?v=265cf6c7"></script>
-    <script src="src/components/ComicioComponent.js?v=986cafe3"></script>
-    <script src="src/pages/comicio.js?v=e3fd7721"></script>
+    <script src="src/components/ComicioComponent.js?v=7dc46d97"></script>
+    <script src="src/pages/comicio.js?v=523256e4"></script>
 </body>
 </html>

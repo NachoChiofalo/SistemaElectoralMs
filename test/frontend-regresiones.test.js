@@ -62,10 +62,13 @@ test('ninguna pagina conserva el indigo de la identidad anterior (FE-023)', () =
   }
 });
 
-test('Escape no toca los modales de fiscales si no estan en el DOM (FE-018, FE-010)', () => {
-  const fuente = leer('src', 'components', 'ComicioComponent.js');
-  assert.ok(fuente.includes("if (document.getElementById('modal-fiscal')) this.cerrarModalFiscal();"));
+test('los modales de fiscales solo se tocan si existen, y Escape lo maneja cada <dialog> (FE-018, FE-010)', () => {
+  // El modal de fiscal solo esta en el DOM con fiscalesView (FE-010): los listeners se enganchan
+  // detras de esa guarda. Y ya no hay un listener global de Escape que cierre los seis modales
+  // existan o no (FE-018): cada <dialog> nativo cierra el suyo.
+  const fuente = leer('src', 'components', 'ComicioComponent.js').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
   assert.ok(fuente.includes('this.permisos.fiscalesEdit && this.permisos.fiscalesView'));
+  assert.doesNotMatch(fuente, /key\s*!==?\s*'Escape'/);
 });
 
 test('la tabla del padron avisa que esta ocupada mientras carga (FE-025)', () => {
@@ -162,4 +165,40 @@ test('app.js no inventa permisos cuando falla /api/auth/me', () => {
   const fuente = leer('src', 'app.js').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
   assert.doesNotMatch(fuente, /userPermissions\s*=\s*\['padron/);
   assert.doesNotMatch(fuente, /setTimeout/);
+});
+
+test('comicio usa los componentes compartidos y no vuelve a lo hecho a mano', () => {
+  const fuente = leer('src', 'components', 'ComicioComponent.js').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  // Los seis modales son <dialog> nativos (foco atrapado, Escape, fondo inerte).
+  assert.equal((fuente.match(/<dialog id="\$\{id\}"/g) || []).length, 1, 'un unico generador de <dialog>');
+  assert.doesNotMatch(fuente, /modal-overlay|modal-content/);
+
+  // Sin confirm() del navegador, sin toast propio, sin display:none a mano.
+  assert.doesNotMatch(fuente, /(^|[^.\w])(confirm|alert)\s*\(/m);
+  assert.doesNotMatch(fuente, /toast-container|toast-visible/);
+  assert.doesNotMatch(fuente, /style="display:\s*none|\.style\.display\s*=/);
+  assert.match(fuente, /window\.avisos\.mostrar\(/);
+
+  // Pestañas WAI-ARIA con lib/pestanas.js (antes: botones con una clase "activa").
+  assert.match(fuente, /window\.pestanas\.iniciar\(/);
+  assert.match(fuente, /role="tabpanel"/);
+});
+
+test('los botones de ícono de comicio llevan nombre accesible, no solo title', () => {
+  const fuente = leer('src', 'components', 'ComicioComponent.js');
+  const iconos = fuente.match(/<button[^>]*class="btn-accion[^"]*"[^>]*>/g) || [];
+  assert.ok(iconos.length >= 10, 'se esperaban los botones de acción de las tablas');
+  for (const b of iconos) assert.match(b, /aria-label=/, `sin aria-label: ${b.slice(0, 90)}`);
+});
+
+test('una edicion de franja rechazada no deja el boton "Guardando…" para siempre', () => {
+  // Antes el texto del boton solo se restauraba fuera del modo edicion: si fallaba una EDICION
+  // (p. ej. por solaparse con otra franja) quedaba con el spinner. Ahora es aria-busy.
+  const fuente = leer('src', 'components', 'ComicioComponent.js');
+  const cuerpo = fuente
+    .slice(fuente.indexOf('async guardarAsignacion()'), fuente.indexOf('async eliminarAsignacion'))
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+  assert.match(cuerpo, /removeAttribute\('aria-busy'\)/);
+  assert.doesNotMatch(cuerpo, /Guardando/);
 });

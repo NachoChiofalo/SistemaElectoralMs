@@ -23,7 +23,26 @@
  *
  * Varias vistas dentro del mismo contenedor (listado / detalle de comicio), sin router,
  * como el resto del frontend hace con paneles.
+ *
+ * Interfaz: los modales son <dialog> nativos (lib/dialogo.js: foco atrapado, Escape, fondo
+ * inerte) en lugar de `div.modal-overlay` con display:none; los avisos son lib/avisos.js; las
+ * confirmaciones, dialogo.confirmar() en lugar de confirm(); las pestañas, lib/pestanas.js.
  */
+
+(function () {
+'use strict';
+
+const $ = (id) => document.getElementById(id);
+
+/** Porcentaje con la coma decimal de es-AR ("33,3"): toFixed daba "33.3". */
+function formatPct(valor, decimales = 1) {
+    const n = Number(valor);
+    return new Intl.NumberFormat('es-AR', {
+        minimumFractionDigits: decimales,
+        maximumFractionDigits: decimales
+    }).format(Number.isFinite(n) ? n : 0);
+}
+
 class ComicioComponent {
     constructor() {
         this.container = null;
@@ -43,11 +62,11 @@ class ComicioComponent {
         this.graficoBarras = null;
 
         this.subTabActual = 'mesas'; // 'mesas' | 'fuerzas' | 'fiscales' | 'resultados', dentro de un comicio
-        this.modalComicioPausado = false; // true mientras el modal de fuerza tapa al de comicio (bootstrap)
+        this.tabs = null;            // API de lib/pestanas.js sobre el tablist del comicio abierto
     }
 
     async init(containerId = 'comicio-container', permisos = {}) {
-        this.container = document.getElementById(containerId);
+        this.container = $(containerId);
         if (!this.container) throw new Error(`Contenedor ${containerId} no encontrado`);
         this.permisos = { ...this.permisos, ...permisos };
 
@@ -80,7 +99,6 @@ class ComicioComponent {
                 ${this.htmlModalVotos()}
                 ${this.permisos.fiscalesView ? this.htmlModalFiscal() : ''}
                 ${this.permisos.fiscalesView ? this.htmlModalFiscalesMesa() : ''}
-                <div id="toast-container" class="toast-container"></div>
             `;
             return;
         }
@@ -88,50 +106,99 @@ class ComicioComponent {
         // Sin comicio.view: sólo el padrón de fiscales, sin comicio ni calendario (ambos
         // necesitan una mesa, y una mesa vive dentro de un comicio).
         this.container.innerHTML = `
-            ${this.htmlSeccionFiscales()}
+            ${this.htmlSeccionFiscales(1)}
             ${this.htmlModalFiscal()}
-            <div id="toast-container" class="toast-container"></div>
         `;
     }
 
-    htmlModalFuerza() {
-        return `
-            <div id="modal-fuerza" class="modal-overlay" style="display: none;">
-                <div class="modal-content modal-sm">
-                    <div class="modal-header">
-                        <h3 id="modal-fuerza-titulo"><i class="fas fa-plus"></i> Nueva Fuerza</h3>
-                        <button type="button" class="modal-close" id="modal-fuerza-close">&times;</button>
-                    </div>
-                    <form id="form-fuerza" class="modal-body">
-                        <input type="hidden" id="form-fuerza-id" value="">
-                        <div class="form-group">
-                            <label for="form-fuerza-nombre">Nombre <span class="required">*</span></label>
-                            <input type="text" id="form-fuerza-nombre" class="form-input" required maxlength="200">
-                        </div>
-                        <div class="form-group">
-                            <label for="form-fuerza-sigla">Sigla</label>
-                            <input type="text" id="form-fuerza-sigla" class="form-input" maxlength="20" placeholder="Sigla de la fuerza">
-                        </div>
-                        <div class="form-group">
-                            <label>Color <span class="required">*</span></label>
-                            <input type="hidden" id="form-fuerza-color" value="1">
-                            <div class="color-swatches" id="form-fuerza-color-swatches">
-                                ${Array.from({ length: 8 }, (_, i) => i + 1).map((n) => `
-                                    <button type="button" class="color-swatch color-swatch-${n}" data-color="${n}" title="Color ${n}"></button>
-                                `).join('')}
-                            </div>
-                        </div>
-                        <div id="form-fuerza-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-fuerza">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" id="btn-guardar-fuerza">
-                                <i class="fas fa-save"></i> Guardar
-                            </button>
-                        </div>
-                    </form>
-                </div>
+    // ==================== Diálogos (lib/dialogo.js) ====================
+
+    /**
+     * Estructura común de un modal: <dialog> con cabecera (título + cerrar), cuerpo y pie.
+     * El título lleva un ícono decorativo y se cambia con `fijarTitulo`. El error del
+     * formulario es una región `role="alert"` oculta hasta que hay algo que decir.
+     */
+    htmlDialogo({ id, icono, titulo, ancho = false, cuerpo, pie = '', form = null }) {
+        const interior = `
+            <div class="dialogo-cabecera">
+                <h2 class="dialogo-titulo" id="${id}-titulo"><i class="fas ${icono}" aria-hidden="true"></i> ${titulo}</h2>
+                <button type="button" class="btn btn-ghost btn-icono btn-sm dialogo-cerrar" id="${id}-close" aria-label="Cerrar">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
             </div>
+            <div class="dialogo-cuerpo">${cuerpo}</div>
+            ${pie ? `<div class="dialogo-pie">${pie}</div>` : ''}
         `;
+        return `
+            <dialog id="${id}" class="dialogo${ancho ? ' dialogo--ancho' : ''}" aria-labelledby="${id}-titulo">
+                ${form ? `<form id="${form}" novalidate>${interior}</form>` : interior}
+            </dialog>
+        `;
+    }
+
+    fijarTitulo(id, icono, texto) {
+        const h = $(id);
+        const i = document.createElement('i');
+        i.className = `fas ${icono}`;
+        i.setAttribute('aria-hidden', 'true');
+        h.replaceChildren(i, ` ${texto}`);
+    }
+
+    abrirDialogo(id) {
+        const dlg = $(id);
+        if (dlg && !dlg.open) window.dialogo.mostrar(dlg);
+    }
+
+    cerrarDialogo(id) {
+        $(id)?.close();
+    }
+
+    /** ¿Está abierto el diálogo? (reemplaza el `style.display === 'flex'` de los overlays) */
+    estaAbierto(id) {
+        return !!$(id)?.open;
+    }
+
+    async confirmarEliminar(mensaje) {
+        return window.dialogo.confirmar({
+            titulo: 'Eliminar',
+            mensaje,
+            confirmar: 'Eliminar',
+            cancelar: 'Cancelar',
+            tono: 'peligro'
+        });
+    }
+
+    // ==================== Fuerzas ====================
+
+    htmlModalFuerza() {
+        return this.htmlDialogo({
+            id: 'modal-fuerza', form: 'form-fuerza', icono: 'fa-plus', titulo: 'Nueva fuerza',
+            cuerpo: `
+                <input type="hidden" id="form-fuerza-id" value="">
+                <div class="form-group">
+                    <label for="form-fuerza-nombre">Nombre <span class="required" aria-hidden="true">*</span></label>
+                    <input type="text" id="form-fuerza-nombre" class="form-input" required aria-required="true" maxlength="200" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="form-fuerza-sigla">Sigla</label>
+                    <input type="text" id="form-fuerza-sigla" class="form-input" maxlength="20" placeholder="Sigla de la fuerza" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <span class="etiqueta-grupo" id="form-fuerza-color-etiqueta">Color <span class="required" aria-hidden="true">*</span></span>
+                    <input type="hidden" id="form-fuerza-color" value="1">
+                    <div class="color-swatches" id="form-fuerza-color-swatches" role="group" aria-labelledby="form-fuerza-color-etiqueta">
+                        ${Array.from({ length: 8 }, (_, i) => i + 1).map((n) => `
+                            <button type="button" class="color-swatch color-swatch-${n}" data-color="${n}" aria-label="Color ${n}" aria-pressed="false"></button>
+                        `).join('')}
+                    </div>
+                </div>
+                <div id="form-fuerza-error" class="form-error" role="alert" hidden></div>`,
+            pie: `
+                <button type="button" class="btn btn-secondary" id="btn-cancelar-fuerza">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="btn-guardar-fuerza">
+                    <i class="fas fa-save" aria-hidden="true"></i> Guardar
+                </button>`,
+        });
     }
 
     /** Carga la lista global de fuerzas. El render vive en el comicio abierto (o en el
@@ -144,7 +211,7 @@ class ComicioComponent {
                 if (this.comicioActual) this.renderizarFuerzasComicio();
             }
         } catch (error) {
-            this.mostrarToast('Error al cargar fuerzas: ' + error.message, 'error');
+            this.mostrarToast('No se pudieron cargar las fuerzas: ' + error.message, 'error');
         }
     }
 
@@ -156,10 +223,22 @@ class ComicioComponent {
         return `var(--ds-fuerza-${Number.isInteger(n) && n >= 1 && n <= 8 ? n : 1})`;
     }
 
+    /**
+     * Clase `op-N` (design-system.css) que fija `--opcion-color`. Los puntos de color
+     * se pintan con esa variable en CSS; antes cada uno llevaba `style="background:..."` en el
+     * markup, que es lo que impide quitar 'unsafe-inline' de la CSP de estilos.
+     */
+    claseFuerza(color) {
+        const n = Number(color);
+        return `op-${Number.isInteger(n) && n >= 1 && n <= 8 ? n : 1}`;
+    }
+
     seleccionarColorFuerza(color) {
-        document.getElementById('form-fuerza-color').value = color;
+        $('form-fuerza-color').value = color;
         document.querySelectorAll('#form-fuerza-color-swatches .color-swatch').forEach((btn) => {
-            btn.classList.toggle('color-swatch-selected', Number(btn.dataset.color) === color);
+            const activo = Number(btn.dataset.color) === color;
+            btn.classList.toggle('color-swatch-selected', activo);
+            btn.setAttribute('aria-pressed', String(activo));
         });
     }
 
@@ -168,64 +247,47 @@ class ComicioComponent {
         return (this.fuerzas.length % 8) + 1;
     }
 
-    /**
-     * Si el modal de comicio está abierto (bootstrap: crear la primera fuerza sin salir
-     * de "Nuevo Comicio"), se oculta mientras dure el de fuerza y se restaura al
-     * cerrarlo -- nunca dos `.modal-overlay` superpuestos, mismo criterio que ya se
-     * aplicó para no anidar el modal de asignación de fiscal dentro del de la mesa.
-     */
-    pausarModalComicioSiAbierto() {
-        const modalComicio = document.getElementById('modal-comicio');
-        if (modalComicio && modalComicio.style.display === 'flex') {
-            modalComicio.style.display = 'none';
-            this.modalComicioPausado = true;
-        }
-    }
-
     abrirModalCrearFuerza() {
-        this.pausarModalComicioSiAbierto();
-        document.getElementById('modal-fuerza-titulo').innerHTML = '<i class="fas fa-plus"></i> Nueva Fuerza';
-        document.getElementById('form-fuerza-id').value = '';
-        document.getElementById('form-fuerza-nombre').value = '';
-        document.getElementById('form-fuerza-sigla').value = '';
-        document.getElementById('form-fuerza-error').style.display = 'none';
+        // Si se llegó desde "Nuevo comicio" (bootstrap: no hay fuerzas para elegir), este
+        // diálogo se abre ENCIMA del de comicio: la pila de <dialog> nativos lo resuelve, y
+        // al cerrarlo el de abajo vuelve solo. Antes había que ocultar uno para mostrar el otro.
+        this.fijarTitulo('modal-fuerza-titulo', 'fa-plus', 'Nueva fuerza');
+        $('form-fuerza-id').value = '';
+        $('form-fuerza-nombre').value = '';
+        $('form-fuerza-sigla').value = '';
+        this.ocultarError('form-fuerza-error');
         this.seleccionarColorFuerza(this.proximoColorFuerza());
-        document.getElementById('modal-fuerza').style.display = 'flex';
-        document.getElementById('form-fuerza-nombre').focus();
+        this.abrirDialogo('modal-fuerza');
+        $('form-fuerza-nombre').focus();
     }
 
     abrirModalEditarFuerza(id) {
         const fuerza = this.fuerzas.find((f) => f.id === id);
         if (!fuerza) return;
-        document.getElementById('modal-fuerza-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Fuerza';
-        document.getElementById('form-fuerza-id').value = fuerza.id;
-        document.getElementById('form-fuerza-nombre').value = fuerza.nombre;
-        document.getElementById('form-fuerza-sigla').value = fuerza.sigla || '';
-        document.getElementById('form-fuerza-error').style.display = 'none';
+        this.fijarTitulo('modal-fuerza-titulo', 'fa-edit', 'Editar fuerza');
+        $('form-fuerza-id').value = fuerza.id;
+        $('form-fuerza-nombre').value = fuerza.nombre;
+        $('form-fuerza-sigla').value = fuerza.sigla || '';
+        this.ocultarError('form-fuerza-error');
         this.seleccionarColorFuerza(fuerza.color || 1);
-        document.getElementById('modal-fuerza').style.display = 'flex';
+        this.abrirDialogo('modal-fuerza');
     }
 
     cerrarModalFuerza() {
-        document.getElementById('modal-fuerza').style.display = 'none';
-        if (this.modalComicioPausado) {
-            this.modalComicioPausado = false;
-            document.getElementById('modal-comicio').style.display = 'flex';
-        }
+        this.cerrarDialogo('modal-fuerza');
     }
 
     async guardarFuerza() {
-        const id = document.getElementById('form-fuerza-id').value;
+        const id = $('form-fuerza-id').value;
         const isEdit = !!id;
-        const nombre = document.getElementById('form-fuerza-nombre').value.trim();
-        const sigla = document.getElementById('form-fuerza-sigla').value.trim();
-        const color = Number(document.getElementById('form-fuerza-color').value);
+        const nombre = $('form-fuerza-nombre').value.trim();
+        const sigla = $('form-fuerza-sigla').value.trim();
+        const color = Number($('form-fuerza-color').value);
 
-        if (!nombre) return this.mostrarError('form-fuerza-error', 'El nombre de la fuerza es obligatorio');
+        if (!nombre) return this.mostrarError('form-fuerza-error', 'El nombre de la fuerza es obligatorio', 'form-fuerza-nombre');
 
-        const btn = document.getElementById('btn-guardar-fuerza');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        const btn = $('btn-guardar-fuerza');
+        btn.setAttribute('aria-busy', 'true');
 
         try {
             const data = { nombre, sigla: sigla || null, color };
@@ -241,21 +303,20 @@ class ComicioComponent {
                 this.cerrarModalFuerza();
                 this.mostrarToast(isEdit ? 'Fuerza actualizada' : 'Fuerza creada', 'success');
                 await this.cargarFuerzas();
-                if (document.getElementById('modal-comicio').style.display === 'flex') {
+                if (this.estaAbierto('modal-comicio')) {
                     const seleccion = isEdit ? checklistPrevio : [...checklistPrevio, response.data.id];
                     this.renderizarChecklistFuerzas(seleccion);
                 }
             }
         } catch (error) {
-            this.mostrarError('form-fuerza-error', error.message || 'Error al guardar la fuerza');
+            this.mostrarError('form-fuerza-error', error.message || 'No se pudo guardar la fuerza');
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            btn.removeAttribute('aria-busy');
         }
     }
 
     async eliminarFuerza(id, nombre) {
-        if (!confirm(`¿Eliminar la fuerza "${nombre}"?`)) return;
+        if (!(await this.confirmarEliminar(`¿Eliminar la fuerza "${nombre}"?`))) return;
         try {
             const response = await window.apiService.eliminarFuerza(id);
             if (response.success) {
@@ -263,36 +324,43 @@ class ComicioComponent {
                 await this.cargarFuerzas();
             }
         } catch (error) {
-            this.mostrarToast('Error al eliminar: ' + error.message, 'error');
+            this.mostrarToast('No se pudo eliminar: ' + error.message, 'error');
         }
     }
 
     // ==================== Fiscales (padrón) ====================
 
-    htmlSeccionFiscales() {
+    /**
+     * `nivel` es el nivel de encabezado: 1 cuando el padrón de fiscales es la pantalla entera
+     * (sin comicio.view), 2 cuando es una sección dentro de un comicio.
+     */
+    htmlSeccionFiscales(nivel = 2) {
+        const h = `h${nivel}`;
         return `
             <div class="fiscales-header">
                 <div class="fiscales-title">
-                    <h2><i class="fas fa-user-shield"></i> Fiscales</h2>
+                    <${h}><i class="fas fa-user-shield" aria-hidden="true"></i> Fiscales</${h}>
                     <p class="fiscales-subtitle">Registro de fiscales. La asignación a una mesa se hace dentro de cada comicio.</p>
                 </div>
                 ${this.permisos.fiscalesEdit ? `
                 <div class="fiscales-actions">
-                    <button id="btn-crear-fiscal" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> <span class="btn-text">Nuevo Fiscal</span>
+                    <button type="button" id="btn-crear-fiscal" class="btn btn-primary" aria-label="Nuevo fiscal">
+                        <i class="fas fa-plus" aria-hidden="true"></i> <span class="btn-text">Nuevo fiscal</span>
                     </button>
                 </div>` : ''}
             </div>
-            <div class="fiscales-tabla-container" style="margin-bottom: 32px;">
-                <div id="fiscales-loading" class="fiscales-loading" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i> Cargando fiscales...
+            <div class="fiscales-tabla-container" role="region" aria-label="Fiscales registrados" tabindex="0">
+                <div id="fiscales-loading" class="fiscales-loading" role="status" hidden>
+                    <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Cargando fiscales…
                 </div>
+                <div id="fiscales-error" hidden></div>
                 <table class="fiscales-tabla" id="fiscales-tabla">
-                    <thead><tr><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Acciones</th></tr></thead>
+                    <caption class="sr-only">Fiscales registrados</caption>
+                    <thead><tr><th scope="col">Nombre</th><th scope="col">DNI</th><th scope="col">Teléfono</th><th scope="col">Acciones</th></tr></thead>
                     <tbody id="fiscales-tbody"></tbody>
                 </table>
-                <div id="fiscales-empty" class="fiscales-empty" style="display: none;">
-                    <i class="fas fa-user-shield"></i>
+                <div id="fiscales-empty" class="fiscales-empty" hidden>
+                    <i class="fas fa-user-shield" aria-hidden="true"></i>
                     <p>Todavía no hay fiscales cargados</p>
                 </div>
             </div>
@@ -300,44 +368,36 @@ class ComicioComponent {
     }
 
     htmlModalFiscal() {
-        return `
-            <div id="modal-fiscal" class="modal-overlay" style="display: none;">
-                <div class="modal-content modal-sm">
-                    <div class="modal-header">
-                        <h3 id="modal-fiscal-titulo"><i class="fas fa-plus"></i> Nuevo Fiscal</h3>
-                        <button type="button" class="modal-close" id="modal-fiscal-close">&times;</button>
-                    </div>
-                    <form id="form-fiscal" class="modal-body">
-                        <input type="hidden" id="form-fiscal-id" value="">
-                        <div class="form-group">
-                            <label for="form-fiscal-nombre">Nombre <span class="required">*</span></label>
-                            <input type="text" id="form-fiscal-nombre" class="form-input" required maxlength="200">
-                        </div>
-                        <div class="form-group">
-                            <label for="form-fiscal-dni">DNI</label>
-                            <input type="text" id="form-fiscal-dni" class="form-input" maxlength="20">
-                        </div>
-                        <div class="form-group">
-                            <label for="form-fiscal-telefono">Teléfono</label>
-                            <input type="text" id="form-fiscal-telefono" class="form-input" maxlength="50">
-                        </div>
-                        <div id="form-fiscal-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-fiscal">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" id="btn-guardar-fiscal">
-                                <i class="fas fa-save"></i> Guardar
-                            </button>
-                        </div>
-                    </form>
+        return this.htmlDialogo({
+            id: 'modal-fiscal', form: 'form-fiscal', icono: 'fa-plus', titulo: 'Nuevo fiscal',
+            cuerpo: `
+                <input type="hidden" id="form-fiscal-id" value="">
+                <div class="form-group">
+                    <label for="form-fiscal-nombre">Nombre <span class="required" aria-hidden="true">*</span></label>
+                    <input type="text" id="form-fiscal-nombre" class="form-input" required aria-required="true" maxlength="200" autocomplete="off">
                 </div>
-            </div>
-        `;
+                <div class="form-group">
+                    <label for="form-fiscal-dni">DNI</label>
+                    <input type="text" id="form-fiscal-dni" class="form-input" maxlength="20" inputmode="numeric" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="form-fiscal-telefono">Teléfono</label>
+                    <input type="tel" id="form-fiscal-telefono" class="form-input" maxlength="50" inputmode="tel" autocomplete="off">
+                </div>
+                <div id="form-fiscal-error" class="form-error" role="alert" hidden></div>`,
+            pie: `
+                <button type="button" class="btn btn-secondary" id="btn-cancelar-fiscal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="btn-guardar-fiscal">
+                    <i class="fas fa-save" aria-hidden="true"></i> Guardar
+                </button>`,
+        });
     }
 
     async cargarFiscales() {
-        document.getElementById('fiscales-loading').style.display = 'flex';
-        document.getElementById('fiscales-tabla').style.display = 'none';
-        document.getElementById('fiscales-empty').style.display = 'none';
+        $('fiscales-loading').hidden = false;
+        $('fiscales-tabla').hidden = true;
+        $('fiscales-empty').hidden = true;
+        $('fiscales-error').hidden = true;
 
         try {
             const response = await window.apiService.obtenerFiscales({ limite: 100 });
@@ -346,25 +406,36 @@ class ComicioComponent {
                 this.renderizarFiscales();
             }
         } catch (error) {
-            this.mostrarToast('Error al cargar fiscales: ' + error.message, 'error');
+            // El error ocupa el lugar de la tabla, con salida: antes era un toast y la tabla
+            // quedaba oculta, o sea una pantalla en blanco sin forma de reintentar.
+            console.error('Error cargando fiscales:', error);
+            $('fiscales-error').innerHTML = estados.error({
+                titulo: 'No se pudieron cargar los fiscales',
+                texto: 'Revisá tu conexión y volvé a intentar.',
+                reintentar: 'cargarFiscales',
+                compacto: true
+            });
+            $('fiscales-error').hidden = false;
         } finally {
-            document.getElementById('fiscales-loading').style.display = 'none';
+            $('fiscales-loading').hidden = true;
         }
     }
 
     renderizarFiscales() {
-        const tbody = document.getElementById('fiscales-tbody');
-        const tabla = document.getElementById('fiscales-tabla');
-        const empty = document.getElementById('fiscales-empty');
+        const tbody = $('fiscales-tbody');
+        const tabla = $('fiscales-tabla');
+        const empty = $('fiscales-empty');
 
         if (this.fiscales.length === 0) {
-            tabla.style.display = 'none';
-            empty.style.display = 'flex';
+            tabla.hidden = true;
+            empty.hidden = false;
             return;
         }
-        tabla.style.display = 'table';
-        empty.style.display = 'none';
+        tabla.hidden = false;
+        empty.hidden = true;
 
+        // Los botones de ícono llevan el nombre de la persona en `aria-label`: con solo
+        // "Editar fiscal" un lector de pantalla oye lo mismo por cada fila de la tabla.
         tbody.innerHTML = this.fiscales.map((f) => `
             <tr>
                 <td class="fiscal-nombre">${escaparHtml(f.nombre)}</td>
@@ -373,11 +444,11 @@ class ComicioComponent {
                 <td>
                     <div class="acciones-cell">
                         ${this.permisos.fiscalesEdit ? `
-                        <button class="btn-accion btn-editar" title="Editar fiscal" data-id="${f.id}">
-                            <i class="fas fa-edit"></i>
+                        <button type="button" class="btn-accion btn-editar" title="Editar fiscal" aria-label="Editar fiscal ${escaparHtml(f.nombre)}" data-id="${f.id}">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
                         </button>
-                        <button class="btn-accion btn-eliminar" title="Eliminar fiscal" data-id="${f.id}" data-nombre="${escaparHtml(f.nombre)}">
-                            <i class="fas fa-trash"></i>
+                        <button type="button" class="btn-accion btn-eliminar" title="Eliminar fiscal" aria-label="Eliminar fiscal ${escaparHtml(f.nombre)}" data-id="${f.id}" data-nombre="${escaparHtml(f.nombre)}">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>` : ''}
                     </div>
                 </td>
@@ -393,44 +464,43 @@ class ComicioComponent {
     }
 
     abrirModalCrearFiscal() {
-        document.getElementById('modal-fiscal-titulo').innerHTML = '<i class="fas fa-plus"></i> Nuevo Fiscal';
-        document.getElementById('form-fiscal-id').value = '';
-        document.getElementById('form-fiscal-nombre').value = '';
-        document.getElementById('form-fiscal-dni').value = '';
-        document.getElementById('form-fiscal-telefono').value = '';
-        document.getElementById('form-fiscal-error').style.display = 'none';
-        document.getElementById('modal-fiscal').style.display = 'flex';
-        document.getElementById('form-fiscal-nombre').focus();
+        this.fijarTitulo('modal-fiscal-titulo', 'fa-plus', 'Nuevo fiscal');
+        $('form-fiscal-id').value = '';
+        $('form-fiscal-nombre').value = '';
+        $('form-fiscal-dni').value = '';
+        $('form-fiscal-telefono').value = '';
+        this.ocultarError('form-fiscal-error');
+        this.abrirDialogo('modal-fiscal');
+        $('form-fiscal-nombre').focus();
     }
 
     abrirModalEditarFiscal(id) {
         const fiscal = this.fiscales.find((f) => f.id === id);
         if (!fiscal) return;
-        document.getElementById('modal-fiscal-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Fiscal';
-        document.getElementById('form-fiscal-id').value = fiscal.id;
-        document.getElementById('form-fiscal-nombre').value = fiscal.nombre;
-        document.getElementById('form-fiscal-dni').value = fiscal.dni || '';
-        document.getElementById('form-fiscal-telefono').value = fiscal.telefono || '';
-        document.getElementById('form-fiscal-error').style.display = 'none';
-        document.getElementById('modal-fiscal').style.display = 'flex';
+        this.fijarTitulo('modal-fiscal-titulo', 'fa-edit', 'Editar fiscal');
+        $('form-fiscal-id').value = fiscal.id;
+        $('form-fiscal-nombre').value = fiscal.nombre;
+        $('form-fiscal-dni').value = fiscal.dni || '';
+        $('form-fiscal-telefono').value = fiscal.telefono || '';
+        this.ocultarError('form-fiscal-error');
+        this.abrirDialogo('modal-fiscal');
     }
 
     cerrarModalFiscal() {
-        document.getElementById('modal-fiscal').style.display = 'none';
+        this.cerrarDialogo('modal-fiscal');
     }
 
     async guardarFiscal() {
-        const id = document.getElementById('form-fiscal-id').value;
+        const id = $('form-fiscal-id').value;
         const isEdit = !!id;
-        const nombre = document.getElementById('form-fiscal-nombre').value.trim();
-        const dni = document.getElementById('form-fiscal-dni').value.trim();
-        const telefono = document.getElementById('form-fiscal-telefono').value.trim();
+        const nombre = $('form-fiscal-nombre').value.trim();
+        const dni = $('form-fiscal-dni').value.trim();
+        const telefono = $('form-fiscal-telefono').value.trim();
 
-        if (!nombre) return this.mostrarError('form-fiscal-error', 'El nombre del fiscal es obligatorio');
+        if (!nombre) return this.mostrarError('form-fiscal-error', 'El nombre del fiscal es obligatorio', 'form-fiscal-nombre');
 
-        const btn = document.getElementById('btn-guardar-fiscal');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        const btn = $('btn-guardar-fiscal');
+        btn.setAttribute('aria-busy', 'true');
 
         try {
             const data = { nombre, dni: dni || null, telefono: telefono || null };
@@ -444,15 +514,14 @@ class ComicioComponent {
                 await this.cargarFiscales();
             }
         } catch (error) {
-            this.mostrarError('form-fiscal-error', error.message || 'Error al guardar el fiscal');
+            this.mostrarError('form-fiscal-error', error.message || 'No se pudo guardar el fiscal');
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            btn.removeAttribute('aria-busy');
         }
     }
 
     async eliminarFiscal(id, nombre) {
-        if (!confirm(`¿Eliminar a "${nombre}"? Se borran también sus asignaciones.`)) return;
+        if (!(await this.confirmarEliminar(`¿Eliminar a "${nombre}"? Se borran también sus asignaciones.`))) return;
         try {
             const response = await window.apiService.eliminarFiscal(id);
             if (response.success) {
@@ -460,7 +529,7 @@ class ComicioComponent {
                 await this.cargarFiscales();
             }
         } catch (error) {
-            this.mostrarToast('Error al eliminar: ' + error.message, 'error');
+            this.mostrarToast('No se pudo eliminar: ' + error.message, 'error');
         }
     }
 
@@ -486,106 +555,113 @@ class ComicioComponent {
             <div id="comicio-listado-view">
                 <div class="comicio-header">
                     <div class="comicio-title">
-                        <h2><i class="fas fa-building"></i> Comicios</h2>
+                        <h1 id="comicios-titulo" tabindex="-1"><i class="fas fa-building" aria-hidden="true"></i> Comicios</h1>
                         <p class="comicio-subtitle">Entrá a un comicio para gestionar sus mesas, fuerzas, fiscales y resultados</p>
                     </div>
                     ${this.permisos.comicioEdit ? `
                     <div class="comicio-actions">
-                        <button id="btn-crear-comicio" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> <span class="btn-text">Nuevo Comicio</span>
+                        <button type="button" id="btn-crear-comicio" class="btn btn-primary" aria-label="Nuevo comicio">
+                            <i class="fas fa-plus" aria-hidden="true"></i> <span class="btn-text">Nuevo comicio</span>
                         </button>
                     </div>` : ''}
                 </div>
 
-                <div class="comicio-tabla-container">
-                    <div id="comicios-loading" class="comicio-loading" style="display: none;">
-                        <i class="fas fa-spinner fa-spin"></i> Cargando comicios...
+                <div class="comicio-tabla-container" role="region" aria-label="Listado de comicios" tabindex="0">
+                    <div id="comicios-loading" class="comicio-loading" role="status" hidden>
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Cargando comicios…
                     </div>
+                    <div id="comicios-error" hidden></div>
                     <table class="comicio-tabla" id="comicios-tabla">
+                        <caption class="sr-only">Comicios cargados</caption>
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Tipo de elección</th>
-                                <th>Fuerzas</th>
-                                <th>Mesas</th>
-                                <th>Acciones</th>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Tipo de elección</th>
+                                <th scope="col">Fuerzas</th>
+                                <th scope="col">Mesas</th>
+                                <th scope="col">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="comicios-tbody"></tbody>
                     </table>
-                    <div id="comicios-empty" class="comicio-empty" style="display: none;">
-                        <i class="fas fa-building"></i>
+                    <div id="comicios-empty" class="comicio-empty" hidden>
+                        <i class="fas fa-building" aria-hidden="true"></i>
                         <p>Todavía no hay comicios cargados</p>
                     </div>
                 </div>
             </div>
 
             <!-- ---- Detalle de un comicio: todo lo que le pertenece vive acá ---- -->
-            <div id="comicio-detalle-view" style="display: none;">
+            <div id="comicio-detalle-view" hidden>
                 <button type="button" class="btn btn-secondary btn-sm" id="btn-volver-listado">
-                    <i class="fas fa-arrow-left"></i> Volver a comicios
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> Volver a comicios
                 </button>
 
                 <div class="comicio-header">
                     <div class="comicio-title">
-                        <h2 id="detalle-comicio-nombre"><i class="fas fa-building"></i></h2>
+                        <h1 id="detalle-comicio-nombre" tabindex="-1"></h1>
                         <p class="comicio-subtitle" id="detalle-comicio-fuerzas"></p>
                     </div>
                 </div>
 
-                <div class="comicio-subtabs" role="tablist">
+                <!-- Pestañas WAI-ARIA (lib/pestanas.js): flechas, Inicio y Fin; solo la activa está
+                     en el orden de tabulación. Antes eran botones con una clase "activa". -->
+                <div class="comicio-subtabs" id="comicio-tabs" role="tablist" aria-label="Secciones del comicio">
                     ${subTabs.map((t) => `
-                        <button type="button" class="comicio-subtab" data-subtab="${t.key}">
-                            <i class="fas ${t.icon}"></i> ${t.label}
+                        <button type="button" class="comicio-subtab" role="tab" id="tab-${t.key}" aria-controls="subtab-${t.key}">
+                            <i class="fas ${t.icon}" aria-hidden="true"></i> ${t.label}
                         </button>
                     `).join('')}
                 </div>
 
-                <div id="subtab-mesas" class="comicio-subtab-panel">
+                <div id="subtab-mesas" class="comicio-subtab-panel" role="tabpanel" aria-labelledby="tab-mesas">
                     <div class="comicio-header">
-                        <div class="comicio-title"><h3><i class="fas fa-chair"></i> Mesas</h3></div>
+                        <div class="comicio-title"><h2><i class="fas fa-chair" aria-hidden="true"></i> Mesas</h2></div>
                         ${this.permisos.comicioEdit ? `
                         <div class="comicio-actions">
-                            <button id="btn-crear-mesa" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> <span class="btn-text">Nueva Mesa</span>
+                            <button type="button" id="btn-crear-mesa" class="btn btn-primary btn-sm" aria-label="Nueva mesa">
+                                <i class="fas fa-plus" aria-hidden="true"></i> <span class="btn-text">Nueva mesa</span>
                             </button>
                         </div>` : ''}
                     </div>
+                    <div class="comicio-tabla-container" role="region" aria-label="Mesas del comicio" tabindex="0">
                     <table class="comicio-tabla" id="mesas-tabla">
+                        <caption class="sr-only">Mesas del comicio</caption>
                         <thead>
                             <tr>
-                                <th>Mesa</th>
-                                <th>Rango de padrón</th>
-                                <th>Votantes</th>
-                                <th>Votos cargados</th>
-                                <th>Acciones</th>
+                                <th scope="col">Mesa</th>
+                                <th scope="col">Rango de padrón</th>
+                                <th scope="col">Votantes</th>
+                                <th scope="col">Votos cargados</th>
+                                <th scope="col">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="mesas-tbody"></tbody>
                     </table>
-                    <div id="mesas-empty" class="comicio-empty" style="display: none;">
-                        <i class="fas fa-chair"></i>
+                    </div>
+                    <div id="mesas-empty" class="comicio-empty" hidden>
+                        <i class="fas fa-chair" aria-hidden="true"></i>
                         <p>Este comicio todavía no tiene mesas</p>
                     </div>
                 </div>
 
-                <div id="subtab-fuerzas" class="comicio-subtab-panel" style="display: none;">
+                <div id="subtab-fuerzas" class="comicio-subtab-panel" role="tabpanel" aria-labelledby="tab-fuerzas">
                     ${this.htmlPanelFuerzasComicio()}
                 </div>
 
                 ${this.permisos.fiscalesView ? `
-                <div id="subtab-fiscales" class="comicio-subtab-panel" style="display: none;">
-                    ${this.htmlSeccionFiscales()}
-                    <div class="fiscales-header" style="margin-top: 24px;">
+                <div id="subtab-fiscales" class="comicio-subtab-panel" role="tabpanel" aria-labelledby="tab-fiscales">
+                    ${this.htmlSeccionFiscales(2)}
+                    <div class="fiscales-header fiscales-header-sep">
                         <div class="fiscales-title">
-                            <h3><i class="fas fa-calendar-alt"></i> Horarios</h3>
+                            <h3><i class="fas fa-calendar-alt" aria-hidden="true"></i> Horarios</h3>
                             <p class="fiscales-subtitle">Franjas de 08:00 a 18:00 por mesa. Tocá "Fiscales" en una mesa (pestaña Mesas) para asignar.</p>
                         </div>
                     </div>
                     <div id="calendario-comicio" class="calendario-container"></div>
                 </div>` : ''}
 
-                <div id="subtab-resultados" class="comicio-subtab-panel" style="display: none;">
+                <div id="subtab-resultados" class="comicio-subtab-panel" role="tabpanel" aria-labelledby="tab-resultados">
                     ${this.htmlSeccionResultados()}
                 </div>
             </div>
@@ -593,13 +669,12 @@ class ComicioComponent {
     }
 
     mostrarSubTab(key) {
+        if (this.tabs) this.tabs.seleccionar(`tab-${key}`);
+    }
+
+    /** Lo que pasa al cambiar de pestaña (lib/pestanas.js ya mostró/ocultó los paneles). */
+    alCambiarSubTab(key) {
         this.subTabActual = key;
-        document.querySelectorAll('.comicio-subtab-panel').forEach((el) => {
-            el.style.display = el.id === `subtab-${key}` ? 'block' : 'none';
-        });
-        document.querySelectorAll('.comicio-subtab').forEach((btn) => {
-            btn.classList.toggle('comicio-subtab-activa', btn.dataset.subtab === key);
-        });
         if (key === 'resultados') this.cargarResultadosComicioActual();
     }
 
@@ -609,23 +684,24 @@ class ComicioComponent {
         return `
             <div class="comicio-header">
                 <div class="comicio-title">
-                    <h3><i class="fas fa-flag"></i> Fuerzas</h3>
+                    <h2><i class="fas fa-flag" aria-hidden="true"></i> Fuerzas</h2>
                     <p class="comicio-subtitle">Tildá las que participan de este comicio. El voto de mesa se carga por fuerza.</p>
                 </div>
                 ${this.permisos.comicioEdit ? `
                 <div class="comicio-actions">
-                    <button id="btn-crear-fuerza" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus"></i> <span class="btn-text">Nueva Fuerza</span>
+                    <button type="button" id="btn-crear-fuerza" class="btn btn-primary btn-sm" aria-label="Nueva fuerza">
+                        <i class="fas fa-plus" aria-hidden="true"></i> <span class="btn-text">Nueva fuerza</span>
                     </button>
                 </div>` : ''}
             </div>
-            <div class="comicio-tabla-container">
+            <div class="comicio-tabla-container" role="region" aria-label="Fuerzas del comicio" tabindex="0">
                 <table class="comicio-tabla" id="fuerzas-comicio-tabla">
-                    <thead><tr><th>Participa</th><th>Nombre</th><th>Sigla</th><th>Acciones</th></tr></thead>
+                    <caption class="sr-only">Fuerzas y su participación en este comicio</caption>
+                    <thead><tr><th scope="col">Participa</th><th scope="col">Nombre</th><th scope="col">Sigla</th><th scope="col">Acciones</th></tr></thead>
                     <tbody id="fuerzas-comicio-tbody"></tbody>
                 </table>
-                <div id="fuerzas-comicio-empty" class="comicio-empty" style="display: none;">
-                    <i class="fas fa-flag"></i>
+                <div id="fuerzas-comicio-empty" class="comicio-empty" hidden>
+                    <i class="fas fa-flag" aria-hidden="true"></i>
                     <p>Todavía no hay fuerzas cargadas</p>
                 </div>
             </div>
@@ -633,18 +709,18 @@ class ComicioComponent {
     }
 
     renderizarFuerzasComicio() {
-        const tbody = document.getElementById('fuerzas-comicio-tbody');
-        const tabla = document.getElementById('fuerzas-comicio-tabla');
-        const empty = document.getElementById('fuerzas-comicio-empty');
+        const tbody = $('fuerzas-comicio-tbody');
+        const tabla = $('fuerzas-comicio-tabla');
+        const empty = $('fuerzas-comicio-empty');
         if (!tbody) return;
 
         if (this.fuerzas.length === 0) {
-            tabla.style.display = 'none';
-            empty.style.display = 'flex';
+            tabla.hidden = true;
+            empty.hidden = false;
             return;
         }
-        tabla.style.display = 'table';
-        empty.style.display = 'none';
+        tabla.hidden = false;
+        empty.hidden = true;
 
         const participanIds = new Set((this.comicioActual.fuerzas || []).map((f) => f.id));
 
@@ -652,19 +728,20 @@ class ComicioComponent {
             <tr>
                 <td>
                     <label class="checkbox-row">
-                        <input type="checkbox" class="checkbox-participa-fuerza" value="${f.id}" ${participanIds.has(f.id) ? 'checked' : ''} ${this.permisos.comicioEdit ? '' : 'disabled'}>
+                        <input type="checkbox" class="checkbox-participa-fuerza" value="${f.id}" ${participanIds.has(f.id) ? 'checked' : ''} ${this.permisos.comicioEdit ? '' : 'disabled'}
+                               aria-label="Participa en este comicio: ${escaparHtml(f.nombre)}">
                     </label>
                 </td>
-                <td class="comicio-nombre"><span class="color-dot" style="background:${this.colorFuerzaVar(f.color)};"></span>${escaparHtml(f.nombre)}</td>
+                <td class="comicio-nombre"><span class="color-dot ${this.claseFuerza(f.color)}" aria-hidden="true"></span>${escaparHtml(f.nombre)}</td>
                 <td>${escaparHtml(f.sigla || '-')}</td>
                 <td>
                     <div class="acciones-cell">
                         ${this.permisos.comicioEdit ? `
-                        <button class="btn-accion btn-editar" title="Editar fuerza" data-id="${f.id}">
-                            <i class="fas fa-edit"></i>
+                        <button type="button" class="btn-accion btn-editar" title="Editar fuerza" aria-label="Editar fuerza ${escaparHtml(f.nombre)}" data-id="${f.id}">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
                         </button>
-                        <button class="btn-accion btn-eliminar" title="Eliminar fuerza" data-id="${f.id}" data-nombre="${escaparHtml(f.nombre)}">
-                            <i class="fas fa-trash"></i>
+                        <button type="button" class="btn-accion btn-eliminar" title="Eliminar fuerza" aria-label="Eliminar fuerza ${escaparHtml(f.nombre)}" data-id="${f.id}" data-nombre="${escaparHtml(f.nombre)}">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>` : ''}
                     </div>
                 </td>
@@ -719,13 +796,13 @@ class ComicioComponent {
             const response = await window.apiService.actualizarComicio(this.comicioActual.id, data);
             if (response.success) {
                 this.comicioActual = response.data;
-                document.getElementById('detalle-comicio-fuerzas').textContent =
+                $('detalle-comicio-fuerzas').textContent =
                     `${this.formatearTipo(this.comicioActual.tipo_eleccion)} · ${this.comicioActual.fuerzas.map((f) => f.nombre).join(', ')}`;
                 this.renderizarFuerzasComicio();
                 this.mostrarToast('Fuerzas del comicio actualizadas', 'success');
             }
         } catch (error) {
-            this.mostrarToast('Error al actualizar: ' + error.message, 'error');
+            this.mostrarToast('No se pudo actualizar: ' + error.message, 'error');
             this.renderizarFuerzasComicio();
         }
     }
@@ -736,11 +813,12 @@ class ComicioComponent {
         return `
             <div class="comicio-header">
                 <div class="comicio-title">
-                    <h3><i class="fas fa-chart-pie"></i> Resultados</h3>
+                    <h2><i class="fas fa-chart-pie" aria-hidden="true"></i> Resultados</h2>
                     <p class="comicio-subtitle">Métricas y gráficos en base a los votos cargados por mesa</p>
                 </div>
             </div>
 
+            <div id="resultados-error" hidden></div>
             <div id="resultados-metricas-container" class="metricas-container"></div>
 
             <div class="resultados-graficos">
@@ -758,16 +836,20 @@ class ComicioComponent {
                 </div>
             </div>
 
-            <table class="comicio-tabla metricas-tabla" id="resultados-tabla-fuerzas">
-                <thead><tr><th></th><th>Fuerza</th><th>Votos</th><th>% sobre emitidos</th></tr></thead>
-                <tbody id="resultados-tbody-fuerzas"></tbody>
-            </table>
+            <div class="comicio-tabla-container" role="region" aria-label="Votos por fuerza" tabindex="0">
+                <table class="comicio-tabla metricas-tabla" id="resultados-tabla-fuerzas">
+                    <caption class="sr-only">Votos por fuerza</caption>
+                    <thead><tr><th scope="col"><span class="sr-only">Color</span></th><th scope="col">Fuerza</th><th scope="col">Votos</th><th scope="col">% sobre emitidos</th></tr></thead>
+                    <tbody id="resultados-tbody-fuerzas"></tbody>
+                </table>
+            </div>
         `;
     }
 
     /** Resultados del comicio abierto (`this.comicioActual`) -- no hay selector propio, ya estamos adentro de uno. */
     async cargarResultadosComicioActual() {
         if (!this.comicioActual) return;
+        $('resultados-error').hidden = true;
         try {
             const response = await window.apiService.metricasComicio(this.comicioActual.id);
             if (!response.success) return;
@@ -777,32 +859,40 @@ class ComicioComponent {
             this.renderizarTablaResultados(m);
             this.renderizarGraficosResultados(m);
         } catch (error) {
-            this.mostrarToast('Error al calcular resultados: ' + error.message, 'error');
+            console.error('Error calculando resultados:', error);
+            $('resultados-error').innerHTML = estados.error({
+                titulo: 'No se pudieron calcular los resultados',
+                texto: 'Revisá tu conexión y volvé a intentar.',
+                reintentar: 'cargarResultadosComicioActual',
+                compacto: true
+            });
+            $('resultados-error').hidden = false;
         }
     }
 
     renderizarMetricasResultados(m) {
-        const participacionTexto = m.participacion === null ? '-' : `${(m.participacion * 100).toFixed(1)}%`;
-        document.getElementById('resultados-metricas-container').innerHTML = `
+        const participacionTexto = m.participacion === null ? '-' : `${formatPct(m.participacion * 100)}%`;
+        const n = (v) => escaparHtml(Number(v).toLocaleString('es-AR'));
+        $('resultados-metricas-container').innerHTML = `
             <div class="metricas-cards">
                 <div class="metrica-card">
-                    <span class="metrica-valor">${escaparHtml(String(m.emitidos))}</span>
+                    <span class="metrica-valor">${n(m.emitidos)}</span>
                     <span class="metrica-label">Votos emitidos</span>
                 </div>
                 <div class="metrica-card">
-                    <span class="metrica-valor">${escaparHtml(String(m.blancos))}</span>
+                    <span class="metrica-valor">${n(m.blancos)}</span>
                     <span class="metrica-label">En blanco</span>
                 </div>
                 <div class="metrica-card">
-                    <span class="metrica-valor">${escaparHtml(String(m.nulos))}</span>
+                    <span class="metrica-valor">${n(m.nulos)}</span>
                     <span class="metrica-label">Nulos</span>
                 </div>
                 <div class="metrica-card">
-                    <span class="metrica-valor">${escaparHtml(String(m.mesasConVotos))}/${escaparHtml(String(m.mesasTotal))}</span>
+                    <span class="metrica-valor">${n(m.mesasConVotos)}/${n(m.mesasTotal)}</span>
                     <span class="metrica-label">Mesas cargadas</span>
                 </div>
                 <div class="metrica-card">
-                    <span class="metrica-valor">${escaparHtml(String(m.votantesAsignados))}</span>
+                    <span class="metrica-valor">${n(m.votantesAsignados)}</span>
                     <span class="metrica-label">Votantes asignados</span>
                 </div>
                 <div class="metrica-card">
@@ -816,13 +906,13 @@ class ComicioComponent {
     renderizarTablaResultados(m) {
         const filas = m.porFuerza.map((f) => `
             <tr>
-                <td><span class="color-dot" style="background:${this.colorFuerzaVar(f.fuerza_color)};"></span></td>
+                <td><span class="color-dot ${this.claseFuerza(f.fuerza_color)}" aria-hidden="true"></span></td>
                 <td>${escaparHtml(f.fuerza_nombre)}</td>
-                <td>${escaparHtml(String(f.votos))}</td>
-                <td>${m.emitidos > 0 ? `${((f.votos / m.emitidos) * 100).toFixed(1)}%` : '-'}</td>
+                <td>${escaparHtml(Number(f.votos).toLocaleString('es-AR'))}</td>
+                <td>${m.emitidos > 0 ? `${formatPct((f.votos / m.emitidos) * 100)}%` : '-'}</td>
             </tr>
         `).join('');
-        document.getElementById('resultados-tbody-fuerzas').innerHTML =
+        $('resultados-tbody-fuerzas').innerHTML =
             filas || '<tr><td colspan="4">Sin votos cargados todavía</td></tr>';
     }
 
@@ -838,7 +928,7 @@ class ComicioComponent {
         ];
 
         if (this.graficoTorta) this.graficoTorta.destroy();
-        const ctxTorta = document.getElementById('resultados-chart-torta').getContext('2d');
+        const ctxTorta = $('resultados-chart-torta').getContext('2d');
         this.graficoTorta = new Chart(ctxTorta, {
             type: 'doughnut',
             data: { labels, datasets: [{ data: valores, backgroundColor: colores, borderWidth: 3 }] },
@@ -851,7 +941,7 @@ class ComicioComponent {
                         callbacks: {
                             label: (ctx) => {
                                 const total = valores.reduce((a, b) => a + b, 0);
-                                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
+                                const pct = total > 0 ? formatPct((ctx.parsed / total) * 100) : '0';
                                 return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
                             },
                         },
@@ -861,7 +951,7 @@ class ComicioComponent {
         });
 
         if (this.graficoBarras) this.graficoBarras.destroy();
-        const ctxBarras = document.getElementById('resultados-chart-barras').getContext('2d');
+        const ctxBarras = $('resultados-chart-barras').getContext('2d');
         this.graficoBarras = new Chart(ctxBarras, {
             type: 'bar',
             data: {
@@ -881,121 +971,97 @@ class ComicioComponent {
         });
     }
 
+    // ==================== Modales de comicio, mesa y votos ====================
+
     htmlModalComicio() {
-        return `
-            <div id="modal-comicio" class="modal-overlay" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 id="modal-comicio-titulo"><i class="fas fa-plus"></i> Nuevo Comicio</h3>
-                        <button type="button" class="modal-close" id="modal-comicio-close">&times;</button>
-                    </div>
-                    <form id="form-comicio" class="modal-body">
-                        <input type="hidden" id="form-comicio-id" value="">
-                        <div class="form-group">
-                            <label for="form-comicio-nombre">Nombre <span class="required">*</span></label>
-                            <input type="text" id="form-comicio-nombre" class="form-input" required maxlength="200">
-                        </div>
-                        <div class="form-group">
-                            <label for="form-comicio-tipo">Tipo de elección <span class="required">*</span></label>
-                            <select id="form-comicio-tipo" class="form-input" required>
-                                <option value="">Seleccionar...</option>
-                                <option value="provincial">Provincial</option>
-                                <option value="municipal">Municipal</option>
-                                <option value="nacional">Nacional</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <div class="form-comicio-fuerzas-header">
-                                <label>Fuerzas participantes <span class="required">*</span></label>
-                                ${this.permisos.comicioEdit ? `
-                                <button type="button" class="btn btn-secondary btn-sm" id="btn-nueva-fuerza-desde-comicio">
-                                    <i class="fas fa-plus"></i> Nueva fuerza
-                                </button>` : ''}
-                            </div>
-                            <div id="form-comicio-fuerzas" class="listas-checkboxes"></div>
-                        </div>
-                        <div id="form-comicio-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-comicio">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" id="btn-guardar-comicio">
-                                <i class="fas fa-save"></i> Guardar
-                            </button>
-                        </div>
-                    </form>
+        return this.htmlDialogo({
+            id: 'modal-comicio', form: 'form-comicio', icono: 'fa-plus', titulo: 'Nuevo comicio',
+            cuerpo: `
+                <input type="hidden" id="form-comicio-id" value="">
+                <div class="form-group">
+                    <label for="form-comicio-nombre">Nombre <span class="required" aria-hidden="true">*</span></label>
+                    <input type="text" id="form-comicio-nombre" class="form-input" required aria-required="true" maxlength="200" autocomplete="off">
                 </div>
-            </div>
-        `;
+                <div class="form-group">
+                    <label for="form-comicio-tipo">Tipo de elección <span class="required" aria-hidden="true">*</span></label>
+                    <select id="form-comicio-tipo" class="form-input" required aria-required="true">
+                        <option value="">Seleccionar…</option>
+                        <option value="provincial">Provincial</option>
+                        <option value="municipal">Municipal</option>
+                        <option value="nacional">Nacional</option>
+                    </select>
+                </div>
+                <fieldset class="form-group grupo-fuerzas">
+                    <legend class="sr-only">Fuerzas participantes</legend>
+                    <div class="form-comicio-fuerzas-header">
+                        <span class="etiqueta-grupo" aria-hidden="true">Fuerzas participantes <span class="required">*</span></span>
+                        ${this.permisos.comicioEdit ? `
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-nueva-fuerza-desde-comicio">
+                            <i class="fas fa-plus" aria-hidden="true"></i> Nueva fuerza
+                        </button>` : ''}
+                    </div>
+                    <div id="form-comicio-fuerzas" class="listas-checkboxes"></div>
+                </fieldset>
+                <div id="form-comicio-error" class="form-error" role="alert" hidden></div>`,
+            pie: `
+                <button type="button" class="btn btn-secondary" id="btn-cancelar-comicio">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="btn-guardar-comicio">
+                    <i class="fas fa-save" aria-hidden="true"></i> Guardar
+                </button>`,
+        });
     }
 
     htmlModalMesa() {
-        return `
-            <div id="modal-mesa" class="modal-overlay" style="display: none;">
-                <div class="modal-content modal-sm">
-                    <div class="modal-header">
-                        <h3 id="modal-mesa-titulo"><i class="fas fa-plus"></i> Nueva Mesa</h3>
-                        <button type="button" class="modal-close" id="modal-mesa-close">&times;</button>
-                    </div>
-                    <form id="form-mesa" class="modal-body">
-                        <input type="hidden" id="form-mesa-id" value="">
-                        <div class="form-group">
-                            <label for="form-mesa-numero">Número de mesa <span class="required">*</span></label>
-                            <input type="number" id="form-mesa-numero" class="form-input" min="1" step="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="form-mesa-desde">DNI desde</label>
-                            <input type="text" id="form-mesa-desde" class="form-input" placeholder="Opcional">
-                        </div>
-                        <div class="form-group">
-                            <label for="form-mesa-hasta">DNI hasta</label>
-                            <input type="text" id="form-mesa-hasta" class="form-input" placeholder="Opcional">
-                        </div>
-                        <p class="modal-info">El rango de padrón es opcional: se puede cargar después. Si se completa, va por
-                        orden de apellido y nombre del padrón (no por número de DNI) y hay que completar los dos campos.</p>
-                        <div id="form-mesa-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-mesa">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" id="btn-guardar-mesa">
-                                <i class="fas fa-save"></i> Guardar
-                            </button>
-                        </div>
-                    </form>
+        return this.htmlDialogo({
+            id: 'modal-mesa', form: 'form-mesa', icono: 'fa-plus', titulo: 'Nueva mesa',
+            cuerpo: `
+                <input type="hidden" id="form-mesa-id" value="">
+                <div class="form-group">
+                    <label for="form-mesa-numero">Número de mesa <span class="required" aria-hidden="true">*</span></label>
+                    <input type="number" id="form-mesa-numero" class="form-input" min="1" step="1" required aria-required="true" inputmode="numeric">
                 </div>
-            </div>
-        `;
+                <div class="form-group">
+                    <label for="form-mesa-desde">DNI desde</label>
+                    <input type="text" id="form-mesa-desde" class="form-input" placeholder="Opcional" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="form-mesa-ayuda">
+                </div>
+                <div class="form-group">
+                    <label for="form-mesa-hasta">DNI hasta</label>
+                    <input type="text" id="form-mesa-hasta" class="form-input" placeholder="Opcional" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="form-mesa-ayuda">
+                </div>
+                <p class="modal-info" id="form-mesa-ayuda">El rango de padrón es opcional: se puede cargar después. Si se completa, va por
+                orden de apellido y nombre del padrón (no por número de DNI) y hay que completar los dos campos.</p>
+                <div id="form-mesa-error" class="form-error" role="alert" hidden></div>`,
+            pie: `
+                <button type="button" class="btn btn-secondary" id="btn-cancelar-mesa">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="btn-guardar-mesa">
+                    <i class="fas fa-save" aria-hidden="true"></i> Guardar
+                </button>`,
+        });
     }
 
     htmlModalVotos() {
-        return `
-            <div id="modal-votos" class="modal-overlay" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 id="modal-votos-titulo"><i class="fas fa-check-to-slot"></i> Votos</h3>
-                        <button type="button" class="modal-close" id="modal-votos-close">&times;</button>
+        return this.htmlDialogo({
+            id: 'modal-votos', form: 'form-votos', icono: 'fa-check-to-slot', titulo: 'Votos',
+            cuerpo: `
+                <input type="hidden" id="form-votos-mesa-id" value="">
+                <div id="form-votos-fuerzas"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="form-votos-blancos">Votos en blanco</label>
+                        <input type="number" id="form-votos-blancos" class="form-input" min="0" step="1" required aria-required="true" inputmode="numeric">
                     </div>
-                    <form id="form-votos" class="modal-body">
-                        <input type="hidden" id="form-votos-mesa-id" value="">
-                        <div id="form-votos-fuerzas"></div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="form-votos-blancos">Votos en blanco</label>
-                                <input type="number" id="form-votos-blancos" class="form-input" min="0" step="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="form-votos-nulos">Votos nulos</label>
-                                <input type="number" id="form-votos-nulos" class="form-input" min="0" step="1" required>
-                            </div>
-                        </div>
-                        <div id="form-votos-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-votos">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" id="btn-guardar-votos">
-                                <i class="fas fa-save"></i> Guardar votos
-                            </button>
-                        </div>
-                    </form>
+                    <div class="form-group">
+                        <label for="form-votos-nulos">Votos nulos</label>
+                        <input type="number" id="form-votos-nulos" class="form-input" min="0" step="1" required aria-required="true" inputmode="numeric">
+                    </div>
                 </div>
-            </div>
-        `;
+                <div id="form-votos-error" class="form-error" role="alert" hidden></div>`,
+            pie: `
+                <button type="button" class="btn btn-secondary" id="btn-cancelar-votos">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="btn-guardar-votos">
+                    <i class="fas fa-save" aria-hidden="true"></i> Guardar votos
+                </button>`,
+        });
     }
 
     // ==================== Fiscales por mesa (calendario + asignación) ====================
@@ -1008,55 +1074,49 @@ class ComicioComponent {
      * formulario inline no tiene ese problema: nunca hay más de un modal en pantalla.
      */
     htmlModalFiscalesMesa() {
-        return `
-            <div id="modal-fiscales-mesa" class="modal-overlay" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 id="modal-fiscales-mesa-titulo"><i class="fas fa-user-shield"></i> Fiscales</h3>
-                        <button type="button" class="modal-close" id="modal-fiscales-mesa-close">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <table class="fiscales-tabla" id="asignaciones-tabla">
-                            <thead><tr><th>Desde</th><th>Hasta</th><th>Fiscal</th><th>Acciones</th></tr></thead>
-                            <tbody id="asignaciones-tbody"></tbody>
-                        </table>
-                        <div id="asignaciones-empty" class="fiscales-empty" style="display: none;">
-                            <i class="fas fa-calendar-day"></i>
-                            <p>Esta mesa todavía no tiene fiscales asignados</p>
-                        </div>
-
-                        ${this.permisos.fiscalesEdit ? `
-                        <form id="form-asignacion" class="asignacion-form-inline">
-                            <input type="hidden" id="form-asignacion-id" value="">
-                            <h4 id="asignacion-form-titulo"><i class="fas fa-plus"></i> Agregar fiscal</h4>
-                            <div class="form-group">
-                                <label for="form-asignacion-fiscal">Fiscal <span class="required">*</span></label>
-                                <select id="form-asignacion-fiscal" class="form-input" required>
-                                    <option value="">Seleccionar...</option>
-                                </select>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="form-asignacion-desde">Desde <span class="required">*</span></label>
-                                    <input type="time" id="form-asignacion-desde" class="form-input" min="08:00" max="18:00" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="form-asignacion-hasta">Hasta <span class="required">*</span></label>
-                                    <input type="time" id="form-asignacion-hasta" class="form-input" min="08:00" max="18:00" required>
-                                </div>
-                            </div>
-                            <div id="form-asignacion-error" class="form-error" style="display: none;"></div>
-                            <div class="asignacion-form-acciones">
-                                <button type="button" class="btn btn-secondary btn-sm" id="btn-cancelar-edicion-asignacion" style="display: none;">Cancelar edición</button>
-                                <button type="submit" class="btn btn-primary btn-sm" id="btn-guardar-asignacion">
-                                    <i class="fas fa-save"></i> Guardar
-                                </button>
-                            </div>
-                        </form>` : ''}
-                    </div>
+        return this.htmlDialogo({
+            id: 'modal-fiscales-mesa', icono: 'fa-user-shield', titulo: 'Fiscales', ancho: true,
+            cuerpo: `
+                <div id="asignaciones-error" hidden></div>
+                <table class="fiscales-tabla" id="asignaciones-tabla">
+                    <caption class="sr-only">Franjas horarias de los fiscales de la mesa</caption>
+                    <thead><tr><th scope="col">Desde</th><th scope="col">Hasta</th><th scope="col">Fiscal</th><th scope="col">Acciones</th></tr></thead>
+                    <tbody id="asignaciones-tbody"></tbody>
+                </table>
+                <div id="asignaciones-empty" class="fiscales-empty" hidden>
+                    <i class="fas fa-calendar-day" aria-hidden="true"></i>
+                    <p>Esta mesa todavía no tiene fiscales asignados</p>
                 </div>
-            </div>
-        `;
+
+                ${this.permisos.fiscalesEdit ? `
+                <form id="form-asignacion" class="asignacion-form-inline" novalidate>
+                    <input type="hidden" id="form-asignacion-id" value="">
+                    <h3 id="asignacion-form-titulo"><i class="fas fa-plus" aria-hidden="true"></i> Agregar fiscal</h3>
+                    <div class="form-group">
+                        <label for="form-asignacion-fiscal">Fiscal <span class="required" aria-hidden="true">*</span></label>
+                        <select id="form-asignacion-fiscal" class="form-input" required aria-required="true">
+                            <option value="">Seleccionar…</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="form-asignacion-desde">Desde <span class="required" aria-hidden="true">*</span></label>
+                            <input type="time" id="form-asignacion-desde" class="form-input" min="08:00" max="18:00" required aria-required="true">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-asignacion-hasta">Hasta <span class="required" aria-hidden="true">*</span></label>
+                            <input type="time" id="form-asignacion-hasta" class="form-input" min="08:00" max="18:00" required aria-required="true">
+                        </div>
+                    </div>
+                    <div id="form-asignacion-error" class="form-error" role="alert" hidden></div>
+                    <div class="asignacion-form-acciones">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-cancelar-edicion-asignacion" hidden>Cancelar edición</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btn-guardar-asignacion">
+                            <i class="fas fa-save" aria-hidden="true"></i> Guardar
+                        </button>
+                    </div>
+                </form>` : ''}`,
+        });
     }
 
     // ==================== Eventos ====================
@@ -1066,110 +1126,90 @@ class ComicioComponent {
         // esa mitad, enganchar listeners tiraba TypeError y dejaba toda la pagina muerta
         // (FE-010).
         if (this.permisos.fiscalesEdit && this.permisos.fiscalesView) {
-            document.getElementById('btn-crear-fiscal').addEventListener('click', () => this.abrirModalCrearFiscal());
-            document.getElementById('modal-fiscal-close').addEventListener('click', () => this.cerrarModalFiscal());
-            document.getElementById('btn-cancelar-fiscal').addEventListener('click', () => this.cerrarModalFiscal());
-            document.getElementById('modal-fiscal').addEventListener('click', (e) => {
-                if (e.target.classList.contains('modal-overlay')) this.cerrarModalFiscal();
-            });
-            document.getElementById('form-fiscal').addEventListener('submit', (e) => {
+            $('btn-crear-fiscal').addEventListener('click', () => this.abrirModalCrearFiscal());
+            $('modal-fiscal-close').addEventListener('click', () => this.cerrarModalFiscal());
+            $('btn-cancelar-fiscal').addEventListener('click', () => this.cerrarModalFiscal());
+            $('form-fiscal').addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.guardarFiscal();
             });
         }
 
+        // "Reintentar" de los estados de error: solo estas acciones, no cualquier método.
+        const REINTENTOS = ['cargarComicios', 'cargarFiscales', 'cargarResultadosComicioActual', 'cargarAsignacionesMesa'];
+        this.container.addEventListener('click', (e) => {
+            const el = e.target.closest('[data-action]');
+            if (el && REINTENTOS.includes(el.dataset.action)) this[el.dataset.action]();
+        });
+
         if (!this.permisos.comicioView) return;
 
         if (this.permisos.comicioEdit) {
-            document.getElementById('btn-crear-comicio').addEventListener('click', () => this.abrirModalCrearComicio());
-            document.getElementById('btn-nueva-fuerza-desde-comicio').addEventListener('click', () => this.abrirModalCrearFuerza());
-            document.getElementById('btn-crear-fuerza').addEventListener('click', () => this.abrirModalCrearFuerza());
-            document.getElementById('modal-fuerza-close').addEventListener('click', () => this.cerrarModalFuerza());
-            document.getElementById('btn-cancelar-fuerza').addEventListener('click', () => this.cerrarModalFuerza());
-            document.getElementById('modal-fuerza').addEventListener('click', (e) => {
-                if (e.target.classList.contains('modal-overlay')) this.cerrarModalFuerza();
-            });
-            document.getElementById('form-fuerza').addEventListener('submit', (e) => {
+            $('btn-crear-comicio').addEventListener('click', () => this.abrirModalCrearComicio());
+            $('btn-nueva-fuerza-desde-comicio').addEventListener('click', () => this.abrirModalCrearFuerza());
+            $('btn-crear-fuerza').addEventListener('click', () => this.abrirModalCrearFuerza());
+            $('modal-fuerza-close').addEventListener('click', () => this.cerrarModalFuerza());
+            $('btn-cancelar-fuerza').addEventListener('click', () => this.cerrarModalFuerza());
+            $('form-fuerza').addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.guardarFuerza();
             });
-            document.getElementById('form-fuerza-color-swatches').addEventListener('click', (e) => {
+            $('form-fuerza-color-swatches').addEventListener('click', (e) => {
                 const btn = e.target.closest('.color-swatch');
                 if (btn) this.seleccionarColorFuerza(Number(btn.dataset.color));
             });
         }
-        document.getElementById('modal-comicio-close').addEventListener('click', () => this.cerrarModalComicio());
-        document.getElementById('btn-cancelar-comicio').addEventListener('click', () => this.cerrarModalComicio());
-        document.getElementById('modal-comicio').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) this.cerrarModalComicio();
-        });
-        document.getElementById('form-comicio').addEventListener('submit', (e) => {
+        $('modal-comicio-close').addEventListener('click', () => this.cerrarModalComicio());
+        $('btn-cancelar-comicio').addEventListener('click', () => this.cerrarModalComicio());
+        $('form-comicio').addEventListener('submit', (e) => {
             e.preventDefault();
             this.guardarComicio();
         });
 
-        document.getElementById('btn-volver-listado').addEventListener('click', () => this.volverAlListado());
+        $('btn-volver-listado').addEventListener('click', () => this.volverAlListado());
 
-        document.querySelectorAll('.comicio-subtab').forEach((btn) => {
-            btn.addEventListener('click', () => this.mostrarSubTab(btn.dataset.subtab));
+        this.tabs = window.pestanas.iniciar($('comicio-tabs'), {
+            alCambiar: (id) => this.alCambiarSubTab(id.replace(/^tab-/, ''))
         });
 
         if (this.permisos.comicioEdit) {
-            document.getElementById('btn-crear-mesa').addEventListener('click', () => this.abrirModalCrearMesa());
+            $('btn-crear-mesa').addEventListener('click', () => this.abrirModalCrearMesa());
         }
-        document.getElementById('modal-mesa-close').addEventListener('click', () => this.cerrarModalMesa());
-        document.getElementById('btn-cancelar-mesa').addEventListener('click', () => this.cerrarModalMesa());
-        document.getElementById('modal-mesa').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) this.cerrarModalMesa();
-        });
-        document.getElementById('form-mesa').addEventListener('submit', (e) => {
+        $('modal-mesa-close').addEventListener('click', () => this.cerrarModalMesa());
+        $('btn-cancelar-mesa').addEventListener('click', () => this.cerrarModalMesa());
+        $('form-mesa').addEventListener('submit', (e) => {
             e.preventDefault();
             this.guardarMesa();
         });
 
-        document.getElementById('modal-votos-close').addEventListener('click', () => this.cerrarModalVotos());
-        document.getElementById('btn-cancelar-votos').addEventListener('click', () => this.cerrarModalVotos());
-        document.getElementById('modal-votos').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) this.cerrarModalVotos();
-        });
-        document.getElementById('form-votos').addEventListener('submit', (e) => {
+        $('modal-votos-close').addEventListener('click', () => this.cerrarModalVotos());
+        $('btn-cancelar-votos').addEventListener('click', () => this.cerrarModalVotos());
+        $('form-votos').addEventListener('submit', (e) => {
             e.preventDefault();
             this.guardarVotos();
         });
 
         if (this.permisos.fiscalesView) {
-            document.getElementById('modal-fiscales-mesa-close').addEventListener('click', () => this.cerrarModalFiscalesMesa());
-            document.getElementById('modal-fiscales-mesa').addEventListener('click', (e) => {
-                if (e.target.classList.contains('modal-overlay')) this.cerrarModalFiscalesMesa();
-            });
+            $('modal-fiscales-mesa-close').addEventListener('click', () => this.cerrarModalFiscalesMesa());
             if (this.permisos.fiscalesEdit) {
-                document.getElementById('btn-cancelar-edicion-asignacion').addEventListener('click', () => this.resetearFormularioAsignacion());
-                document.getElementById('form-asignacion').addEventListener('submit', (e) => {
+                $('btn-cancelar-edicion-asignacion').addEventListener('click', () => this.resetearFormularioAsignacion());
+                $('form-asignacion').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.guardarAsignacion();
                 });
             }
         }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Escape') return;
-            this.cerrarModalComicio();
-            this.cerrarModalFuerza();
-            this.cerrarModalMesa();
-            this.cerrarModalVotos();
-            // Estos dos modales solo existen con fiscalesView: sin el guard, Escape tiraba
-            // TypeError en cualquier parte de la pagina (FE-018).
-            if (document.getElementById('modal-fiscal')) this.cerrarModalFiscal();
-            if (document.getElementById('modal-fiscales-mesa')) this.cerrarModalFiscalesMesa();
-        });
+        // Sin listener global de Escape: cada <dialog> lo maneja solo. El de antes cerraba los
+        // seis modales a la vez (existieran o no) en cada pulsación.
     }
 
     // ---- Listado de comicios ----
 
     async cargarComicios() {
-        document.getElementById('comicios-loading').style.display = 'flex';
-        document.getElementById('comicios-tabla').style.display = 'none';
-        document.getElementById('comicios-empty').style.display = 'none';
+        $('comicios-loading').hidden = false;
+        $('comicios-tabla').hidden = true;
+        $('comicios-empty').hidden = true;
+        $('comicios-error').hidden = true;
 
         try {
             const response = await window.apiService.obtenerComicios({ limite: 100 });
@@ -1178,26 +1218,33 @@ class ComicioComponent {
                 this.renderizarComicios();
             }
         } catch (error) {
+            // El error ocupa el lugar de la tabla, con salida: antes era un toast y la tabla
+            // quedaba oculta (pantalla en blanco) sin forma de reintentar.
             console.error('Error cargando comicios:', error);
-            this.mostrarToast('Error al cargar comicios: ' + error.message, 'error');
+            $('comicios-error').innerHTML = estados.error({
+                titulo: 'No se pudieron cargar los comicios',
+                texto: 'Revisá tu conexión y volvé a intentar.',
+                reintentar: 'cargarComicios'
+            });
+            $('comicios-error').hidden = false;
         } finally {
-            document.getElementById('comicios-loading').style.display = 'none';
+            $('comicios-loading').hidden = true;
         }
     }
 
     renderizarComicios() {
-        const tbody = document.getElementById('comicios-tbody');
-        const tabla = document.getElementById('comicios-tabla');
-        const empty = document.getElementById('comicios-empty');
+        const tbody = $('comicios-tbody');
+        const tabla = $('comicios-tabla');
+        const empty = $('comicios-empty');
 
         if (this.comicios.length === 0) {
-            tabla.style.display = 'none';
-            empty.style.display = 'flex';
+            tabla.hidden = true;
+            empty.hidden = false;
             return;
         }
 
-        tabla.style.display = 'table';
-        empty.style.display = 'none';
+        tabla.hidden = false;
+        empty.hidden = true;
 
         tbody.innerHTML = this.comicios.map((c) => `
             <tr>
@@ -1207,15 +1254,15 @@ class ComicioComponent {
                 <td>${escaparHtml(String(c.mesas_count ?? '-'))}</td>
                 <td>
                     <div class="acciones-cell">
-                        <button class="btn-accion btn-entrar" title="Ver mesas" data-id="${c.id}">
-                            <i class="fas fa-arrow-right"></i>
+                        <button type="button" class="btn-accion btn-entrar" title="Ver mesas" aria-label="Entrar al comicio ${escaparHtml(c.nombre)}" data-id="${c.id}">
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
                         </button>
                         ${this.permisos.comicioEdit ? `
-                        <button class="btn-accion btn-editar" title="Editar comicio" data-id="${c.id}">
-                            <i class="fas fa-edit"></i>
+                        <button type="button" class="btn-accion btn-editar" title="Editar comicio" aria-label="Editar comicio ${escaparHtml(c.nombre)}" data-id="${c.id}">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
                         </button>
-                        <button class="btn-accion btn-eliminar" title="Eliminar comicio" data-id="${c.id}" data-nombre="${escaparHtml(c.nombre)}">
-                            <i class="fas fa-trash"></i>
+                        <button type="button" class="btn-accion btn-eliminar" title="Eliminar comicio" aria-label="Eliminar comicio ${escaparHtml(c.nombre)}" data-id="${c.id}" data-nombre="${escaparHtml(c.nombre)}">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>` : ''}
                     </div>
                 </td>
@@ -1236,29 +1283,29 @@ class ComicioComponent {
     // ---- Modal comicio ----
 
     renderizarChecklistFuerzas(seleccionadas = []) {
-        const cont = document.getElementById('form-comicio-fuerzas');
+        const cont = $('form-comicio-fuerzas');
         if (this.fuerzas.length === 0) {
-            cont.innerHTML = '<p class="candidatos-vacio" style="display:block;">No hay fuerzas cargadas todavía — creá una con el botón "Nueva fuerza" de arriba.</p>';
+            cont.innerHTML = '<p class="candidatos-vacio">No hay fuerzas cargadas todavía: creá una con el botón "Nueva fuerza" de arriba.</p>';
             return;
         }
         cont.innerHTML = this.fuerzas.map((f) => `
             <label class="checkbox-row">
                 <input type="checkbox" value="${f.id}" ${seleccionadas.includes(f.id) ? 'checked' : ''}>
-                <span class="color-dot" style="background:${this.colorFuerzaVar(f.color)};"></span>
+                <span class="color-dot ${this.claseFuerza(f.color)}" aria-hidden="true"></span>
                 <span>${escaparHtml(f.nombre)}${f.sigla ? ` (${escaparHtml(f.sigla)})` : ''}</span>
             </label>
         `).join('');
     }
 
     abrirModalCrearComicio() {
-        document.getElementById('modal-comicio-titulo').innerHTML = '<i class="fas fa-plus"></i> Nuevo Comicio';
-        document.getElementById('form-comicio-id').value = '';
-        document.getElementById('form-comicio-nombre').value = '';
-        document.getElementById('form-comicio-tipo').value = '';
-        document.getElementById('form-comicio-error').style.display = 'none';
+        this.fijarTitulo('modal-comicio-titulo', 'fa-plus', 'Nuevo comicio');
+        $('form-comicio-id').value = '';
+        $('form-comicio-nombre').value = '';
+        $('form-comicio-tipo').value = '';
+        this.ocultarError('form-comicio-error');
         this.renderizarChecklistFuerzas();
-        document.getElementById('modal-comicio').style.display = 'flex';
-        document.getElementById('form-comicio-nombre').focus();
+        this.abrirDialogo('modal-comicio');
+        $('form-comicio-nombre').focus();
     }
 
     async abrirModalEditarComicio(id) {
@@ -1267,36 +1314,35 @@ class ComicioComponent {
             if (!response.success) return;
             const comicio = response.data;
 
-            document.getElementById('modal-comicio-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Comicio';
-            document.getElementById('form-comicio-id').value = comicio.id;
-            document.getElementById('form-comicio-nombre').value = comicio.nombre;
-            document.getElementById('form-comicio-tipo').value = comicio.tipo_eleccion;
-            document.getElementById('form-comicio-error').style.display = 'none';
+            this.fijarTitulo('modal-comicio-titulo', 'fa-edit', 'Editar comicio');
+            $('form-comicio-id').value = comicio.id;
+            $('form-comicio-nombre').value = comicio.nombre;
+            $('form-comicio-tipo').value = comicio.tipo_eleccion;
+            this.ocultarError('form-comicio-error');
             this.renderizarChecklistFuerzas(comicio.fuerzas.map((f) => f.id));
-            document.getElementById('modal-comicio').style.display = 'flex';
+            this.abrirDialogo('modal-comicio');
         } catch (error) {
-            this.mostrarToast('Error al abrir el comicio: ' + error.message, 'error');
+            this.mostrarToast('No se pudo abrir el comicio: ' + error.message, 'error');
         }
     }
 
     cerrarModalComicio() {
-        document.getElementById('modal-comicio').style.display = 'none';
+        this.cerrarDialogo('modal-comicio');
     }
 
     async guardarComicio() {
-        const id = document.getElementById('form-comicio-id').value;
+        const id = $('form-comicio-id').value;
         const isEdit = !!id;
-        const nombre = document.getElementById('form-comicio-nombre').value.trim();
-        const tipoEleccion = document.getElementById('form-comicio-tipo').value;
+        const nombre = $('form-comicio-nombre').value.trim();
+        const tipoEleccion = $('form-comicio-tipo').value;
         const fuerzaIds = [...document.querySelectorAll('#form-comicio-fuerzas input:checked')].map((el) => Number(el.value));
 
-        if (!nombre) return this.mostrarError('form-comicio-error', 'El nombre del comicio es obligatorio');
-        if (!tipoEleccion) return this.mostrarError('form-comicio-error', 'Elegí un tipo de elección');
+        if (!nombre) return this.mostrarError('form-comicio-error', 'El nombre del comicio es obligatorio', 'form-comicio-nombre');
+        if (!tipoEleccion) return this.mostrarError('form-comicio-error', 'Elegí un tipo de elección', 'form-comicio-tipo');
         if (fuerzaIds.length === 0) return this.mostrarError('form-comicio-error', 'Elegí al menos una fuerza participante');
 
-        const btn = document.getElementById('btn-guardar-comicio');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        const btn = $('btn-guardar-comicio');
+        btn.setAttribute('aria-busy', 'true');
 
         try {
             const data = { nombre, tipoEleccion, fuerzaIds };
@@ -1313,15 +1359,14 @@ class ComicioComponent {
                 }
             }
         } catch (error) {
-            this.mostrarError('form-comicio-error', error.message || 'Error al guardar el comicio');
+            this.mostrarError('form-comicio-error', error.message || 'No se pudo guardar el comicio');
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            btn.removeAttribute('aria-busy');
         }
     }
 
     async eliminarComicio(id, nombre) {
-        if (!confirm(`¿Eliminar el comicio "${nombre}"? Se borran también sus mesas y votos cargados.`)) return;
+        if (!(await this.confirmarEliminar(`¿Eliminar el comicio "${nombre}"? Se borran también sus mesas y votos cargados.`))) return;
         try {
             const response = await window.apiService.eliminarComicio(id);
             if (response.success) {
@@ -1329,7 +1374,7 @@ class ComicioComponent {
                 await this.cargarComicios();
             }
         } catch (error) {
-            this.mostrarToast('Error al eliminar: ' + error.message, 'error');
+            this.mostrarToast('No se pudo eliminar: ' + error.message, 'error');
         }
     }
 
@@ -1348,11 +1393,16 @@ class ComicioComponent {
             if (!response.success) return;
             this.comicioActual = response.data;
 
-            document.getElementById('comicio-listado-view').style.display = 'none';
-            document.getElementById('comicio-detalle-view').style.display = 'block';
-            document.getElementById('detalle-comicio-nombre').innerHTML =
-                `<i class="fas fa-building"></i> ${escaparHtml(this.comicioActual.nombre)}`;
-            document.getElementById('detalle-comicio-fuerzas').textContent =
+            const vienedelListado = !$('comicio-listado-view').hidden;
+            $('comicio-listado-view').hidden = true;
+            $('comicio-detalle-view').hidden = false;
+
+            const titulo = $('detalle-comicio-nombre');
+            const icono = document.createElement('i');
+            icono.className = 'fas fa-building';
+            icono.setAttribute('aria-hidden', 'true');
+            titulo.replaceChildren(icono, ` ${this.comicioActual.nombre}`);
+            $('detalle-comicio-fuerzas').textContent =
                 `${this.formatearTipo(this.comicioActual.tipo_eleccion)} · ${this.comicioActual.fuerzas.map((f) => f.nombre).join(', ')}`;
 
             this.renderizarMesas();
@@ -1361,8 +1411,12 @@ class ComicioComponent {
 
             if (resetSubTab) this.mostrarSubTab('mesas');
             else if (this.subTabActual === 'resultados') this.cargarResultadosComicioActual();
+
+            // Al cambiar de vista el foco pasa al título de la nueva, para que quien navega con
+            // teclado o lector de pantalla no quede en un botón que ya no está en pantalla.
+            if (vienedelListado) titulo.focus();
         } catch (error) {
-            this.mostrarToast('Error al abrir el comicio: ' + error.message, 'error');
+            this.mostrarToast('No se pudo abrir el comicio: ' + error.message, 'error');
         }
     }
 
@@ -1371,55 +1425,57 @@ class ComicioComponent {
         this.asignacionesPorMesa = new Map();
         if (this.graficoTorta) { this.graficoTorta.destroy(); this.graficoTorta = null; }
         if (this.graficoBarras) { this.graficoBarras.destroy(); this.graficoBarras = null; }
-        document.getElementById('comicio-detalle-view').style.display = 'none';
-        document.getElementById('comicio-listado-view').style.display = 'block';
+        $('comicio-detalle-view').hidden = true;
+        $('comicio-listado-view').hidden = false;
+        $('comicios-titulo').focus();
         this.cargarComicios();
     }
 
     renderizarMesas() {
         const mesas = this.comicioActual.mesas || [];
-        const tbody = document.getElementById('mesas-tbody');
-        const tabla = document.getElementById('mesas-tabla');
-        const empty = document.getElementById('mesas-empty');
+        const tbody = $('mesas-tbody');
+        const tabla = $('mesas-tabla');
+        const empty = $('mesas-empty');
 
         if (mesas.length === 0) {
-            tabla.style.display = 'none';
-            empty.style.display = 'flex';
+            tabla.hidden = true;
+            empty.hidden = false;
             return;
         }
 
-        tabla.style.display = 'table';
-        empty.style.display = 'none';
+        tabla.hidden = false;
+        empty.hidden = true;
 
         tbody.innerHTML = mesas.map((m) => {
             const cargados = m.votos_blancos !== null && m.votos_blancos !== undefined;
             const tieneRango = !!m.padron_desde_dni && !!m.padron_hasta_dni;
+            const num = escaparHtml(String(m.numero));
             return `
             <tr>
-                <td>${escaparHtml(String(m.numero))}</td>
-                <td>${tieneRango ? `${escaparHtml(m.padron_desde_dni)} — ${escaparHtml(m.padron_hasta_dni)}` : '<span class="sin-cubrir">Sin rango</span>'}</td>
+                <td>${num}</td>
+                <td>${tieneRango ? `${escaparHtml(m.padron_desde_dni)} a ${escaparHtml(m.padron_hasta_dni)}` : '<span class="sin-cubrir">Sin rango</span>'}</td>
                 <td>${escaparHtml(m.cantidad_votantes === null || m.cantidad_votantes === undefined ? '-' : String(m.cantidad_votantes))}</td>
                 <td>
                     <span class="estado-badge ${cargados ? 'estado-activo' : 'estado-inactivo'}">
-                        <i class="fas ${cargados ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                        <i class="fas ${cargados ? 'fa-check-circle' : 'fa-times-circle'}" aria-hidden="true"></i>
                         ${cargados ? 'Cargados' : 'Sin cargar'}
                     </span>
                 </td>
                 <td>
                     <div class="acciones-cell">
                         ${this.permisos.fiscalesView ? `
-                        <button class="btn-accion" title="Fiscales de esta mesa" data-id="${m.id}" data-numero="${escaparHtml(String(m.numero))}" data-accion="fiscales">
-                            <i class="fas fa-user-shield"></i>
+                        <button type="button" class="btn-accion" title="Fiscales de esta mesa" aria-label="Fiscales de la mesa ${num}" data-id="${m.id}" data-numero="${num}" data-accion="fiscales">
+                            <i class="fas fa-user-shield" aria-hidden="true"></i>
                         </button>` : ''}
                         ${this.permisos.comicioEdit ? `
-                        <button class="btn-accion btn-votos" title="Cargar votos" data-id="${m.id}">
-                            <i class="fas fa-check-to-slot"></i>
+                        <button type="button" class="btn-accion btn-votos" title="Cargar votos" aria-label="Cargar votos de la mesa ${num}" data-id="${m.id}">
+                            <i class="fas fa-check-to-slot" aria-hidden="true"></i>
                         </button>
-                        <button class="btn-accion btn-editar" title="Editar mesa" data-id="${m.id}">
-                            <i class="fas fa-edit"></i>
+                        <button type="button" class="btn-accion btn-editar" title="Editar mesa" aria-label="Editar la mesa ${num}" data-id="${m.id}">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
                         </button>
-                        <button class="btn-accion btn-eliminar" title="Eliminar mesa" data-id="${m.id}" data-numero="${escaparHtml(String(m.numero))}">
-                            <i class="fas fa-trash"></i>
+                        <button type="button" class="btn-accion btn-eliminar" title="Eliminar mesa" aria-label="Eliminar la mesa ${num}" data-id="${m.id}" data-numero="${num}">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>` : ''}
                     </div>
                 </td>
@@ -1444,48 +1500,47 @@ class ComicioComponent {
     // ---- Modal mesa ----
 
     abrirModalCrearMesa() {
-        document.getElementById('modal-mesa-titulo').innerHTML = '<i class="fas fa-plus"></i> Nueva Mesa';
-        document.getElementById('form-mesa-id').value = '';
-        document.getElementById('form-mesa-numero').value = '';
-        document.getElementById('form-mesa-desde').value = '';
-        document.getElementById('form-mesa-hasta').value = '';
-        document.getElementById('form-mesa-error').style.display = 'none';
-        document.getElementById('modal-mesa').style.display = 'flex';
-        document.getElementById('form-mesa-numero').focus();
+        this.fijarTitulo('modal-mesa-titulo', 'fa-plus', 'Nueva mesa');
+        $('form-mesa-id').value = '';
+        $('form-mesa-numero').value = '';
+        $('form-mesa-desde').value = '';
+        $('form-mesa-hasta').value = '';
+        this.ocultarError('form-mesa-error');
+        this.abrirDialogo('modal-mesa');
+        $('form-mesa-numero').focus();
     }
 
     abrirModalEditarMesa(mesaId) {
         const mesa = this.comicioActual.mesas.find((m) => m.id === mesaId);
         if (!mesa) return;
 
-        document.getElementById('modal-mesa-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Mesa';
-        document.getElementById('form-mesa-id').value = mesa.id;
-        document.getElementById('form-mesa-numero').value = mesa.numero;
-        document.getElementById('form-mesa-desde').value = mesa.padron_desde_dni || '';
-        document.getElementById('form-mesa-hasta').value = mesa.padron_hasta_dni || '';
-        document.getElementById('form-mesa-error').style.display = 'none';
-        document.getElementById('modal-mesa').style.display = 'flex';
+        this.fijarTitulo('modal-mesa-titulo', 'fa-edit', 'Editar mesa');
+        $('form-mesa-id').value = mesa.id;
+        $('form-mesa-numero').value = mesa.numero;
+        $('form-mesa-desde').value = mesa.padron_desde_dni || '';
+        $('form-mesa-hasta').value = mesa.padron_hasta_dni || '';
+        this.ocultarError('form-mesa-error');
+        this.abrirDialogo('modal-mesa');
     }
 
     cerrarModalMesa() {
-        document.getElementById('modal-mesa').style.display = 'none';
+        this.cerrarDialogo('modal-mesa');
     }
 
     async guardarMesa() {
-        const id = document.getElementById('form-mesa-id').value;
+        const id = $('form-mesa-id').value;
         const isEdit = !!id;
-        const numero = Number(document.getElementById('form-mesa-numero').value);
-        const desdeDni = document.getElementById('form-mesa-desde').value.trim();
-        const hastaDni = document.getElementById('form-mesa-hasta').value.trim();
+        const numero = Number($('form-mesa-numero').value);
+        const desdeDni = $('form-mesa-desde').value.trim();
+        const hastaDni = $('form-mesa-hasta').value.trim();
 
-        if (!Number.isInteger(numero) || numero <= 0) return this.mostrarError('form-mesa-error', 'El número de mesa tiene que ser un entero positivo');
+        if (!Number.isInteger(numero) || numero <= 0) return this.mostrarError('form-mesa-error', 'El número de mesa tiene que ser un entero positivo', 'form-mesa-numero');
         if ((desdeDni && !hastaDni) || (!desdeDni && hastaDni)) {
-            return this.mostrarError('form-mesa-error', 'Completá los dos DNI del rango, o dejalos los dos vacíos');
+            return this.mostrarError('form-mesa-error', 'Completá los dos DNI del rango, o dejalos los dos vacíos', desdeDni ? 'form-mesa-hasta' : 'form-mesa-desde');
         }
 
-        const btn = document.getElementById('btn-guardar-mesa');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        const btn = $('btn-guardar-mesa');
+        btn.setAttribute('aria-busy', 'true');
 
         try {
             const data = { numero, desdeDni: desdeDni || null, hastaDni: hastaDni || null };
@@ -1495,20 +1550,19 @@ class ComicioComponent {
 
             if (response.success) {
                 this.cerrarModalMesa();
-                const votantesTexto = response.data.cantidad_votantes === null ? '' : ` — ${response.data.cantidad_votantes} votantes en el rango`;
+                const votantesTexto = response.data.cantidad_votantes === null ? '' : `: ${response.data.cantidad_votantes} votantes en el rango`;
                 this.mostrarToast(isEdit ? 'Mesa actualizada' : `Mesa creada${votantesTexto}`, 'success');
                 await this.entrarAComicio(this.comicioActual.id, false);
             }
         } catch (error) {
-            this.mostrarError('form-mesa-error', error.message || 'Error al guardar la mesa');
+            this.mostrarError('form-mesa-error', error.message || 'No se pudo guardar la mesa');
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            btn.removeAttribute('aria-busy');
         }
     }
 
     async eliminarMesa(mesaId, numero) {
-        if (!confirm(`¿Eliminar la mesa ${numero}? Se borran también sus votos cargados y fiscales asignados.`)) return;
+        if (!(await this.confirmarEliminar(`¿Eliminar la mesa ${numero}? Se borran también sus votos cargados y fiscales asignados.`))) return;
         try {
             const response = await window.apiService.eliminarMesa(this.comicioActual.id, mesaId);
             if (response.success) {
@@ -1516,7 +1570,7 @@ class ComicioComponent {
                 await this.entrarAComicio(this.comicioActual.id, false);
             }
         } catch (error) {
-            this.mostrarToast('Error al eliminar: ' + error.message, 'error');
+            this.mostrarToast('No se pudo eliminar: ' + error.message, 'error');
         }
     }
 
@@ -1526,9 +1580,9 @@ class ComicioComponent {
         this.mesaEnEdicionVotos = mesaId;
         const mesa = this.comicioActual.mesas.find((m) => m.id === mesaId);
 
-        document.getElementById('modal-votos-titulo').innerHTML = `<i class="fas fa-check-to-slot"></i> Votos — Mesa ${escaparHtml(String(mesa.numero))}`;
-        document.getElementById('form-votos-mesa-id').value = mesaId;
-        document.getElementById('form-votos-error').style.display = 'none';
+        this.fijarTitulo('modal-votos-titulo', 'fa-check-to-slot', `Votos: mesa ${mesa.numero}`);
+        $('form-votos-mesa-id').value = mesaId;
+        this.ocultarError('form-votos-error');
 
         let votosPrevios = { porFuerza: [] };
         try {
@@ -1544,42 +1598,41 @@ class ComicioComponent {
         // arriba, al entrar a la función.
         if (this.mesaEnEdicionVotos !== mesaId) return;
 
-        document.getElementById('form-votos-blancos').value = votosPrevios.blancos ?? 0;
-        document.getElementById('form-votos-nulos').value = votosPrevios.nulos ?? 0;
+        $('form-votos-blancos').value = votosPrevios.blancos ?? 0;
+        $('form-votos-nulos').value = votosPrevios.nulos ?? 0;
 
-        const cont = document.getElementById('form-votos-fuerzas');
+        const cont = $('form-votos-fuerzas');
         cont.innerHTML = this.comicioActual.fuerzas.map((f) => {
             const previo = votosPrevios.porFuerza.find((v) => v.fuerza_id === f.id);
             return `
                 <div class="form-group">
-                    <label for="voto-fuerza-${f.id}"><span class="color-dot" style="background:${this.colorFuerzaVar(f.color)};"></span>${escaparHtml(f.nombre)}</label>
-                    <input type="number" id="voto-fuerza-${f.id}" class="form-input" data-fuerza-id="${f.id}" min="0" step="1" value="${previo ? previo.cantidad : 0}" required>
+                    <label for="voto-fuerza-${f.id}"><span class="color-dot ${this.claseFuerza(f.color)}" aria-hidden="true"></span>${escaparHtml(f.nombre)}</label>
+                    <input type="number" id="voto-fuerza-${f.id}" class="form-input" data-fuerza-id="${f.id}" min="0" step="1" value="${previo ? previo.cantidad : 0}" required aria-required="true" inputmode="numeric">
                 </div>
             `;
         }).join('');
 
-        document.getElementById('modal-votos').style.display = 'flex';
+        this.abrirDialogo('modal-votos');
     }
 
     cerrarModalVotos() {
-        document.getElementById('modal-votos').style.display = 'none';
+        this.cerrarDialogo('modal-votos');
     }
 
     async guardarVotos() {
-        const mesaId = Number(document.getElementById('form-votos-mesa-id').value);
-        const blancos = Number(document.getElementById('form-votos-blancos').value);
-        const nulos = Number(document.getElementById('form-votos-nulos').value);
+        const mesaId = Number($('form-votos-mesa-id').value);
+        const blancos = Number($('form-votos-blancos').value);
+        const nulos = Number($('form-votos-nulos').value);
         const porFuerza = [...document.querySelectorAll('#form-votos-fuerzas input')].map((input) => ({
             fuerzaId: Number(input.dataset.fuerzaId),
             cantidad: Number(input.value),
         }));
 
-        if (!Number.isInteger(blancos) || blancos < 0) return this.mostrarError('form-votos-error', 'Los votos en blanco tienen que ser un entero no negativo');
-        if (!Number.isInteger(nulos) || nulos < 0) return this.mostrarError('form-votos-error', 'Los votos nulos tienen que ser un entero no negativo');
+        if (!Number.isInteger(blancos) || blancos < 0) return this.mostrarError('form-votos-error', 'Los votos en blanco tienen que ser un entero no negativo', 'form-votos-blancos');
+        if (!Number.isInteger(nulos) || nulos < 0) return this.mostrarError('form-votos-error', 'Los votos nulos tienen que ser un entero no negativo', 'form-votos-nulos');
 
-        const btn = document.getElementById('btn-guardar-votos');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        const btn = $('btn-guardar-votos');
+        btn.setAttribute('aria-busy', 'true');
 
         try {
             const response = await window.apiService.cargarVotosMesa(this.comicioActual.id, mesaId, { blancos, nulos, porFuerza });
@@ -1589,10 +1642,9 @@ class ComicioComponent {
                 await this.entrarAComicio(this.comicioActual.id, false);
             }
         } catch (error) {
-            this.mostrarError('form-votos-error', error.message || 'Error al guardar los votos');
+            this.mostrarError('form-votos-error', error.message || 'No se pudieron guardar los votos');
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save"></i> Guardar votos';
+            btn.removeAttribute('aria-busy');
         }
     }
 
@@ -1617,7 +1669,7 @@ class ComicioComponent {
         return (hora || '').slice(0, 5);
     }
 
-    /** % de la franja 08:00–18:00 (600 min) que representa una hora HH:MM. */
+    /** % de la franja 08:00 a 18:00 (600 min) que representa una hora HH:MM. */
     pctEnJornada(horaHHMM) {
         const [h, m] = this.formatearHora(horaHHMM).split(':').map(Number);
         const minutos = (h * 60 + m) - (8 * 60);
@@ -1625,25 +1677,27 @@ class ComicioComponent {
     }
 
     renderizarCalendarioComicio() {
-        const cont = document.getElementById('calendario-comicio');
+        const cont = $('calendario-comicio');
         if (!cont) return;
         const mesas = this.comicioActual.mesas || [];
 
         if (mesas.length === 0) {
-            cont.innerHTML = '<p class="fiscales-empty" style="display:block;">Este comicio todavía no tiene mesas.</p>';
+            cont.innerHTML = '<p class="fiscales-empty fiscales-empty-linea">Este comicio todavía no tiene mesas.</p>';
             return;
         }
 
         const horas = Array.from({ length: 10 }, (_, i) => 8 + i);
         const encabezado = horas.map((h) => `<div class="calendario-hora">${String(h).padStart(2, '0')}:00</div>`).join('');
 
+        // Posición y ancho de cada franja: `data-izq` / `data-ancho`, aplicados por CSSOM al
+        // final (un `style=` en el markup impide quitar 'unsafe-inline' de la CSP).
         const filas = mesas.map((m) => {
             const asignaciones = this.asignacionesPorMesa.get(m.id) || [];
             const bloques = asignaciones.map((a) => {
                 const left = this.pctEnJornada(a.desde);
                 const width = Math.max(this.pctEnJornada(a.hasta) - left, 2);
-                const etiqueta = `${escaparHtml(a.fiscal_nombre)} ${this.formatearHora(a.desde)}–${this.formatearHora(a.hasta)}`;
-                return `<div class="calendario-bloque" style="left:${left}%;width:${width}%;" title="${etiqueta}">${escaparHtml(a.fiscal_nombre)}</div>`;
+                const etiqueta = `${escaparHtml(a.fiscal_nombre)}, ${this.formatearHora(a.desde)} a ${this.formatearHora(a.hasta)}`;
+                return `<div class="calendario-bloque" data-izq="${left}" data-ancho="${width}" title="${etiqueta}">${escaparHtml(a.fiscal_nombre)}</div>`;
             }).join('');
             return `
                 <div class="calendario-fila">
@@ -1662,24 +1716,27 @@ class ComicioComponent {
                 ${filas}
             </div>
         `;
+        cont.querySelectorAll('.calendario-bloque').forEach((b) => {
+            b.style.left = `${Number(b.dataset.izq) || 0}%`;
+            b.style.width = `${Number(b.dataset.ancho) || 0}%`;
+        });
     }
 
     // ---- Modal fiscales de una mesa (lista de asignaciones) ----
 
     async abrirModalFiscalesMesa(mesaId, numero) {
         this.mesaSeleccionadaFiscales = mesaId;
-        document.getElementById('modal-fiscales-mesa-titulo').innerHTML =
-            `<i class="fas fa-user-shield"></i> Fiscales — Mesa ${escaparHtml(numero)}`;
+        this.fijarTitulo('modal-fiscales-mesa-titulo', 'fa-user-shield', `Fiscales: mesa ${numero}`);
         if (this.permisos.fiscalesEdit) {
             this.poblarSelectFiscales();
             this.resetearFormularioAsignacion();
         }
         await this.cargarAsignacionesMesa();
-        document.getElementById('modal-fiscales-mesa').style.display = 'flex';
+        this.abrirDialogo('modal-fiscales-mesa');
     }
 
     cerrarModalFiscalesMesa() {
-        document.getElementById('modal-fiscales-mesa').style.display = 'none';
+        this.cerrarDialogo('modal-fiscales-mesa');
     }
 
     async cargarAsignacionesMesa() {
@@ -1688,6 +1745,7 @@ class ComicioComponent {
         // tardío se guardaría bajo la clave equivocada. Depende de que
         // mesaSeleccionadaFiscales se reasigne de forma síncrona al abrir el modal.
         const mesaId = this.mesaSeleccionadaFiscales;
+        $('asignaciones-error').hidden = true;
         try {
             const response = await window.apiService.asignacionesDeMesa(mesaId);
             if (this.mesaSeleccionadaFiscales !== mesaId) return;
@@ -1698,24 +1756,32 @@ class ComicioComponent {
             }
         } catch (error) {
             if (this.mesaSeleccionadaFiscales !== mesaId) return;
-            this.mostrarToast('Error al cargar las asignaciones: ' + error.message, 'error');
+            console.error('Error cargando asignaciones:', error);
+            $('asignaciones-error').innerHTML = estados.error({
+                titulo: 'No se pudieron cargar las asignaciones',
+                reintentar: 'cargarAsignacionesMesa',
+                compacto: true
+            });
+            $('asignaciones-error').hidden = false;
         }
     }
 
     renderizarAsignaciones() {
-        const tbody = document.getElementById('asignaciones-tbody');
-        const tabla = document.getElementById('asignaciones-tabla');
-        const empty = document.getElementById('asignaciones-empty');
+        const tbody = $('asignaciones-tbody');
+        const tabla = $('asignaciones-tabla');
+        const empty = $('asignaciones-empty');
 
         if (this.asignacionesMesaActual.length === 0) {
-            tabla.style.display = 'none';
-            empty.style.display = 'flex';
+            tabla.hidden = true;
+            empty.hidden = false;
             return;
         }
-        tabla.style.display = 'table';
-        empty.style.display = 'none';
+        tabla.hidden = false;
+        empty.hidden = true;
 
-        tbody.innerHTML = this.asignacionesMesaActual.map((a) => `
+        tbody.innerHTML = this.asignacionesMesaActual.map((a) => {
+            const franja = `${escaparHtml(a.fiscal_nombre)}, ${escaparHtml(this.formatearHora(a.desde))} a ${escaparHtml(this.formatearHora(a.hasta))}`;
+            return `
             <tr>
                 <td>${escaparHtml(this.formatearHora(a.desde))}</td>
                 <td>${escaparHtml(this.formatearHora(a.hasta))}</td>
@@ -1723,16 +1789,17 @@ class ComicioComponent {
                 <td>
                     <div class="acciones-cell">
                         ${this.permisos.fiscalesEdit ? `
-                        <button class="btn-accion btn-editar" title="Editar" data-id="${a.id}">
-                            <i class="fas fa-edit"></i>
+                        <button type="button" class="btn-accion btn-editar" title="Editar" aria-label="Editar la franja de ${franja}" data-id="${a.id}">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
                         </button>
-                        <button class="btn-accion btn-eliminar" title="Quitar" data-id="${a.id}">
-                            <i class="fas fa-trash"></i>
+                        <button type="button" class="btn-accion btn-eliminar" title="Quitar" aria-label="Quitar la franja de ${franja}" data-id="${a.id}">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>` : ''}
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
         if (this.permisos.fiscalesEdit) {
             tbody.querySelectorAll('.btn-editar').forEach((btn) => {
@@ -1747,51 +1814,60 @@ class ComicioComponent {
     // ---- Formulario inline de asignación (agregar/editar una franja, dentro del mismo modal) ----
 
     poblarSelectFiscales(seleccionado = '') {
-        const select = document.getElementById('form-asignacion-fiscal');
-        select.innerHTML = '<option value="">Seleccionar...</option>' +
+        const select = $('form-asignacion-fiscal');
+        select.innerHTML = '<option value="">Seleccionar…</option>' +
             this.fiscales.map((f) => `<option value="${f.id}" ${String(f.id) === String(seleccionado) ? 'selected' : ''}>${escaparHtml(f.nombre)}</option>`).join('');
     }
 
     /** Vuelve el formulario inline a modo "agregar" (sin franja en edición). */
     resetearFormularioAsignacion() {
         this.asignacionEnEdicionId = null;
-        document.getElementById('form-asignacion-id').value = '';
-        document.getElementById('form-asignacion-desde').value = '';
-        document.getElementById('form-asignacion-hasta').value = '';
-        document.getElementById('form-asignacion-error').style.display = 'none';
-        document.getElementById('asignacion-form-titulo').innerHTML = '<i class="fas fa-plus"></i> Agregar fiscal';
-        document.getElementById('btn-guardar-asignacion').innerHTML = '<i class="fas fa-save"></i> Guardar';
-        document.getElementById('btn-cancelar-edicion-asignacion').style.display = 'none';
+        $('form-asignacion-id').value = '';
+        $('form-asignacion-desde').value = '';
+        $('form-asignacion-hasta').value = '';
+        this.ocultarError('form-asignacion-error');
+        this.fijarTitulo('asignacion-form-titulo', 'fa-plus', 'Agregar fiscal');
+        this.etiquetaGuardarAsignacion();
+        $('btn-cancelar-edicion-asignacion').hidden = true;
         this.poblarSelectFiscales();
+    }
+
+    /** Texto del botón de guardar según el modo (alta o edición). */
+    etiquetaGuardarAsignacion() {
+        const texto = this.asignacionEnEdicionId ? 'Guardar cambios' : 'Guardar';
+        const btn = $('btn-guardar-asignacion');
+        const i = document.createElement('i');
+        i.className = 'fas fa-save';
+        i.setAttribute('aria-hidden', 'true');
+        btn.replaceChildren(i, ` ${texto}`);
     }
 
     cargarAsignacionEnFormulario(id) {
         const a = this.asignacionesMesaActual.find((x) => x.id === id);
         if (!a) return;
         this.asignacionEnEdicionId = id;
-        document.getElementById('form-asignacion-id').value = a.id;
-        document.getElementById('form-asignacion-desde').value = this.formatearHora(a.desde);
-        document.getElementById('form-asignacion-hasta').value = this.formatearHora(a.hasta);
-        document.getElementById('form-asignacion-error').style.display = 'none';
-        document.getElementById('asignacion-form-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar franja';
-        document.getElementById('btn-guardar-asignacion').innerHTML = '<i class="fas fa-save"></i> Guardar cambios';
-        document.getElementById('btn-cancelar-edicion-asignacion').style.display = 'inline-flex';
+        $('form-asignacion-id').value = a.id;
+        $('form-asignacion-desde').value = this.formatearHora(a.desde);
+        $('form-asignacion-hasta').value = this.formatearHora(a.hasta);
+        this.ocultarError('form-asignacion-error');
+        this.fijarTitulo('asignacion-form-titulo', 'fa-edit', 'Editar franja');
+        this.etiquetaGuardarAsignacion();
+        $('btn-cancelar-edicion-asignacion').hidden = false;
         this.poblarSelectFiscales(a.fiscal_id);
-        document.getElementById('form-asignacion-fiscal').focus();
+        $('form-asignacion-fiscal').focus();
     }
 
     async guardarAsignacion() {
         const isEdit = !!this.asignacionEnEdicionId;
-        const fiscalId = Number(document.getElementById('form-asignacion-fiscal').value);
-        const desde = document.getElementById('form-asignacion-desde').value;
-        const hasta = document.getElementById('form-asignacion-hasta').value;
+        const fiscalId = Number($('form-asignacion-fiscal').value);
+        const desde = $('form-asignacion-desde').value;
+        const hasta = $('form-asignacion-hasta').value;
 
-        if (!fiscalId) return this.mostrarError('form-asignacion-error', 'Elegí un fiscal');
-        if (!desde || !hasta) return this.mostrarError('form-asignacion-error', 'Completá desde y hasta');
+        if (!fiscalId) return this.mostrarError('form-asignacion-error', 'Elegí un fiscal', 'form-asignacion-fiscal');
+        if (!desde || !hasta) return this.mostrarError('form-asignacion-error', 'Completá desde y hasta', desde ? 'form-asignacion-hasta' : 'form-asignacion-desde');
 
-        const btn = document.getElementById('btn-guardar-asignacion');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        const btn = $('btn-guardar-asignacion');
+        btn.setAttribute('aria-busy', 'true');
 
         try {
             const data = { fiscalId, desde, hasta };
@@ -1806,15 +1882,17 @@ class ComicioComponent {
                 this.renderizarCalendarioComicio();
             }
         } catch (error) {
-            this.mostrarError('form-asignacion-error', error.message || 'Error al guardar la asignación');
+            this.mostrarError('form-asignacion-error', error.message || 'No se pudo guardar la asignación');
         } finally {
-            btn.disabled = false;
-            if (!this.asignacionEnEdicionId) btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            // aria-busy y no un texto que se pisa: antes, si fallaba una EDICIÓN, el botón
+            // quedaba para siempre en "Guardando…" con el spinner (el texto solo se
+            // restauraba fuera del modo edición).
+            btn.removeAttribute('aria-busy');
         }
     }
 
     async eliminarAsignacion(id) {
-        if (!confirm('¿Quitar esta asignación?')) return;
+        if (!(await this.confirmarEliminar('¿Quitar esta asignación?'))) return;
         try {
             const response = await window.apiService.eliminarAsignacionFiscal(id);
             if (response.success) {
@@ -1824,7 +1902,7 @@ class ComicioComponent {
                 this.renderizarCalendarioComicio();
             }
         } catch (error) {
-            this.mostrarToast('Error al eliminar: ' + error.message, 'error');
+            this.mostrarToast('No se pudo eliminar: ' + error.message, 'error');
         }
     }
 
@@ -1835,25 +1913,37 @@ class ComicioComponent {
         return nombres[tipo] || tipo;
     }
 
-    mostrarError(elementId, mensaje) {
-        const el = document.getElementById(elementId);
+    /**
+     * Error de un formulario: región `role="alert"` (que se anuncia) y, si se indica el
+     * campo, `aria-invalid` y foco en él. Antes solo se pintaba un texto rojo: un lector de
+     * pantalla no sabía que había un error ni en qué campo.
+     */
+    mostrarError(elementId, mensaje, campoId = null) {
+        const el = $(elementId);
         el.textContent = mensaje;
-        el.style.display = 'block';
+        el.hidden = false;
+        if (campoId) {
+            const campo = $(campoId);
+            if (campo) {
+                campo.setAttribute('aria-invalid', 'true');
+                campo.focus();
+            }
+        }
     }
 
+    ocultarError(elementId) {
+        const el = $(elementId);
+        if (!el) return;
+        el.textContent = '';
+        el.hidden = true;
+        el.closest('dialog, form')?.querySelectorAll('[aria-invalid]').forEach((c) => c.removeAttribute('aria-invalid'));
+    }
+
+    /** Aviso transitorio (lib/avisos.js): reemplaza al toast propio de esta pantalla. */
     mostrarToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
-        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${escaparHtml(message)}`;
-        container.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('toast-visible'));
-        setTimeout(() => {
-            toast.classList.remove('toast-visible');
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
+        window.avisos.mostrar(message, type);
     }
 }
 
 window.comicioComponent = new ComicioComponent();
+})();

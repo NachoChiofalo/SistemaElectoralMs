@@ -16,12 +16,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             : [];
 
         if (!permisos.includes('comicio.view') && !permisos.includes('fiscales.view')) {
-            document.getElementById('comicio-container').innerHTML = `
-                <div class="comicio-empty" style="padding: 60px 20px;">
-                    <i class="fas fa-lock"></i>
-                    <p>No tenés permisos para acceder a la gestión de comicio.</p>
-                </div>
-            `;
+            document.getElementById('comicio-container').innerHTML = estados.error({
+                titulo: 'Acceso denegado',
+                icono: 'fa-lock',
+                texto: 'No tenés permisos para acceder a la gestión de comicio.',
+                enlace: { texto: 'Ir al inicio', href: 'dashboard.html' }
+            });
             return;
         }
 
@@ -35,7 +35,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error iniciando página de comicio:', error);
         const container = document.getElementById('comicio-container');
         if (container) {
-            container.innerHTML = `<p>Error al cargar la página: ${escaparHtml(error.message)}</p>`;
+            container.innerHTML = estados.error({
+                titulo: 'No se pudo cargar la página',
+                texto: 'Revisá tu conexión y volvé a intentar.',
+                reintentar: 'reintentar'
+            });
         }
     }
+});
+
+// "Reintentar" del estado de error de la página entera.
+document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-action="reintentar"]')) window.location.reload();
 });

@@ -1,3 +1,19 @@
+/* ==================== Base de la página ====================
+   Antes en un <style> dentro de comicio.html. */
+body {
+    font-family: var(--ds-font-family);
+    background-color: var(--ds-bg-page);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 20px;
+}
+
 /* ==================== Comicio ==================== */
 
 /* ==================== Color de fuerza ====================
@@ -12,6 +28,7 @@
     margin-right: 8px;
     flex-shrink: 0;
     vertical-align: middle;
+    background: var(--opcion-color);
 }
 
 .color-swatches {
@@ -86,6 +103,7 @@
    fondo. El listado de comicios, un nivel arriba, no tiene pestañas: es una sola tabla. */
 .comicio-subtabs {
     display: flex;
+    overflow-x: auto;
     gap: 4px;
     border-bottom: 1px solid var(--ds-border-light);
     margin: 8px 0 20px;
@@ -111,7 +129,7 @@
     color: var(--ds-text-primary);
 }
 
-.comicio-subtab-activa {
+.comicio-subtab[aria-selected="true"] {
     color: var(--ds-primary-on-tint);
     border-bottom-color: var(--ds-primary-500);
 }
@@ -124,8 +142,18 @@
     margin-bottom: 6px;
 }
 
-.form-comicio-fuerzas-header label {
-    margin: 0;
+.grupo-fuerzas {
+    border: 0;
+    padding: 0;
+    margin: 0 0 16px;
+    min-width: 0;
+}
+
+.etiqueta-grupo {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ds-text-secondary);
 }
 
 .comicio-header {
@@ -137,7 +165,7 @@
     margin-bottom: 24px;
 }
 
-.comicio-title h2 {
+.comicio-title h1 {
     margin: 0;
     font-size: 1.6rem;
     color: var(--ds-text-primary);
@@ -147,8 +175,20 @@
     gap: 10px;
 }
 
+.comicio-title h1 i,
 .comicio-title h2 i {
     color: var(--ds-primary-500);
+}
+
+/* Secciones dentro de un comicio (Mesas, Fuerzas, Resultados): eran h3 con el tamaño por defecto. */
+.comicio-title h2 {
+    margin: 0;
+    font-size: var(--ds-font-2xl);
+    color: var(--ds-text-primary);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .comicio-subtitle {
@@ -425,75 +465,17 @@
     box-shadow: var(--ds-shadow-sm);
 }
 
-/* ==================== Modal ==================== */
+/* ==================== Modal ====================
+   Los modales son <dialog class="dialogo"> (design-system.css); aquí solo queda el texto de ayuda. */
 
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(16, 42, 67, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease;
-}
 
-.modal-content {
-    background: var(--ds-bg-card);
-    border-radius: var(--ds-radius-xl);
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--ds-shadow-xl);
-    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-.modal-sm {
-    max-width: 420px;
-}
 
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--ds-border-light);
-}
 
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--ds-text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
 
-.modal-header h3 i {
-    color: var(--ds-primary-500);
-}
 
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--ds-text-muted);
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: color var(--ds-transition-fast) ease;
-}
 
-.modal-close:hover {
-    color: var(--ds-text-primary);
-}
 
-.modal-body {
-    padding: 24px;
-}
 
 .modal-info {
     margin: 0 0 16px;
@@ -501,50 +483,17 @@
     font-size: 0.85rem;
 }
 
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding-top: 20px;
-    border-top: 1px solid var(--ds-border-light);
-    margin-top: 8px;
-}
 
-.modal-footer .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color var(--ds-transition-fast) ease, background-color var(--ds-transition-fast) ease, border-color var(--ds-transition-fast) ease, box-shadow var(--ds-transition-fast) ease, transform var(--ds-transition-fast) ease, opacity var(--ds-transition-fast) ease;
-}
 
-.modal-footer .btn-primary {
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
-}
 
-.modal-footer .btn-primary:hover {
-    box-shadow: var(--ds-shadow-md);
-}
 
-.modal-footer .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
 
-.modal-footer .btn-secondary,
 .btn-secondary {
     background: var(--ds-bg-page);
     color: var(--ds-text-secondary);
     border: 1px solid var(--ds-border-default);
 }
 
-.modal-footer .btn-secondary:hover,
 .btn-secondary:hover {
     background: var(--ds-bg-card);
     border-color: var(--ds-text-muted);
@@ -602,8 +551,12 @@
 
 .form-input:focus {
     outline: none;
-    border-color: var(--ds-primary-500);
-    box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.1);
+    border-color: var(--ds-primary-700);
+    box-shadow: var(--ds-shadow-focus);
+}
+
+.form-input[aria-invalid="true"] {
+    border-color: var(--ds-danger-600);
 }
 
 .form-input::placeholder {
@@ -629,54 +582,10 @@ select.form-input {
     color: var(--ds-text-muted);
 }
 
-/* ==================== Toast ==================== */
 
-.toast-container {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
 
-.toast {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--ds-text-inverse);
-    box-shadow: var(--ds-shadow-lg);
-    transform: translateX(120%);
-    opacity: 0;
-    transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 360px;
-}
 
-.toast-visible {
-    transform: translateX(0);
-    opacity: 1;
-}
 
-.toast-success { background: var(--ds-success-600); }
-.toast-error { background: var(--ds-danger-600); }
-.toast-info { background: var(--ds-info-600); }
-
-/* ==================== Animations ==================== */
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 
 /* ==================== Responsive ==================== */
 
@@ -685,19 +594,13 @@ select.form-input {
     .comicio-tabla-container { overflow-x: auto; }
     .comicio-tabla { min-width: 600px; }
     .form-row { flex-direction: column; gap: 0; }
-    .modal-content { margin: 16px; max-height: calc(100vh - 32px); }
-    .toast-container { left: 16px; right: 16px; }
-    .toast { max-width: unset; }
 }
 
 @media (max-width: 480px) {
-    .comicio-title h2 { font-size: 1.3rem; }
+    .comicio-title h1 { font-size: 1.3rem; }
     .btn .btn-text { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .modal-overlay, .modal-content, .toast { animation: none; }
-    .toast { transition: opacity 0.15s ease; transform: none; }
-    .toast-visible { transform: none; }
     .btn-accion:hover, .comicio-actions .btn-primary:hover { transform: none; }
 }

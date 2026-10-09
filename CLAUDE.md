@@ -195,7 +195,7 @@ node scripts/verificar-frontend.js [etiqueta]          # capturas + axe + scroll
 **`verificar-frontend.js` no se corre contra producción.** No hay staging, así que un login
 desde acá cierra la sesión de la cuenta que se use (sesión única) y las capturas muestran el
 padrón real. Se usa contra una base descartable: un Postgres en Docker con las migraciones y
-`scripts/datos-prueba-frontend.sql` (datos sintéticos), un usuario propio y `DATABASE_URL`
+`scripts/datos-prueba-frontend.sql` y `scripts/datos-prueba-comicio.js` (datos sintéticos), un usuario propio y `DATABASE_URL`
 apuntando ahí. Credenciales por `VERIFICAR_USUARIO` / `VERIFICAR_CLAVE`; `verificacion/` está
 en `.gitignore`.
 
