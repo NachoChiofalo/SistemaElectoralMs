@@ -38,12 +38,12 @@ class ListasComponent {
         this.container.innerHTML = `
             <div class="listas-header">
                 <div class="listas-title">
-                    <h2><i class="fas fa-list-ol"></i> Armado de Listas</h2>
+                    <h1><i class="fas fa-list-ol" aria-hidden="true"></i> Armado de listas</h1>
                     <p class="listas-subtitle">Borradores de listas electorales: candidatos, orden, suplentes y notas</p>
                 </div>
                 <div class="listas-actions">
-                    <button id="btn-crear-lista" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> <span class="btn-text">Nueva Lista</span>
+                    <button id="btn-crear-lista" class="btn btn-primary" aria-label="Nueva lista">
+                        <i class="fas fa-plus" aria-hidden="true"></i> <span class="btn-text">Nueva lista</span>
                     </button>
                 </div>
             </div>

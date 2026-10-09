@@ -33,35 +33,6 @@
     font-size: 0.9rem;
 }
 
-.fiscales-actions .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color var(--ds-transition-fast) ease, background-color var(--ds-transition-fast) ease, border-color var(--ds-transition-fast) ease, box-shadow var(--ds-transition-fast) ease, transform var(--ds-transition-fast) ease, opacity var(--ds-transition-fast) ease;
-}
-
-.fiscales-actions .btn-primary {
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
-}
-
-.fiscales-actions .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--ds-shadow-md);
-}
-
-.fiscales-actions .btn-secondary {
-    background: var(--ds-bg-page);
-    color: var(--ds-text-secondary);
-    border: 1px solid var(--ds-border-default);
-}
-
 /* Selectores de comicio/mesa/hora */
 .selectores-row {
     display: flex;

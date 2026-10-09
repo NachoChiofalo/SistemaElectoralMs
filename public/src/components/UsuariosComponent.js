@@ -30,12 +30,12 @@ class UsuariosComponent {
         this.container.innerHTML = `
             <div class="usuarios-header">
                 <div class="usuarios-title">
-                    <h2><i class="fas fa-users-gear"></i> Gesti\u00f3n de Usuarios</h2>
+                    <h1><i class="fas fa-users-gear" aria-hidden="true"></i> Gesti\u00f3n de usuarios</h1>
                     <p class="usuarios-subtitle">Administraci\u00f3n de cuentas y roles del sistema</p>
                 </div>
                 <div class="usuarios-actions">
-                    <button id="btn-crear-usuario" class="btn btn-primary">
-                        <i class="fas fa-user-plus"></i> <span class="btn-text">Nuevo Usuario</span>
+                    <button id="btn-crear-usuario" class="btn btn-primary" aria-label="Nuevo usuario">
+                        <i class="fas fa-user-plus" aria-hidden="true"></i> <span class="btn-text">Nuevo usuario</span>
                     </button>
                 </div>
             </div>

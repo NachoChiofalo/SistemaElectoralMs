@@ -59,7 +59,7 @@
             container.innerHTML = `
                 <div class="auditoria-container">
                     <div class="auditoria-header">
-                        <h1><i class="fas fa-clipboard-list"></i> Auditoria del Padron</h1>
+                        <h1><i class="fas fa-clipboard-list" aria-hidden="true"></i> Auditoría del padrón</h1>
                     </div>
 
                     <div id="auditoria-stats" class="auditoria-stats">
@@ -69,7 +69,7 @@
                     <div class="auditoria-filtros">
                         <div class="filtros-grid">
                             <div class="filtro-group">
-                                <label>Operacion</label>
+                                <label for="filtro-operacion">Operación</label>
                                 <select id="filtro-operacion">
                                     <option value="">Todas</option>
                                     ${Object.entries(OPERACIONES).map(([key, val]) =>
@@ -78,11 +78,11 @@
                                 </select>
                             </div>
                             <div class="filtro-group">
-                                <label>Desde</label>
+                                <label for="filtro-fecha-desde">Desde</label>
                                 <input type="date" id="filtro-fecha-desde">
                             </div>
                             <div class="filtro-group">
-                                <label>Hasta</label>
+                                <label for="filtro-fecha-hasta">Hasta</label>
                                 <input type="date" id="filtro-fecha-hasta">
                             </div>
                             <div class="filtros-acciones">
@@ -220,7 +220,7 @@
             wrapper.innerHTML = `
                 <div class="auditoria-tabla-container">
                     <div class="auditoria-tabla-header">
-                        <h3>Registros de Auditoria</h3>
+                        <h2>Registros de auditoría</h2>
                         <span class="registro-count">${this.paginacion.totalRegistros} registros encontrados</span>
                     </div>
                     <table class="auditoria-tabla">

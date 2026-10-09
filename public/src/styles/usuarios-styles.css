@@ -9,7 +9,7 @@
     margin-bottom: 24px;
 }
 
-.usuarios-title h2 {
+.usuarios-title h1 {
     margin: 0;
     font-size: 1.6rem;
     color: var(--ds-text-primary);
@@ -19,7 +19,7 @@
     gap: 10px;
 }
 
-.usuarios-title h2 i {
+.usuarios-title h1 i {
     color: var(--ds-primary-500);
 }
 
@@ -27,29 +27,6 @@
     margin: 4px 0 0;
     color: var(--ds-text-muted);
     font-size: 0.9rem;
-}
-
-.usuarios-actions .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color var(--ds-transition-fast) ease, background-color var(--ds-transition-fast) ease, border-color var(--ds-transition-fast) ease, box-shadow var(--ds-transition-fast) ease, transform var(--ds-transition-fast) ease, opacity var(--ds-transition-fast) ease;
-}
-
-.usuarios-actions .btn-primary {
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
-}
-
-.usuarios-actions .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--ds-shadow-md);
 }
 
 /* Filtros */
@@ -643,7 +620,7 @@ select.form-input {
 }
 
 @media (max-width: 480px) {
-    .usuarios-title h2 {
+    .usuarios-title h1 {
         font-size: 1.3rem;
     }
 
