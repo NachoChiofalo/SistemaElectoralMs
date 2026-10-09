@@ -18,7 +18,9 @@ está mal planteado. La excepción es una feature nueva que necesite UI nueva.
 **Ningún color fuera del design system.** En `public/` no se escribe `#hex` ni `white`:
 todo sale de un token `--ds-*` de `design-system.css`. No es prolijidad — es lo único
 que hace posible el modo oscuro, porque redefinir los tokens alcanza para cambiar la
-aplicación entera. Hay un test que falla si entra un color suelto.
+aplicación entera. Hay un test que falla si entra un color suelto, en css, html **y js**
+(los estilos inline dentro de plantillas también cuentan: los modales de sesión llevaban
+`background:white` y eran lo único que no seguía el tema).
 
 Es también lo que permitió rehacer la identidad visual entera —de navy y dorado con
 degradados a una escala neutra con acento grafito y superficies planas— tocando casi
@@ -93,6 +95,22 @@ que se escape. Ver [018](specs/018-mapa-por-manzana/spec.md).
 mostraría `&amp;` en un apellido con "&". Hay un test que falla si una interpolación
 vuelve a entrar cruda.
 
+**El frontend se mide.** [docs/DESIGN.md](docs/DESIGN.md) es la dirección visual y los tests la
+sostienen; una regla de estas no se discute con una captura, se rompe con un test que falla:
+- *Contraste*: texto y texto-sobre-relleno cumplen 4,5:1 en los dos temas
+  (`test/design-tokens.test.js` lee los valores reales del CSS). Un token que se aclara un
+  poco rompe todas las pantallas a la vez y ningún otro test lo ve.
+- *Nunca `transition: all`*: se listan las propiedades que cambian. El test lo impide.
+- *Foco*: nunca `outline: none` sin reemplazo; el anillo es `--ds-shadow-focus` (sólido).
+- *Sin scroll horizontal*: la barra de navegación entra en una fila de 769 px para arriba.
+  Se medía a ojo y estuvo rota meses a 1280 px.
+- *Todo control tiene nombre accesible y se opera con teclado*; todo lo asíncrono tiene
+  estado cargando, vacío y error visibles (el toast es sólo para lo transitorio).
+- *Un patrón, un componente*: botón, campo, diálogo, aviso, tabla, pestañas y paginación
+  salen de `design-system.css` y `public/src/lib/`; no se redefinen por pantalla.
+- *Sin `onclick=` ni `style="display:none"`*: delegación con `data-action` y atributo
+  `hidden`. Es lo que deja a la CSP en condiciones de perder el `'unsafe-inline'` de estilos.
+
 **Toda ruta de datos exige token.** Los módulos declaran `requiresAuth: true` y el
 factory lo aplica a todo el router, para que una ruta nueva nazca protegida.
 
@@ -151,6 +169,7 @@ significando algo con más de un usuario activo, que es exactamente el escenario
 | Paleta, tipografía, logo e ícono — la identidad de marca | [docs/IDENTIDAD.md](docs/IDENTIDAD.md) |
 | Cómo hace el sistema para que dos personas no se pisen | [docs/MULTIUSUARIO.md](docs/MULTIUSUARIO.md) |
 | Selector de tema claro/oscuro | `public/src/tema.js` |
+| Dirección visual, contraste, forma, movimiento y reglas de verificación del frontend | [docs/DESIGN.md](docs/DESIGN.md) |
 | Opciones políticas de la instancia (qué se puede marcar al relevar) | `src/modules/padron/opciones.js`, `public/src/lib/opciones.js`, pantalla `configuracion.html` |
 | Mapa por manzana y radio censal (018) | `src/modules/territorio/` (esquema `territorio`, solo administrador por `territorio.view`). Cómo se ubica un domicilio: `ubicacion.js`; de dónde salen las capas: `capas.js`; el umbral de privacidad: `aplicarUmbral` en `service.js`; el dibujo: `public/src/components/MapaComponent.js` y `lib/geometria-svg.js` |
 
@@ -170,7 +189,15 @@ npm run seed:usuarios    # crear el administrador
 npm run build:assets     # iconos, fuentes, ?v= y precomprimidos de public/
 npm run territorio:cargar -- ALCIRA      # capas del mapa (018): muestra qué haría; con "si" al final, carga
 npm run medir:geocodificacion                          # solo lectura: cuánto del padrón se ubica en una manzana
+node scripts/verificar-frontend.js [etiqueta]          # capturas + axe + scroll horizontal de las 10 pantallas (ver abajo)
 ```
+
+**`verificar-frontend.js` no se corre contra producción.** No hay staging, así que un login
+desde acá cierra la sesión de la cuenta que se use (sesión única) y las capturas muestran el
+padrón real. Se usa contra una base descartable: un Postgres en Docker con las migraciones y
+`scripts/datos-prueba-frontend.sql` (datos sintéticos), un usuario propio y `DATABASE_URL`
+apuntando ahí. Credenciales por `VERIFICAR_USUARIO` / `VERIFICAR_CLAVE`; `verificacion/` está
+en `.gitignore`.
 
 ---
 
@@ -252,8 +279,10 @@ que hay que entender para no repetirla:
 - El acento de la interfaz es grafito, no un color. Azul, rojo y gris ya significan
   PJ, UCR e indeciso, y verde y ámbar significan éxito y advertencia: cualquier acento
   cromático competiría con un dato. Por eso existe `--ds-on-primary` aparte de
-  `--ds-text-inverse`: el acento se invierte entre temas, pero las píldoras de partido
-  son azul y rojo en los dos y su texto es blanco siempre.
+  `--ds-text-inverse`: el acento se invierte entre temas. El texto de una píldora de
+  opción **no es blanco fijo**: cada relleno trae el suyo (`--opcion-on`, par de
+  `--opcion-color`), porque sobre el verde, el ámbar y el cian de claro el blanco no llega
+  a 4,5:1 y en oscuro los ocho rellenos son pasteles. Lo mide `test/design-tokens.test.js`.
 - La carga de teléfono, observación y condiciones vive en el panel lateral del padrón
   (`abrirPanel`), no en la tabla. La tabla es para encontrar gente; el panel, para
   cargarle datos. Eso bajó la página de ~350 controles de formulario a ~45.
