@@ -238,24 +238,6 @@ class ApiService {
     }
 
     /**
-     * Importar archivo CSV
-     */
-    async importarCSV(archivo) {
-        const formData = new FormData();
-        formData.append('csv', archivo);
-
-        return await this.request('/api/padron/importar-csv', {
-            method: 'POST',
-            // Un padron entero tarda mas que los 10 s de una consulta comun.
-            timeout: 300000,
-            headers: {
-                // No establecer Content-Type para FormData
-            },
-            body: formData
-        });
-    }
-
-    /**
      * Exportar relevamientos como CSV (admin-only)
      */
     async exportarDatos() {

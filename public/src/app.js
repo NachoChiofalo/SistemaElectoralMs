@@ -1,73 +1,66 @@
 /**
- * Aplicación principal del cliente web
+ * Aplicación principal del cliente web (pantalla del padrón).
+ *
+ * Esta clase arrastraba la navegación del diseño anterior (botones `.nav-btn`, secciones
+ * `.section`, `cambiarSeccion`, un `confirm()` de logout): nada de eso existe desde que la
+ * barra es NavbarComponent, que además es la dueña del logout. Quedó lo que de verdad hace:
+ * autenticar, cargar permisos, mostrar el login o inicializar el padrón.
  */
 class App {
     constructor() {
-        this.seccionActiva = 'padron';
         this.isAuthenticated = false;
         this.user = null;
         this.userPermissions = [];
     }
 
     async init() {
-        console.log('🚀 Iniciando aplicación...');
-        console.log('📋 Servicios disponibles:', {
-            authService: !!window.authService,
-            apiService: !!window.apiService,
-            padronComponent: !!window.padronComponent,
-            loginComponent: !!window.loginComponent
-        });
-        
         // Verificar autenticación
         const isAuthenticated = await window.authService.init();
-        console.log('🔐 Estado de autenticación:', isAuthenticated);
-        
+
         if (!isAuthenticated) {
-            console.log('❌ No autenticado - mostrando login');
             this.showLogin();
             return;
         }
 
         this.isAuthenticated = true;
         this.user = window.authService.getCurrentUser();
-        console.log('👤 Usuario autenticado:', this.user?.username);
-        
-        // Cargar permisos del usuario
-        await this.loadUserPermissions();
-        console.log('🔑 Permisos cargados:', this.userPermissions);
-        
+
+        // Cargar permisos del usuario; sin ellos no se sabe qué mostrar.
+        if (!(await this.loadUserPermissions())) return;
+
         // Inicializar aplicación principal
         await this.initMainApp();
-        
-        console.log('🎉 Aplicación iniciada correctamente');
     }
 
     /**
-     * Cargar permisos del usuario desde el backend
+     * Cargar permisos del usuario desde el backend.
+     *
+     * Si falla NO se inventan permisos: antes se asumían los cuatro de padrón (incluido
+     * `padron.edit`), de modo que una llamada caída le mostraba los botones de edición a
+     * cualquiera. El servidor igual rechaza lo que no corresponde, pero una pantalla que
+     * se equivoca de perfil en silencio es difícil de depurar. Un fallo es un estado de
+     * error con "Reintentar".
+     *
+     * @returns {Promise<boolean>} true si se pudieron cargar.
      */
     async loadUserPermissions() {
         try {
-            console.log('🔑 Cargando permisos del usuario...');
             const userInfo = await window.apiService.request('/api/auth/me');
-            
-            if (userInfo.success && userInfo.data) {
-                this.userPermissions = userInfo.data.permisos || [];
-                this.user = userInfo.data; // Actualizar con información completa
-                console.log('✅ Permisos del usuario cargados:', {
-                    usuario: userInfo.data.username,
-                    rol: userInfo.data.rol,
-                    permisos: this.userPermissions.length,
-                    lista: this.userPermissions
-                });
-            } else {
-                console.warn('⚠️ Respuesta de API sin datos válidos:', userInfo);
+
+            if (!(userInfo.success && userInfo.data)) {
                 throw new Error('Respuesta de API inválida');
             }
+            this.userPermissions = userInfo.data.permisos || [];
+            this.user = userInfo.data; // Actualizar con información completa
+            return true;
         } catch (error) {
-            console.error('❌ Error al cargar permisos del usuario:', error);
-            // Asignar permisos por defecto si falla
-            this.userPermissions = ['padron.view', 'padron.edit', 'padron.relevamiento', 'padron.export'];
-            console.warn('🔧 Usando permisos por defecto:', this.userPermissions);
+            console.error('Error al cargar permisos del usuario:', error);
+            this.mostrarEstado(estados.error({
+                titulo: 'No se pudo verificar tu acceso',
+                texto: 'Revisá tu conexión y volvé a intentar.',
+                reintentar: 'reintentar'
+            }));
+            return false;
         }
     }
 
@@ -88,264 +81,72 @@ class App {
     }
 
     /**
+     * Reemplaza el contenido de la pantalla por un estado (error, sin acceso).
+     */
+    mostrarEstado(html) {
+        const contenedor = document.getElementById('padron-container');
+        if (contenedor) contenedor.innerHTML = html;
+    }
+
+    /**
      * Inicializar aplicación principal (después de autenticación)
      */
     async initMainApp() {
-        console.log('🚀 Iniciando aplicación principal...');
-        
-        // Configurar interfaz basada en permisos
-        this.configureUIBasedOnPermissions();
-        
-        // Agregar información del usuario autenticado
-        // La barra de navegacion ya muestra el usuario y maneja el logout.
-        
-        // Inicializar eventos de navegación
-        this.initNavigation();
-        
-        // Verificar permisos para padrón
-        const tienePermisoPadronView = this.hasPermission('padron.view');
-        const tienePermisoPadronEdit = this.hasPermission('padron.edit');
-        
-        console.log('🔐 Verificando permisos:', {
-            'padron.view': tienePermisoPadronView,
-            'padron.edit': tienePermisoPadronEdit,
-            totalPermisos: this.userPermissions.length
-        });
-        
+        // Los botones que requieren un permiso que no se tiene se ocultan en cuanto el
+        // componente dibuja su interfaz (no 500 ms después: se veían un instante y desaparecían).
+        window.padronComponent.alCrearInterfaz = () => this.configurePadronPermissions();
+
         // Inicializar componente de padrón solo si tiene permisos
-        if (tienePermisoPadronView || tienePermisoPadronEdit) {
-            console.log('✅ Usuario tiene permisos de padrón - inicializando componente...');
+        if (this.hasPermission('padron.view') || this.hasPermission('padron.edit')) {
             try {
                 const inicializado = await window.padronComponent.init();
-                if (inicializado) {
-                    console.log('✅ Padrón inicializado correctamente');
-                } else {
-                    console.warn('⚠️ Problemas al inicializar padrón - revisar logs del componente');
-                    this.showError('Error al inicializar el módulo de padrón');
+                if (!inicializado) {
+                    console.warn('Problemas al inicializar el padrón: revisar el componente');
                 }
             } catch (error) {
-                console.error('❌ Error al inicializar padrón:', error);
-                this.showError('Error al cargar los datos del padrón: ' + error.message);
+                console.error('Error al inicializar el padrón:', error);
+                this.mostrarEstado(estados.error({
+                    titulo: 'No se pudo cargar el padrón',
+                    texto: 'Revisá tu conexión y volvé a intentar.',
+                    reintentar: 'reintentar'
+                }));
             }
         } else {
-            console.warn('❌ Usuario sin permisos de padrón - saltando inicialización');
-            // Si no tiene permisos de padrón, intentar cambiar a resultados
-            if (this.hasPermission('resultados.view')) {
-                console.log('🔄 Cambiando a sección de resultados...');
-                this.cambiarSeccion('resultados');
-            } else {
-                console.warn('❌ Usuario sin permisos para ningún módulo');
-                this.showError('Usuario sin permisos para acceder a los módulos del sistema');
-            }
+            // Sin permiso de padrón la pantalla no tiene nada que mostrar: se dice y se ofrece
+            // el camino (antes caía a una sección "resultados" que ya no existe).
+            this.mostrarEstado(estados.error({
+                titulo: 'Sin acceso al padrón',
+                icono: 'fa-lock',
+                texto: 'Tu cuenta no tiene permiso para ver el padrón.',
+                enlace: { texto: 'Ir al inicio', href: 'dashboard.html' }
+            }));
         }
-        
-        console.log('🎯 Aplicación principal inicializada');
     }
 
     /**
-     * Configurar interfaz basada en permisos del usuario
-     */
-    configureUIBasedOnPermissions() {
-        // Ocultar/mostrar botón de resultados
-        const resultsButton = document.getElementById('ver-resultados-btn');
-        if (resultsButton) {
-            if (this.hasPermission('resultados.view')) {
-                resultsButton.style.display = 'flex';
-                resultsButton.onclick = () => window.open('/resultados.html', '_blank');
-            } else {
-                resultsButton.style.display = 'none';
-            }
-        }
-
-        // Configurar navegación basada en permisos
-        this.configureNavigationPermissions();
-        
-        // Configurar elementos específicos del padrón
-        this.configurePadronPermissions();
-    }
-
-    /**
-     * Configurar navegación basada en permisos
-     */
-    configureNavigationPermissions() {
-        const navButtons = document.querySelectorAll('.nav-btn');
-        
-        navButtons.forEach(button => {
-            const section = button.dataset.section;
-            let hasAccess = false;
-            
-            switch (section) {
-                case 'padron':
-                    hasAccess = this.hasPermission('padron.view') || this.hasPermission('padron.edit');
-                    break;
-                case 'resultados':
-                    hasAccess = this.hasPermission('resultados.view');
-                    break;
-                case 'reportes':
-                    hasAccess = this.hasPermission('reportes.generate') || this.hasPermission('reportes.view');
-                    break;
-                default:
-                    hasAccess = true; // Secciones públicas por defecto
-            }
-            
-            if (!hasAccess) {
-                button.style.display = 'none';
-            }
-        });
-    }
-
-    /**
-     * Configurar permisos específicos del padrón
+     * Oculta los controles del padrón que requieren un permiso que no se tiene.
+     * Usa el atributo `hidden` (design-system.css lo respeta con !important), no estilos.
      */
     configurePadronPermissions() {
-        // Esta función será llamada después de que se inicialice el componente de padrón
-        setTimeout(() => {
-            const editButtons = document.querySelectorAll('[data-requires-permission="padron.edit"]');
-            editButtons.forEach(button => {
-                if (!this.hasPermission('padron.edit')) {
-                    button.style.display = 'none';
-                }
+        const exige = (permiso, ocultar) => {
+            document.querySelectorAll(`[data-requires-permission="${permiso}"]`).forEach(el => {
+                if (ocultar) el.hidden = true;
             });
+        };
 
-            const viewElements = document.querySelectorAll('[data-requires-permission="padron.view"]');
-            viewElements.forEach(element => {
-                if (!this.hasPermission('padron.view') && !this.hasPermission('padron.edit')) {
-                    element.style.display = 'none';
-                }
-            });
-
-            const exportElements = document.querySelectorAll('[data-requires-permission="padron.export"]');
-            exportElements.forEach(element => {
-                if (!this.hasPermission('padron.export')) {
-                    element.style.display = 'none';
-                }
-            });
-        }, 500);
-    }
-
-    /**
-     * Agregar información del usuario en la interfaz
-     */
-    // addUserInfo() se elimino. Pisaba el contenido de #username con su propio markup
-    // —que repetia el rol, ya mostrado por la barra— y enganchaba un SEGUNDO listener
-    // al boton de salir, con lo que la confirmacion aparecia dos veces. La barra de
-    // navegacion es la duena de esa zona desde que existe NavbarComponent.
-
-    /**
-     * Manejar cierre de sesión
-     */
-    async handleLogout() {
-        const confirmed = confirm('¿Está seguro que desea cerrar sesión?');
-        if (confirmed) {
-            try {
-                await window.authService.logout();
-            } catch (error) {
-                console.error('Error en logout:', error);
-                // Continuar con logout local aunque falle el servidor
-                window.location.reload();
-            }
-        }
-    }
-
-    /**
-     * Mostrar mensaje de error
-     */
-    showError(message) {
-        // Crear un toast o modal de error
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-toast';
-        errorDiv.innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i>
-            ${message}
-        `;
-        
-        document.body.appendChild(errorDiv);
-        
-        // Auto-remove después de 5 segundos
-        setTimeout(() => {
-            if (errorDiv.parentNode) {
-                errorDiv.parentNode.removeChild(errorDiv);
-            }
-        }, 5000);
-    }
-
-    initNavigation() {
-        const navButtons = document.querySelectorAll('.nav-btn');
-        
-        navButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                if (button.classList.contains('disabled')) {
-                    e.preventDefault();
-                    return;
-                }
-                
-                const seccion = button.dataset.section;
-                this.cambiarSeccion(seccion);
-            });
-        });
-    }
-
-    cambiarSeccion(nombreSeccion) {
-        // Verificar permisos antes de cambiar sección
-        if (!this.canAccessSection(nombreSeccion)) {
-            this.showError('No tiene permisos para acceder a esta sección');
-            return;
-        }
-        
-        // Ocultar todas las secciones
-        document.querySelectorAll('.section').forEach(section => {
-            section.classList.remove('active');
-        });
-        
-        // Desactivar todos los botones de navegación
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        // Mostrar sección seleccionada
-        const seccion = document.getElementById(nombreSeccion);
-        if (seccion) {
-            seccion.classList.add('active');
-            this.seccionActiva = nombreSeccion;
-        }
-        
-        // Activar botón correspondiente
-        const boton = document.querySelector(`[data-section="${nombreSeccion}"]`);
-        if (boton) {
-            boton.classList.add('active');
-        }
-        
-        console.log(`📄 Cambio a sección: ${nombreSeccion}`);
-    }
-
-    /**
-     * Verificar si el usuario puede acceder a una sección específica
-     */
-    canAccessSection(section) {
-        switch (section) {
-            case 'padron':
-                return this.hasPermission('padron.view') || this.hasPermission('padron.edit');
-            case 'resultados':
-                return this.hasPermission('resultados.view');
-            case 'reportes':
-                return this.hasPermission('reportes.generate') || this.hasPermission('reportes.view');
-            default:
-                return true; // Secciones públicas por defecto
-        }
+        exige('padron.edit', !this.hasPermission('padron.edit'));
+        exige('padron.view', !this.hasPermission('padron.view') && !this.hasPermission('padron.edit'));
+        exige('padron.export', !this.hasPermission('padron.export'));
     }
 }
+
+// "Reintentar" de los estados de error de esta pantalla.
+document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-action="reintentar"]')) window.location.reload();
+});
 
 // Inicializar aplicación cuando se carga el DOM
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new App();
     window.app.init();
 });
-
-// Funciones globales para compatibilidad
-window.cambiarSeccion = (seccion) => {
-    if (window.app) {
-        window.app.cambiarSeccion(seccion);
-    }
-};
-
-console.log('🔧 App.js cargado');

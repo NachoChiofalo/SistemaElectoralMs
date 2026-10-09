@@ -13,108 +13,12 @@
     <script src="src/lib/dialogo.js?v=c3def367"></script>
     <script src="src/lib/avisos.js?v=69830cdb"></script>
     <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
-    <link rel="stylesheet" href="src/styles/icons.css?v=86b62347">
-    <link rel="stylesheet" href="src/styles/design-system.css?v=f73def94">
+    <link rel="stylesheet" href="src/styles/icons.css?v=153b4184">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=5285a13a">
     <link rel="stylesheet" href="src/styles/navbar-styles.css?v=4edf728d">
-    <link rel="stylesheet" href="src/styles/padron-styles.css?v=5ad5bc1f">
+    <link rel="stylesheet" href="src/styles/padron-styles.css?v=a489d24c">
     <link rel="stylesheet" href="src/styles/detalle-votante-styles.css?v=2fca56f3">
     <link rel="stylesheet" href="src/styles/login-styles.css?v=6db75cb1">
-    <style>
-        /* Touch-friendly improvements */
-        .nav-btn, .logout-btn {
-            cursor: pointer;
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-        }
-
-        /* Accessibility improvements */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            .nav-btn, .logout-btn {
-                border: 2px solid currentColor;
-            }
-        }
-
-        body {
-            font-family: var(--ds-font-family);
-            background-color: var(--ds-bg-page);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-
-        .app-main {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Padron navigation buttons */
-        .padron-nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .padron-nav-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            font-family: var(--ds-font-family);
-            transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
-            font-size: 14px;
-            border: none;
-        }
-
-        .padron-nav-btn-back {
-            background: var(--ds-bg-subtle);
-            color: var(--ds-text-secondary);
-            border: 1px solid var(--ds-border-default);
-        }
-
-        .padron-nav-btn-back:hover {
-            background: var(--ds-secondary-200);
-            border-color: var(--ds-border-strong);
-            transform: translateY(-1px);
-        }
-
-        .padron-nav-btn-results {
-            background: var(--ds-gradient-primary);
-            color: var(--ds-text-inverse);
-            box-shadow: 0 2px 10px color-mix(in srgb, var(--ds-primary-600) 25%, transparent);
-        }
-
-        .padron-nav-btn-results:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px color-mix(in srgb, var(--ds-primary-600) 40%, transparent);
-        }
-
-        @media (max-width: 768px) {
-            .padron-nav-buttons {
-                flex-direction: column;
-                gap: 8px;
-            }
-            .padron-nav-btn {
-                width: 100%;
-                justify-content: center;
-                padding: 12px 16px;
-                min-height: 44px;
-            }
-        }
-    </style>
 </head>
 <body>
 
@@ -123,7 +27,7 @@
 
     <main class="app-main" id="contenido" tabindex="-1">
         <!-- Sección de Padrón Electoral -->
-        <section id="padron" class="section active" role="region" aria-label="Gestión de Padrón Electoral">
+        <section id="padron" class="section active" aria-label="Gestión de Padrón Electoral">
             <!-- Acá había dos botones, "Volver al Dashboard" y "Ver Resultados". Los dos
                  son destinos de la barra de navegación desde el rediseño, así que
                  duplicaban un enlace que ya está tres centímetros más arriba. -->
@@ -131,34 +35,19 @@
                 <!-- El contenido será generado por JavaScript -->
             </div>
         </section>
-
-        <!-- Secciones futuras -->
-        <section id="resultados" class="section" role="region" aria-label="Resultados electorales">
-            <div class="coming-soon">
-                <i class="fas fa-chart-bar" aria-hidden="true"></i>
-                <h2>Módulo de Resultados</h2>
-                <p>Este módulo estará disponible próximamente</p>
-            </div>
-        </section>
-
-        <section id="reportes" class="section" role="region" aria-label="Generación de reportes">
-            <div class="coming-soon">
-                <i class="fas fa-file-alt" aria-hidden="true"></i>
-                <h2>Módulo de Reportes</h2>
-                <p>Este módulo estará disponible próximamente</p>
-            </div>
-        </section>
     </main>
 
     <!-- Scripts -->
+    <script src="src/lib/estados.js?v=b3c74a8f"></script>
+    <script src="src/lib/paginacion.js?v=2d83d8f5"></script>
     <script src="src/components/NavbarComponent.js?v=12c40f67"></script>
     <script src="src/lib/opciones.js?v=c7d76c08"></script>
-    <script src="src/services/ApiService.js?v=8153b735"></script>
+    <script src="src/services/ApiService.js?v=20eebc7b"></script>
     <script src="src/services/AuthService.js?v=a6ec8d65"></script>
     <script src="src/components/LoginComponent.js?v=c20f9532"></script>
     <script src="src/components/DetalleVotanteComponent.js?v=4daf6b49"></script>
-    <script src="src/components/PadronComponent.js?v=75cfca0f"></script>
-    <script src="src/app.js?v=73e4e7eb"></script>
+    <script src="src/components/PadronComponent.js?v=24f3c172"></script>
+    <script src="src/app.js?v=3ea95644"></script>
     <script src="src/pages/index.js?v=c26eddf5"></script>
 </body>
 </html>

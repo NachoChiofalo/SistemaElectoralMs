@@ -30,62 +30,52 @@ class PadronComponent {
      * Inicializar el componente
      */
     async init(containerId = 'padron-container') {
-        console.log('🖥️ Inicializando componente de Padrón...');
-        console.log('  - Container ID:', containerId);
-        
         this.container = document.getElementById(containerId);
         if (!this.container) {
-            const error = `Contenedor ${containerId} no encontrado`;
-            console.error('❌ Error:', error);
-            throw new Error(error);
+            throw new Error(`Contenedor ${containerId} no encontrado`);
         }
-        console.log('✅ Container encontrado:', this.container);
 
         // Verificar conexión con API
-        console.log('🔍 Verificando conexión con API...');
         try {
             const apiDisponible = await window.apiService.verificarEstado();
-            console.log('📡 Estado API:', apiDisponible ? '✅ DISPONIBLE' : '❌ NO DISPONIBLE');
-            
             if (!apiDisponible) {
-                const mensaje = 'No se puede conectar con el servicio de padrón. Verifique que esté ejecutándose.';
-                console.error('❌ API no disponible:', mensaje);
-                this.mostrarError(mensaje);
+                this.mostrarError('No se puede conectar con el servicio del padrón. Revisá tu conexión y volvé a intentar.');
                 return false;
             }
         } catch (error) {
-            console.error('❌ Error al verificar API:', error);
-            this.mostrarError('Error al verificar la conexión con la API: ' + error.message);
+            console.error('Error al verificar la API:', error);
+            this.mostrarError('No se pudo verificar la conexión con el servidor. Revisá tu conexión y volvé a intentar.');
             return false;
         }
 
-        console.log('🎨 Creando interfaz del padrón...');
         try {
             this.crearInterfaz();
-            console.log('✅ Interfaz creada');
         } catch (error) {
-            console.error('❌ Error al crear interfaz:', error);
+            console.error('Error al crear la interfaz:', error);
+            this.mostrarError('No se pudo armar la pantalla del padrón.');
             return false;
         }
 
-        console.log('🎪 Inicializando eventos...');
         try {
             this.inicializarEventos();
-            console.log('✅ Eventos inicializados');
         } catch (error) {
-            console.error('❌ Error al inicializar eventos:', error);
+            console.error('Error al inicializar eventos:', error);
+        }
+
+        // En un teléfono cada fila es una tarjeta de ~160 px: con 50 por página son más de
+        // 8000 px de scroll. Se arranca con 10 y se puede subir.
+        if (window.innerWidth <= 768) {
+            document.getElementById('registros-por-pagina').value = '10';
         }
 
         // El dashboard del encargado de relevamiento linkea aca con
         // "?sinRelevar=1" para arrancar directo en la lista de pendientes.
         this.aplicarFiltroDesdeUrl();
 
-        console.log('📊 Cargando datos...');
         try {
             await this.cargarDatos();
-            console.log('✅ Datos cargados');
         } catch (error) {
-            console.error('❌ Error al cargar datos:', error);
+            console.error('Error al cargar datos:', error);
             // No fallar completamente si los datos no cargan
         }
 
@@ -98,7 +88,6 @@ class PadronComponent {
         // Se arranca al final y no antes: sin tabla dibujada no hay filas que marcar.
         this.iniciarVigilanciaDeCambios();
 
-        console.log('✅ Componente de Padrón inicializado correctamente');
         return true;
     }
 
@@ -106,24 +95,31 @@ class PadronComponent {
      * Crear la interfaz del componente
      */
     crearInterfaz() {
+        // Los nombres de los botones de acción llevan `aria-label`: en un teléfono el texto
+        // (`.btn-text`) se oculta con display:none, y un botón sin texto visible quedaba sin
+        // nombre accesible.
         this.container.innerHTML = `
             <div class="padron-header">
                 <div class="padron-title">
-                    <h2><i class="fas fa-users-cog"></i> Padrón Electoral</h2>
+                    <h1><i class="fas fa-users-cog" aria-hidden="true"></i> Padrón Electoral</h1>
                     <p class="padron-subtitle">Gestión y relevamiento del padrón electoral</p>
                 </div>
                 <div class="padron-actions">
-                    <button id="btn-nuevo-votante" class="btn btn-success" data-requires-permission="padron.edit" title="Agregar nuevo votante al padrón">
-                        <i class="fas fa-user-plus"></i> <span class="btn-text">Nuevo Votante</span>
+                    <button type="button" id="btn-nuevo-votante" class="btn btn-success" data-requires-permission="padron.edit"
+                            aria-label="Nuevo votante" title="Agregar un votante al padrón">
+                        <i class="fas fa-user-plus" aria-hidden="true"></i> <span class="btn-text">Nuevo votante</span>
                     </button>
-                    <button id="btn-exportar" class="btn btn-secondary" data-requires-permission="padron.export" title="Exportar relevamientos CSV">
-                        <i class="fas fa-download"></i> <span class="btn-text">Exportar</span>
+                    <button type="button" id="btn-exportar" class="btn btn-secondary" data-requires-permission="padron.export"
+                            aria-label="Exportar relevamientos en CSV" title="Exportar relevamientos en CSV">
+                        <i class="fas fa-download" aria-hidden="true"></i> <span class="btn-text">Exportar</span>
                     </button>
-                    <button id="btn-exportar-padron" class="btn btn-secondary" data-requires-permission="padron.export" title="Exportar padron completo CSV">
-                        <i class="fas fa-file-csv"></i> <span class="btn-text">Exportar Padron</span>
+                    <button type="button" id="btn-exportar-padron" class="btn btn-secondary" data-requires-permission="padron.export"
+                            aria-label="Exportar el padrón completo en CSV" title="Exportar el padrón completo en CSV">
+                        <i class="fas fa-file-csv" aria-hidden="true"></i> <span class="btn-text">Exportar padrón</span>
                     </button>
-                    <button id="btn-filtros-mobile" class="btn btn-outline mobile-only" title="Mostrar/ocultar filtros">
-                        <i class="fas fa-filter"></i>
+                    <button type="button" id="btn-filtros-mobile" class="btn btn-outline mobile-only"
+                            aria-label="Mostrar filtros" aria-expanded="false" aria-controls="filtros-container">
+                        <i class="fas fa-filter" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
@@ -134,49 +130,41 @@ class PadronComponent {
 
             <div id="padron-rate-banner" class="padron-banner hidden" role="status" aria-live="polite">
                 <div class="padron-banner-content">
-                    <i class="fas fa-hourglass-half"></i>
-                    <span id="padron-rate-banner-text">Limite de solicitudes alcanzado.</span>
+                    <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+                    <span id="padron-rate-banner-text">Límite de solicitudes alcanzado.</span>
                 </div>
-                <button id="padron-rate-banner-retry" class="btn btn-secondary btn-sm">Reintentar</button>
+                <button type="button" id="padron-rate-banner-retry" class="btn btn-secondary btn-sm">Reintentar</button>
             </div>
 
             <div class="padron-filtros" id="filtros-container">
                 <div class="filtros-header mobile-only">
-                    <h3><i class="fas fa-filter"></i> Filtros</h3>
-                    <button id="btn-cerrar-filtros" class="btn-close">
-                        <i class="fas fa-times"></i>
+                    <h2><i class="fas fa-filter" aria-hidden="true"></i> Filtros</h2>
+                    <button type="button" id="btn-cerrar-filtros" class="btn-close" aria-label="Cerrar filtros">
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
                 <div class="filtros-row">
                     <div class="filtro-item">
-                        <label for="filtro-busqueda">
-                            Buscar
-                        </label>
-                        <input type="text" id="filtro-busqueda" placeholder="DNI, nombre, apellido..." aria-label="Buscar por DNI, nombre o apellido">
+                        <label for="filtro-busqueda">Buscar</label>
+                        <input type="search" id="filtro-busqueda" placeholder="DNI, nombre o apellido…" autocomplete="off" spellcheck="false">
                     </div>
                     <div class="filtro-item">
-                        <label for="filtro-circuito">
-                            Circuito
-                        </label>
-                        <select id="filtro-circuito" aria-label="Filtrar por circuito">
+                        <label for="filtro-circuito">Circuito</label>
+                        <select id="filtro-circuito">
                             <option value="">Todos los circuitos</option>
                         </select>
                     </div>
                     <div class="filtro-item">
-                        <label for="filtro-sexo">
-                            Sexo
-                        </label>
-                        <select id="filtro-sexo" aria-label="Filtrar por sexo">
+                        <label for="filtro-sexo">Sexo</label>
+                        <select id="filtro-sexo">
                             <option value="">Todos</option>
                             <option value="M">Masculino</option>
                             <option value="F">Femenino</option>
                         </select>
                     </div>
                     <div class="filtro-item">
-                        <label for="filtro-opcion-politica">
-                            Opción política
-                        </label>
-                        <select id="filtro-opcion-politica" aria-label="Filtrar por opción política">
+                        <label for="filtro-opcion-politica">Opción política</label>
+                        <select id="filtro-opcion-politica">
                             <option value="">Todas</option>
                         </select>
                     </div>
@@ -191,60 +179,56 @@ class PadronComponent {
                         </label>
                     </div>
                     <div class="filtro-acciones">
-                        <button id="btn-aplicar-filtros" class="btn btn-primary btn-sm">Filtrar</button>
-                        <button id="btn-limpiar-filtros" class="btn btn-secondary btn-sm">Limpiar</button>
-                    </div>
+                        <button type="button" id="btn-aplicar-filtros" class="btn btn-primary btn-sm">Filtrar</button>
+                        <button type="button" id="btn-limpiar-filtros" class="btn btn-secondary btn-sm">Limpiar</button>
                     </div>
                 </div>
             </div>
 
             <div class="padron-tabla-container">
                 <div class="tabla-header">
-                    <div class="tabla-info" id="tabla-info">
-                        Cargando...
+                    <!-- Región viva: el resumen ("Mostrando 1 a 50 de 400") se anuncia al
+                         cambiar de página o de filtro, que es lo único que dice que algo pasó. -->
+                    <div class="tabla-info" id="tabla-info" role="status">
+                        Cargando…
                     </div>
                     <div class="tabla-acciones">
                         <label for="registros-por-pagina">Mostrar</label>
                         <select id="registros-por-pagina">
+                            <option value="10">10</option>
                             <option value="25">25</option>
                             <option value="50" selected>50</option>
                             <option value="100">100</option>
                             <option value="200">200</option>
                         </select>
-                        <label for="registros-por-pagina">registros</label>
+                        <span>registros</span>
                     </div>
                 </div>
 
-                <div class="tabla-responsive">
+                <!-- Región enfocable y con nombre: sin eso el teclado no puede desplazar la
+                     tabla cuando es más ancha que la pantalla. -->
+                <div class="tabla-responsive" role="region" aria-label="Listado del padrón" tabindex="0">
                     <table class="tabla-padron" id="tabla-padron">
+                        <caption class="sr-only">Padrón electoral: votantes y su opción política relevada</caption>
                         <thead>
                             <tr>
-                                <th class="sortable" data-campo="dni">
-                                    DNI <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-campo="apellido">
-                                    Apellido <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-campo="nombre">
-                                    Nombre <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-campo="edad">
-                                    Edad <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-campo="circuito">
-                                    Circuito <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-campo="sexo">
-                                    Sexo <i class="fas fa-sort"></i>
-                                </th>
-                                <th>Opción Política</th>
+                                <!-- Las columnas ordenables son botones dentro del <th>, y el
+                                     estado va en aria-sort: antes eran <th> con clic, que el
+                                     teclado no podía operar ni un lector de pantalla anunciar. -->
+                                <th scope="col" class="sortable" aria-sort="none"><button type="button" class="th-orden" data-campo="dni">DNI</button></th>
+                                <th scope="col" class="sortable" aria-sort="ascending"><button type="button" class="th-orden" data-campo="apellido">Apellido</button></th>
+                                <th scope="col" class="sortable" aria-sort="none"><button type="button" class="th-orden" data-campo="nombre">Nombre</button></th>
+                                <th scope="col" class="sortable" aria-sort="none"><button type="button" class="th-orden" data-campo="edad">Edad</button></th>
+                                <th scope="col" class="sortable" aria-sort="none"><button type="button" class="th-orden" data-campo="circuito">Circuito</button></th>
+                                <th scope="col" class="sortable" aria-sort="none"><button type="button" class="th-orden" data-campo="sexo">Sexo</button></th>
+                                <th scope="col">Opción política</th>
                                 <!-- Observación, Teléfono y Condiciones dejaron de ser
                                      columnas: eran seis controles por fila que sólo se
                                      usan en una minoría de los registros. Ahora se
                                      cargan en el panel lateral, y acá queda una marca
                                      de sólo lectura con lo que ya está cargado. -->
-                                <th>Datos</th>
-                                <th><span class="sr-only">Abrir</span></th>
+                                <th scope="col">Datos</th>
+                                <th scope="col"><span class="sr-only">Abrir ficha</span></th>
                             </tr>
                         </thead>
                         <tbody id="tabla-body">
@@ -258,155 +242,131 @@ class PadronComponent {
                 </div>
             </div>
 
-            <!-- Modal para importar CSV -->
-            <div id="modal-importar" class="modal-overlay" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Importar Padrón desde CSV</h3>
-                        <button class="modal-close" data-action="cerrarModalImportar">
-                            <i class="fas fa-times"></i>
+            <!-- Nuevo votante: <dialog> nativo (foco atrapado, Escape, fondo inerte). Es un
+                 <form> de verdad: Enter envía, y los errores se muestran junto a cada campo. -->
+            <dialog id="modal-nuevo-votante" class="dialogo dialogo--ancho" aria-labelledby="nuevo-votante-titulo">
+                <form id="form-nuevo-votante" novalidate>
+                    <div class="dialogo-cabecera">
+                        <span class="dialogo-icono"><i class="fas fa-user-plus" aria-hidden="true"></i></span>
+                        <div>
+                            <h2 class="dialogo-titulo" id="nuevo-votante-titulo">Nuevo votante</h2>
+                            <p class="modal-subtitle">Completá los datos para registrar un nuevo elector</p>
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-icono btn-sm dialogo-cerrar" data-action="cerrarModalNuevoVotante" aria-label="Cerrar">
+                            <i class="fas fa-times" aria-hidden="true"></i>
                         </button>
                     </div>
-                    <div class="modal-body">
-                        <div class="import-zone">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Seleccione archivo CSV con datos del padrón</p>
-                            <input type="file" id="archivo-csv" accept=".csv" style="display: none;">
-                            <button data-action="abrirSelectorArchivo" class="btn btn-primary">
-                                Seleccionar Archivo
-                            </button>
-                        </div>
-                        <div class="import-format">
-                            <h4>Formato esperado:</h4>
-                            <code>DNI,AÑO NAC,APELLIDO,NOMBRE,DOMICILIO,TIPO_EJEMPL,CIRCUITO,S</code>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Modal para nuevo votante -->
-            <div id="modal-nuevo-votante" class="modal-overlay" style="display: none;" data-action="cerrarModalNuevoVotante">
-                <div class="modal-content modal-nuevo-votante">
-                    <div class="modal-header">
-                        <div class="modal-header-title">
-                            <div class="modal-header-icon">
-                                <i class="fas fa-user-plus"></i>
+                    <div class="dialogo-cuerpo">
+                        <!-- Sección: Identificación -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-id-card" aria-hidden="true"></i>
+                                <span>Identificación</span>
+                                <span class="form-section-badge required-badge">Obligatorio</span>
                             </div>
-                            <div>
-                                <h3>Nuevo Votante</h3>
-                                <p class="modal-subtitle">Completá los datos para registrar un nuevo elector</p>
+                            <div class="form-group">
+                                <label for="nuevo-dni">DNI <span class="required" aria-hidden="true">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-fingerprint input-icon" aria-hidden="true"></i>
+                                    <input type="text" id="nuevo-dni" class="form-input has-icon" placeholder="Ej: 12345678" required aria-required="true"
+                                           maxlength="10" inputmode="numeric" autocomplete="off" spellcheck="false" autofocus
+                                           aria-describedby="dni-helper nuevo-dni-error">
+                                    <span class="input-validation-icon" id="dni-validation-icon" aria-hidden="true"></span>
+                                </div>
+                                <span class="form-helper" id="dni-helper">Solo números, sin puntos ni espacios</span>
+                                <p class="campo-error" id="nuevo-dni-error"></p>
                             </div>
                         </div>
-                        <button class="modal-close" data-action="cerrarModalNuevoVotante" title="Cerrar (Esc)">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="form-nuevo-votante">
-                            <!-- Sección: Identificación -->
-                            <div class="form-section">
-                                <div class="form-section-header">
-                                    <i class="fas fa-id-card"></i>
-                                    <span>Identificación</span>
-                                    <span class="form-section-badge required-badge">Obligatorio</span>
+
+                        <!-- Sección: Datos Personales -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-user" aria-hidden="true"></i>
+                                <span>Datos personales</span>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nuevo-apellido">Apellido <span class="required" aria-hidden="true">*</span></label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-user input-icon" aria-hidden="true"></i>
+                                        <input type="text" id="nuevo-apellido" class="form-input has-icon" placeholder="Ej: García" required aria-required="true"
+                                               autocomplete="off" aria-describedby="nuevo-apellido-error">
+                                    </div>
+                                    <p class="campo-error" id="nuevo-apellido-error"></p>
                                 </div>
                                 <div class="form-group">
-                                    <label for="nuevo-dni">DNI <span class="required">*</span></label>
+                                    <label for="nuevo-nombre">Nombre <span class="required" aria-hidden="true">*</span></label>
                                     <div class="input-wrapper">
-                                        <i class="fas fa-fingerprint input-icon"></i>
-                                        <input type="text" id="nuevo-dni" class="form-input has-icon" placeholder="Ej: 12345678" required maxlength="10" inputmode="numeric" autocomplete="off">
-                                        <span class="input-validation-icon" id="dni-validation-icon"></span>
+                                        <i class="fas fa-user input-icon" aria-hidden="true"></i>
+                                        <input type="text" id="nuevo-nombre" class="form-input has-icon" placeholder="Ej: Juan Carlos" required aria-required="true"
+                                               autocomplete="off" aria-describedby="nuevo-nombre-error">
                                     </div>
-                                    <span class="form-helper" id="dni-helper">Solo números, sin puntos ni espacios</span>
+                                    <p class="campo-error" id="nuevo-nombre-error"></p>
                                 </div>
                             </div>
-
-                            <!-- Sección: Datos Personales -->
-                            <div class="form-section">
-                                <div class="form-section-header">
-                                    <i class="fas fa-user"></i>
-                                    <span>Datos Personales</span>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="nuevo-apellido">Apellido <span class="required">*</span></label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-user input-icon"></i>
-                                            <input type="text" id="nuevo-apellido" class="form-input has-icon" placeholder="Ej: García" required autocomplete="off">
-                                        </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nuevo-anio-nac">Año de nacimiento <span class="required" aria-hidden="true">*</span></label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-calendar-alt input-icon" aria-hidden="true"></i>
+                                        <input type="number" id="nuevo-anio-nac" class="form-input has-icon" placeholder="Ej: 1990" required aria-required="true"
+                                               min="1900" max="${new Date().getFullYear()}" inputmode="numeric" autocomplete="off"
+                                               aria-describedby="nuevo-anio-nac-error">
                                     </div>
-                                    <div class="form-group">
-                                        <label for="nuevo-nombre">Nombre <span class="required">*</span></label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-user input-icon"></i>
-                                            <input type="text" id="nuevo-nombre" class="form-input has-icon" placeholder="Ej: Juan Carlos" required autocomplete="off">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="nuevo-anio-nac">Año Nacimiento</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-calendar-alt input-icon"></i>
-                                            <input type="number" id="nuevo-anio-nac" class="form-input has-icon" placeholder="Ej: 1990" min="1900" max="2010">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="nuevo-sexo">Sexo</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-venus-mars input-icon"></i>
-                                            <select id="nuevo-sexo" class="form-input has-icon">
-                                                <option value="">Seleccionar</option>
-                                                <option value="M">Masculino</option>
-                                                <option value="F">Femenino</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Sección: Ubicación -->
-                            <div class="form-section">
-                                <div class="form-section-header">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>Ubicación</span>
-                                    <span class="form-section-badge optional-badge">Opcional</span>
+                                    <p class="campo-error" id="nuevo-anio-nac-error"></p>
                                 </div>
                                 <div class="form-group">
-                                    <label for="nuevo-domicilio">Domicilio</label>
+                                    <label for="nuevo-sexo">Sexo</label>
                                     <div class="input-wrapper">
-                                        <i class="fas fa-home input-icon"></i>
-                                        <input type="text" id="nuevo-domicilio" class="form-input has-icon" placeholder="Ej: Av. San Martín 1234">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="nuevo-circuito">Circuito Electoral</label>
-                                    <div class="input-wrapper">
-                                        <i class="fas fa-map-signs input-icon"></i>
-                                        <select id="nuevo-circuito" class="form-input has-icon">
-                                            <option value="">Seleccionar circuito</option>
+                                        <i class="fas fa-venus-mars input-icon" aria-hidden="true"></i>
+                                        <select id="nuevo-sexo" class="form-input has-icon">
+                                            <option value="">Seleccionar</option>
+                                            <option value="M">Masculino</option>
+                                            <option value="F">Femenino</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div id="error-nuevo-votante" class="form-error" style="display: none;">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span id="error-nuevo-votante-text"></span>
+                        <!-- Sección: Ubicación -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                                <span>Ubicación</span>
+                                <span class="form-section-badge optional-badge">Opcional</span>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-action="cerrarModalNuevoVotante">
-                                    <i class="fas fa-times"></i> Cancelar
-                                </button>
-                                <button type="button" id="btn-guardar-votante" class="btn btn-primary" data-action="guardarNuevoVotante">
-                                    <i class="fas fa-save"></i> Guardar Votante
-                                </button>
+                            <div class="form-group">
+                                <label for="nuevo-domicilio">Domicilio</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-home input-icon" aria-hidden="true"></i>
+                                    <input type="text" id="nuevo-domicilio" class="form-input has-icon" placeholder="Ej: Av. San Martín 1234" autocomplete="off">
+                                </div>
                             </div>
-                        </form>
+                            <div class="form-group">
+                                <label for="nuevo-circuito">Circuito electoral</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-map-signs input-icon" aria-hidden="true"></i>
+                                    <select id="nuevo-circuito" class="form-input has-icon">
+                                        <option value="">Seleccionar circuito</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="error-nuevo-votante" class="form-error" role="alert" hidden>
+                            <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+                            <span id="error-nuevo-votante-text"></span>
+                        </div>
                     </div>
-                </div>
-            </div>
+                    <div class="dialogo-pie">
+                        <button type="button" class="btn btn-secondary" data-action="cerrarModalNuevoVotante">Cancelar</button>
+                        <button type="submit" id="btn-guardar-votante" class="btn btn-primary">
+                            <i class="fas fa-save" aria-hidden="true"></i> Guardar votante
+                        </button>
+                    </div>
+                </form>
+            </dialog>
         `;
 
         // Guardar referencias a elementos importantes
@@ -420,6 +380,9 @@ class PadronComponent {
             rateBannerText: document.getElementById('padron-rate-banner-text'),
             rateBannerRetry: document.getElementById('padron-rate-banner-retry')
         };
+
+        // Gancho de app.js: oculta los controles que requieren un permiso que no se tiene.
+        if (typeof this.alCrearInterfaz === 'function') this.alCrearInterfaz();
     }
 
     /**
@@ -434,7 +397,6 @@ class PadronComponent {
 
         // Botones principales (pueden ser null si el usuario no tiene el permiso requerido)
         on('btn-nuevo-votante', 'click', () => this.abrirModalNuevoVotante());
-        on('btn-importar',      'click', () => this.abrirModalImportar());
         on('btn-exportar',      'click', () => this.exportarDatos());
         on('btn-exportar-padron', 'click', () => this.exportarPadron());
         on('padron-rate-banner-retry', 'click', () => this.reintentarRateLimit());
@@ -446,7 +408,7 @@ class PadronComponent {
         // Filtros
         on('btn-aplicar-filtros', 'click', () => this.aplicarFiltros());
         on('btn-limpiar-filtros', 'click', () => this.limpiarFiltros());
-        on('filtro-busqueda', 'keypress', (e) => { if (e.key === 'Enter') this.aplicarFiltros(); });
+        on('filtro-busqueda', 'keydown', (e) => { if (e.key === 'Enter') this.aplicarFiltros(); });
 
         // Auto-aplicar filtros en móvil cuando cambian
         if (window.innerWidth <= 768) {
@@ -460,18 +422,34 @@ class PadronComponent {
         // Cambiar registros por página
         on('registros-por-pagina', 'change', () => this.cambiarRegistrosPorPagina());
 
-        // Importar CSV
-        on('archivo-csv', 'change', (e) => this.manejarArchivoCSV(e));
+        // El formulario de nuevo votante es un <form> de verdad: Enter en cualquier campo lo
+        // envía (antes el submit estaba bloqueado y solo guardaba el clic en el botón).
+        on('form-nuevo-votante', 'submit', (e) => {
+            e.preventDefault();
+            this.guardarNuevoVotante();
+        });
 
-        // El formulario de nuevo votante no manda: sus botones ya disparan
-        // guardarNuevoVotante() por su cuenta.
-        on('form-nuevo-votante', 'submit', (e) => e.preventDefault());
+        // Validación en tiempo real del formulario nuevo votante
+        this.inicializarValidacionNuevoVotante();
+
+        // Ordenamiento de tabla: los encabezados ordenables son botones.
+        if (this.elementos.tabla) {
+            this.elementos.tabla.addEventListener('click', (e) => {
+                const boton = e.target.closest('.th-orden');
+                if (boton) this.cambiarOrdenamiento(boton.dataset.campo);
+            });
+        }
+
+        // Lo que sigue se cuelga de `document` / `window` y por eso se registra UNA vez:
+        // si el componente se reinicializara, cada init sumaría un listener más y una sola
+        // acción se despacharía varias veces.
+        if (this._eventosGlobales) return;
+        this._eventosGlobales = true;
 
         // Despacho delegado de las acciones que antes eran onclick= inline: el
-        // modal de importar/nuevo votante y la tabla están dentro de this.container,
-        // pero el panel de ficha se cuelga de document.body (ver abrirPanel), así
-        // que el listener va en document y se filtra por pertenencia a cualquiera
-        // de los dos.
+        // modal de nuevo votante y la tabla están dentro de this.container, pero el
+        // panel de ficha se cuelga de document.body (ver abrirPanel), así que el
+        // listener va en document y se filtra por pertenencia a cualquiera de los dos.
         document.addEventListener('click', (e) => {
             const el = e.target.closest('[data-action]');
             if (!el) return;
@@ -484,12 +462,6 @@ class PadronComponent {
             // propio click en el radio dispara los dos eventos, y despachar acá
             // también mandaba una segunda escritura con la opción sin definir.
             if (accion === 'cambiarOpcionPolitica') return;
-
-            // Si `el` es el overlay del modal (y no un botón dentro de él, que
-            // `closest` también matchea por compartir el mismo data-action), sólo
-            // dispara si el clic fue directo sobre el overlay — si no, un clic en
-            // cualquier parte vacía del contenido burbujea hasta acá y lo cerraría.
-            if (el.classList.contains('modal-overlay') && e.target !== el) return;
 
             if ('dni' in el.dataset) this[accion](el.dataset.dni);
             else if ('pagina' in el.dataset) this[accion](Number(el.dataset.pagina));
@@ -509,6 +481,13 @@ class PadronComponent {
         // Evento de redimensionado de ventana
         window.addEventListener('resize', () => this.handleResize());
 
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            if (document.getElementById('filtros-container')?.classList.contains('show')) {
+                this.cerrarFiltrosMobile({ devolverFoco: true });
+            }
+        });
+
         // Cerrar filtros móviles al tocar fuera (en el overlay)
         document.addEventListener('click', (e) => {
             const filtrosContainer = document.getElementById('filtros-container');
@@ -519,19 +498,6 @@ class PadronComponent {
                 this.cerrarFiltrosMobile();
             }
         });
-
-        // Validación en tiempo real del formulario nuevo votante
-        this.inicializarValidacionNuevoVotante();
-
-        // Ordenamiento de tabla
-        if (this.elementos.tabla) {
-            this.elementos.tabla.addEventListener('click', (e) => {
-                if (e.target.closest('.sortable')) {
-                    const campo = e.target.closest('.sortable').dataset.campo;
-                    this.cambiarOrdenamiento(campo);
-                }
-            });
-        }
     }
 
     /**
@@ -567,7 +533,7 @@ class PadronComponent {
         const peticion = ++this.peticionTabla;
         try {
             this.mostrarCargando(true);
-            
+
             const parametros = {
                 pagina: this.estado.paginaActual,
                 limite: document.getElementById('registros-por-pagina').value,
@@ -583,19 +549,18 @@ class PadronComponent {
             if (!respuesta || !Array.isArray(respuesta.data)) {
                 if (respuesta?.rateLimited) {
                     this.programarReintentoRateLimit(
-                        'Limite de solicitudes alcanzado.',
+                        'Límite de solicitudes alcanzado.',
                         () => this.actualizarTabla()
                     );
+                    this.renderizarTabla([]);
+                    this.renderizarPaginacion({ paginaActual: 1, totalPaginas: 1 });
+                    this.actualizarInfoTabla({ inicio: 0, fin: 0, totalRegistros: 0 });
                 } else {
-                    this.mostrarError('No se pudo cargar la lista de votantes.');
+                    this.renderizarErrorTabla('No se pudo cargar la lista de votantes. Revisá tu conexión y volvé a intentar.');
                 }
-
-                this.renderizarTabla([]);
-                this.renderizarPaginacion({ paginaActual: 1, totalPaginas: 1 });
-                this.actualizarInfoTabla({ inicio: 0, fin: 0, totalRegistros: 0 });
                 return false;
             }
-            
+
             const detallesIncluidos = respuesta?.detallesIncluidos === true;
             // El backend siempre manda los detalles con includeDetalles: si esto aparece, el
             // fallback N+1 de abajo esta corriendo y conviene saber por que (FE-032).
@@ -610,14 +575,31 @@ class PadronComponent {
             this.actualizarInfoTabla(respuesta.paginacion);
             this.resetRateLimitState();
             return true;
-            
+
         } catch (error) {
             if (peticion !== this.peticionTabla) return false;
-            this.mostrarError(`Error al cargar votantes: ${error.message}`);
+            console.error('Error al cargar votantes:', error);
+            this.renderizarErrorTabla('No se pudieron cargar los votantes. Revisá tu conexión y volvé a intentar.');
             return false;
         } finally {
             if (peticion === this.peticionTabla) this.mostrarCargando(false);
         }
+    }
+
+    /**
+     * La carga de la tabla falló: el error ocupa su lugar, con salida. Antes era un toast
+     * de cinco segundos sobre una tabla vacía o con datos viejos, sin forma de reintentar.
+     */
+    renderizarErrorTabla(texto) {
+        this.elementos.tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="sin-datos">
+                    ${estados.error({ texto, reintentar: 'actualizarTabla' })}
+                </td>
+            </tr>
+        `;
+        this.renderizarPaginacion({ paginaActual: 1, totalPaginas: 1 });
+        this.actualizarInfoTabla({ inicio: 0, fin: 0, totalRegistros: 0 });
     }
 
     /**
@@ -627,9 +609,13 @@ class PadronComponent {
         if (!Array.isArray(votantes) || votantes.length === 0) {
             this.elementos.tbody.innerHTML = `
                 <tr>
-                    <td colspan="11" class="sin-datos">
-                        <i class="fas fa-users"></i>
-                        No se encontraron votantes con los criterios seleccionados
+                    <td colspan="9" class="sin-datos">
+                        ${estados.vacio({
+                            icono: 'fa-users',
+                            titulo: 'No se encontraron votantes',
+                            texto: 'Probá con otros filtros o limpiá la búsqueda.',
+                            accion: { texto: 'Limpiar filtros', accion: 'limpiarFiltros' }
+                        })}
                     </td>
                 </tr>
             `;
@@ -648,8 +634,8 @@ class PadronComponent {
         // Todo dato de votante pasa por escaparHtml antes de entrar al markup. Los
         // datos llegan por carga manual y por importación de CSV: una observación con
         // `</textarea><script>` se ejecutaba en la pantalla de cualquiera que abriera
-        // esta página. Incluye los atributos —`title`, `data-dni`, el `onclick`—, que es
-        // justo lo que el truco de textContent/innerHTML no cubre.
+        // esta página. Incluye los atributos —`title`, `data-dni`—, que es justo lo que
+        // el truco de textContent/innerHTML no cubre.
         this.elementos.tbody.innerHTML = votantes.map(item => {
             const { votante, relevamiento } = item;
             const opcionPolitica = relevamiento?.opcionPolitica || '';
@@ -665,8 +651,8 @@ class PadronComponent {
                     <td class="edad" data-label="Edad">${escaparHtml(votante.edad)}</td>
                     <td data-label="Circuito">${escaparHtml(votante.circuito)}</td>
                     <td data-label="Sexo">${escaparHtml(votante.sexo)}</td>
-                    <td data-label="Opción Política">
-                        <div class="radio-group">
+                    <td data-label="Opción política">
+                        <div class="radio-group" role="radiogroup" aria-label="Opción política de ${apellido}, ${nombre}">
                             ${this.renderizarRadioButtons(votante.dni, opcionPolitica)}
                         </div>
                     </td>
@@ -674,11 +660,11 @@ class PadronComponent {
                         ${this.renderizarMarcas(item)}
                     </td>
                     <td class="acciones" data-label="Abrir">
-                        <button class="btn-abrir-panel"
+                        <button type="button" class="btn-abrir-panel"
                                 data-action="abrirPanel" data-dni="${dni}"
                                 title="Abrir ficha de ${apellido}, ${nombre}"
                                 aria-label="Abrir ficha de ${apellido}, ${nombre}">
-                            <i class="fas fa-chevron-right"></i>
+                            <i class="fas fa-chevron-right" aria-hidden="true"></i>
                         </button>
                     </td>
                 </tr>
@@ -712,10 +698,14 @@ class PadronComponent {
             if (detalle?.[clave]) marcas.push({ icono, texto, variante });
         }
 
-        if (marcas.length === 0) return '<span class="sin-marcas">—</span>';
+        if (marcas.length === 0) {
+            return '<span class="sin-marcas"><span aria-hidden="true">—</span><span class="sr-only">Sin datos cargados</span></span>';
+        }
 
+        // role="img": un <i> con aria-label y sin rol no tiene nombre válido (axe: 34 nodos
+        // por página), así que el lector de pantalla no leía qué marca era cada ícono.
         return `<div class="marcas">${marcas.map(m =>
-            `<i class="fas ${m.icono} marca${m.variante ? ' marca-' + m.variante : ''}" title="${m.texto}" aria-label="${m.texto}"></i>`
+            `<i class="fas ${m.icono} marca${m.variante ? ' marca-' + m.variante : ''}" role="img" title="${m.texto}" aria-label="${m.texto}"></i>`
         ).join('')}</div>`;
     }
 
@@ -731,7 +721,14 @@ class PadronComponent {
         const item = (this.estado.votantesEnPantalla || []).find(v => String(v.votante.dni) === String(dni));
         if (!item) return;
 
+        // Abrir otra ficha con cambios sin guardar en la actual los perdía en silencio.
+        if (!(await this.confirmarDescarte())) return;
+
         const { votante } = item;
+
+        // Hacia dónde vuelve el foco al cerrar: el botón que se tocó para abrir.
+        const disparador = document.activeElement;
+        this._disparadorPanel = disparador && disparador.classList?.contains('btn-abrir-panel') ? disparador : null;
 
         // Los datos cargables se releen del servidor; del listado sólo sale la identidad
         // del votante, que no cambia. Antes la ficha se armaba entera con el snapshot de
@@ -743,7 +740,7 @@ class PadronComponent {
 
         // La ficha vieja se cierra antes de esperar: sin esto, la página se queda un
         // instante mostrando la anterior como si nada hubiera pasado.
-        this.cerrarPanel();
+        this.cerrarPanel({ devolverFoco: false });
 
         // Ahora que abrir implica esperar al servidor, dos clics seguidos son dos
         // lecturas en vuelo. Si la primera vuelve última, dibujaría la ficha equivocada
@@ -780,7 +777,7 @@ class PadronComponent {
         panel.id = 'panel-votante';
         panel.setAttribute('role', 'dialog');
         panel.setAttribute('aria-modal', 'false');
-        panel.setAttribute('aria-label', `Ficha de ${votante.apellido}, ${votante.nombre}`);
+        panel.setAttribute('aria-labelledby', 'panel-titulo');
         panel.dataset.dni = votante.dni;
         // La versión que esta persona realmente vio. Es lo que el servidor compara al
         // guardar: si otra escribió en el medio, no coincide y la escritura no se aplica.
@@ -792,11 +789,11 @@ class PadronComponent {
         panel.innerHTML = `
             <header class="panel-header">
                 <div>
-                    <h3>${escaparHtml(votante.apellido)}, ${escaparHtml(votante.nombre)}</h3>
+                    <h2 id="panel-titulo">${escaparHtml(votante.apellido)}, ${escaparHtml(votante.nombre)}</h2>
                     <p class="panel-dni">DNI ${escaparHtml(votante.dni)}</p>
                 </div>
-                <button class="panel-cerrar" data-action="cerrarPanel" title="Cerrar" aria-label="Cerrar ficha">
-                    <i class="fas fa-times"></i>
+                <button type="button" class="panel-cerrar" data-action="pedirCerrarPanel" title="Cerrar" aria-label="Cerrar ficha">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </header>
 
@@ -811,12 +808,12 @@ class PadronComponent {
             <div class="panel-campo">
                 <label for="panel-telefono">Teléfono</label>
                 <input type="tel" id="panel-telefono" value="${escaparHtml(relevamiento?.telefono)}"
-                       placeholder="Sin teléfono cargado">
+                       inputmode="tel" autocomplete="off" placeholder="Sin teléfono cargado">
             </div>
 
             <div class="panel-campo">
                 <label for="panel-observacion">Observación</label>
-                <textarea id="panel-observacion" rows="4"
+                <textarea id="panel-observacion" rows="4" autocomplete="off"
                           placeholder="Sin observaciones">${escaparHtml(relevamiento?.observacion)}</textarea>
             </div>
 
@@ -828,9 +825,12 @@ class PadronComponent {
                 <label><input type="checkbox" name="recibeAyudaSocial" ${marcado(cond.recibeAyudaSocial)}> Recibe ayuda social</label>
             </fieldset>
 
+            <!-- Error de guardado junto al botón que lo causó, no un toast que se va solo. -->
+            <p class="campo-error panel-error" id="panel-error" role="alert"></p>
+
             <footer class="panel-acciones">
-                <button class="btn btn-secondary" data-action="cerrarPanel">Cancelar</button>
-                <button class="btn btn-primary" id="panel-guardar" data-requires-permission="padron.edit"
+                <button type="button" class="btn btn-secondary" data-action="pedirCerrarPanel">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="panel-guardar" data-requires-permission="padron.edit"
                         data-action="guardarPanel">Guardar</button>
             </footer>
         `;
@@ -838,10 +838,22 @@ class PadronComponent {
         document.body.appendChild(panel);
         document.querySelector(`tr[data-dni="${CSS.escape(String(dni))}"]`)?.classList.add('fila-abierta');
 
+        // Lo que había al abrir: contra esto se decide si hay cambios sin guardar.
+        this._panelInicial = this.leerPanel(panel);
+
         // El foco entra al panel para que se pueda cargar sin tocar el mouse, y Escape
         // lo cierra, que es lo que espera cualquiera frente a algo que se abre encima.
         panel.querySelector('#panel-telefono')?.focus();
-        this._cerrarConEscape = (evento) => { if (evento.key === 'Escape') this.cerrarPanel(); };
+        this._cerrarConEscape = (evento) => {
+            if (evento.key !== 'Escape') return;
+            // Si ya hay un diálogo encima (el de "descartar cambios"), Escape es suyo.
+            if (document.querySelector('dialog[open]')) return;
+            // Consumir el Escape: el diálogo de "descartar cambios" se abre DENTRO de este
+            // keydown, y si el evento sigue su curso el navegador se lo aplica al diálogo
+            // recién abierto y lo cierra al instante (la confirmación nunca se veía).
+            evento.preventDefault();
+            this.pedirCerrarPanel();
+        };
         document.addEventListener('keydown', this._cerrarConEscape);
     }
 
@@ -886,7 +898,7 @@ class PadronComponent {
         aviso.className = 'panel-conflicto';
         aviso.innerHTML = `
             <p class="conflicto-titulo">
-                <i class="fas fa-exclamation-triangle"></i>
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
                 ${quien} modificó esta ficha mientras la editabas
             </p>
             ${campos.map(campo => `
@@ -896,10 +908,10 @@ class PadronComponent {
                 </div>
             `).join('')}
             <div class="conflicto-acciones">
-                <button class="btn btn-secondary" data-action="descartarMisCambios">
+                <button type="button" class="btn btn-secondary" data-action="descartarMisCambios">
                     Quedarme con lo del servidor
                 </button>
-                <button class="btn btn-primary" data-action="guardarPanel">
+                <button type="button" class="btn btn-primary" data-action="guardarPanel">
                     Guardar lo mío igual
                 </button>
             </div>
@@ -919,7 +931,7 @@ class PadronComponent {
         const dni = document.getElementById('panel-votante')?.dataset.dni;
         if (!dni) return;
 
-        this.cerrarPanel();
+        this.cerrarPanel({ devolverFoco: false });
         await this.abrirPanel(dni);
     }
 
@@ -1028,10 +1040,13 @@ class PadronComponent {
         return momento.toLocaleDateString('es-AR');
     }
 
-    cerrarPanel() {
+    cerrarPanel({ devolverFoco = true } = {}) {
+        const dni = document.getElementById('panel-votante')?.dataset.dni;
+
         // Cerrar también cancela cualquier apertura en vuelo: si alguien cierra mientras
         // la ficha se está leyendo, no tiene que aparecer sola medio segundo después.
         this.fichaPedida = null;
+        this._panelInicial = null;
 
         document.getElementById('panel-votante')?.remove();
         document.querySelector('tr.fila-abierta')?.classList.remove('fila-abierta');
@@ -1039,6 +1054,46 @@ class PadronComponent {
             document.removeEventListener('keydown', this._cerrarConEscape);
             this._cerrarConEscape = null;
         }
+
+        // El foco vuelve a la fila que se abrió: sin esto cae al <body> y quien navega con
+        // teclado tiene que recorrer la tabla desde arriba.
+        if (devolverFoco && dni) this.enfocarFila(dni);
+    }
+
+    /** Foco al botón "abrir ficha" de una fila (si la fila está en pantalla). */
+    enfocarFila(dni) {
+        document.querySelector(`.btn-abrir-panel[data-dni="${CSS.escape(String(dni))}"]`)?.focus();
+    }
+
+    /** Estado del formulario de la ficha, para saber si hay algo sin guardar. */
+    leerPanel(panel) {
+        return JSON.stringify({
+            telefono: panel.querySelector('#panel-telefono')?.value ?? '',
+            observacion: panel.querySelector('#panel-observacion')?.value ?? '',
+            condiciones: [...panel.querySelectorAll('.panel-condiciones input[type="checkbox"]')].map(c => c.checked),
+        });
+    }
+
+    panelSucio() {
+        const panel = document.getElementById('panel-votante');
+        return !!panel && this._panelInicial !== null && this.leerPanel(panel) !== this._panelInicial;
+    }
+
+    /** true si se puede cerrar/reemplazar la ficha: sin cambios, o la persona los descarta. */
+    async confirmarDescarte() {
+        if (!this.panelSucio()) return true;
+        return window.dialogo.confirmar({
+            titulo: 'Descartar cambios',
+            mensaje: 'Tenés cambios sin guardar en esta ficha. Si cerrás, se pierden.',
+            confirmar: 'Descartar',
+            cancelar: 'Seguir editando',
+            tono: 'peligro'
+        });
+    }
+
+    /** Cierre iniciado por la persona (botón, Cancelar, Escape): pregunta si hay cambios. */
+    async pedirCerrarPanel() {
+        if (await this.confirmarDescarte()) this.cerrarPanel();
     }
 
     /**
@@ -1057,10 +1112,12 @@ class PadronComponent {
 
         const dni = panel.dataset.dni;
         const boton = panel.querySelector('#panel-guardar');
-        const textoOriginal = boton.textContent;
+        const errorPanel = panel.querySelector('#panel-error');
+        errorPanel.textContent = '';
 
-        boton.disabled = true;
-        boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando…';
+        // aria-busy en vez de deshabilitar y cambiar el texto: el botón sigue siendo el
+        // mismo para un lector de pantalla y el spinner sale de design-system.css.
+        boton.setAttribute('aria-busy', 'true');
 
         try {
             const condiciones = {};
@@ -1083,8 +1140,6 @@ class PadronComponent {
             // NO se cierra: lo que esta persona escribió sigue en pantalla y decide ella.
             if (respuesta?.conflicto) {
                 this.mostrarConflicto(panel, respuesta.actual);
-                boton.disabled = false;
-                boton.textContent = textoOriginal;
                 return;
             }
 
@@ -1098,12 +1153,17 @@ class PadronComponent {
             });
 
             this.mostrarNotificacion('Ficha guardada', 'success');
-            this.cerrarPanel();
+            // La tabla se vuelve a dibujar: el foco no puede volver antes de eso, o se
+            // pierde junto con el botón viejo.
+            this.cerrarPanel({ devolverFoco: false });
             await this.actualizarTabla();
+            this.enfocarFila(dni);
         } catch (error) {
-            this.mostrarError(`No se pudo guardar: ${error.message}`);
-            boton.disabled = false;
-            boton.textContent = textoOriginal;
+            // Dentro del panel y no un toast: es lo que la persona tiene delante y es donde
+            // va a reintentar. El panel sigue abierto con lo escrito.
+            errorPanel.textContent = `No se pudo guardar: ${error.message}`;
+        } finally {
+            boton.removeAttribute('aria-busy');
         }
     }
 
@@ -1137,50 +1197,16 @@ class PadronComponent {
      * Renderizar controles de paginación
      */
     renderizarPaginacion(paginacion) {
-        const { paginaActual, totalPaginas } = paginacion;
-        
-        if (totalPaginas <= 1) {
-            this.elementos.paginacion.innerHTML = '';
-            return;
-        }
+        const { paginaActual, totalPaginas } = paginacion || {};
 
-        let html = '<div class="paginacion">';
-        
-        // Botón anterior
-        if (paginaActual > 1) {
-            html += `<button class="btn-paginacion" data-action="irAPagina" data-pagina="${paginaActual - 1}">
-                <i class="fas fa-chevron-left"></i>
-            </button>`;
-        }
-
-        // Números de página
-        const inicio = Math.max(1, paginaActual - 2);
-        const fin = Math.min(totalPaginas, paginaActual + 2);
-
-        if (inicio > 1) {
-            html += `<button class="btn-paginacion" data-action="irAPagina" data-pagina="1">1</button>`;
-            if (inicio > 2) html += '<span class="paginacion-dots">...</span>';
-        }
-
-        for (let i = inicio; i <= fin; i++) {
-            html += `<button class="btn-paginacion ${i === paginaActual ? 'active' : ''}"
-                     data-action="irAPagina" data-pagina="${i}">${i}</button>`;
-        }
-
-        if (fin < totalPaginas) {
-            if (fin < totalPaginas - 1) html += '<span class="paginacion-dots">...</span>';
-            html += `<button class="btn-paginacion" data-action="irAPagina" data-pagina="${totalPaginas}">${totalPaginas}</button>`;
-        }
-
-        // Botón siguiente
-        if (paginaActual < totalPaginas) {
-            html += `<button class="btn-paginacion" data-action="irAPagina" data-pagina="${paginaActual + 1}">
-                <i class="fas fa-chevron-right"></i>
-            </button>`;
-        }
-
-        html += '</div>';
-        this.elementos.paginacion.innerHTML = html;
+        // lib/paginacion.js: un <nav> con nombre, anterior/siguiente con nombre accesible y
+        // la página actual con aria-current. Una sola página no dibuja nada.
+        this.elementos.paginacion.innerHTML = window.paginacion.render({
+            pagina: paginaActual,
+            totalPaginas,
+            etiqueta: 'Paginación del padrón',
+            accion: 'irAPagina'
+        });
     }
 
     /**
@@ -1190,8 +1216,8 @@ class PadronComponent {
         const inicio = paginacion?.inicio ?? 0;
         const fin = paginacion?.fin ?? 0;
         const totalRegistros = typeof paginacion?.totalRegistros === 'number' ? paginacion.totalRegistros : 0;
-        this.elementos.info.textContent = 
-            `Mostrando ${inicio} a ${fin} de ${totalRegistros.toLocaleString()} registros`;
+        this.elementos.info.textContent =
+            `Mostrando ${inicio} a ${fin} de ${totalRegistros.toLocaleString('es-AR')} registros`;
     }
 
     /**
@@ -1202,7 +1228,7 @@ class PadronComponent {
             const respuesta = await window.apiService.obtenerEstadisticas();
             if (respuesta?.rateLimited) {
                 this.programarReintentoRateLimit(
-                    'Limite de solicitudes alcanzado.',
+                    'Límite de solicitudes alcanzado.',
                     () => this.cargarDatos()
                 );
                 return false;
@@ -1234,12 +1260,15 @@ class PadronComponent {
                     <div class="avance-barra" role="progressbar"
                          aria-valuenow="${porcentajeCompletado}" aria-valuemin="0" aria-valuemax="100"
                          aria-label="Avance del relevamiento">
-                        <div class="avance-relleno" style="width: ${porcentajeCompletado}%"></div>
+                        <div class="avance-relleno" data-ancho="${porcentajeCompletado}"></div>
                     </div>
                     <div class="avance-porcentaje">${porcentajeCompletado}%</div>
                     <a class="avance-enlace" href="resultados.html">Ver resultados</a>
                 </div>
             `;
+            this.elementos.estadisticasRapidas.querySelectorAll('[data-ancho]').forEach(el => {
+                el.style.width = `${Number(el.dataset.ancho) || 0}%`;
+            });
             return true;
         } catch (error) {
             console.error('Error al cargar estadísticas:', error);
@@ -1332,14 +1361,13 @@ class PadronComponent {
      * Actualizar iconos de ordenamiento
      */
     actualizarIconosOrdenamiento() {
-        document.querySelectorAll('.sortable i').forEach(icon => {
-            icon.className = 'fas fa-sort';
+        // El estado del orden va en aria-sort del <th> (lo anuncia el lector de pantalla y lo
+        // dibuja la flecha de .th-orden en design-system.css). Antes eran clases de íconos.
+        const { campo, direccion } = this.estado.ordenamiento;
+        document.querySelectorAll('th.sortable').forEach(th => {
+            const activa = th.querySelector('.th-orden')?.dataset.campo === campo;
+            th.setAttribute('aria-sort', activa ? (direccion === 'asc' ? 'ascending' : 'descending') : 'none');
         });
-
-        const columnaActiva = document.querySelector(`[data-campo="${this.estado.ordenamiento.campo}"] i`);
-        if (columnaActiva) {
-            columnaActiva.className = `fas fa-sort-${this.estado.ordenamiento.direccion === 'asc' ? 'up' : 'down'}`;
-        }
     }
 
     /**
@@ -1415,7 +1443,7 @@ class PadronComponent {
             const respuesta = await window.apiService.obtenerFiltrosDisponibles();
             if (respuesta?.rateLimited) {
                 this.programarReintentoRateLimit(
-                    'Limite de solicitudes alcanzado.',
+                    'Límite de solicitudes alcanzado.',
                     () => this.cargarDatos()
                 );
                 return false;
@@ -1444,36 +1472,6 @@ class PadronComponent {
 
     // ==================== MODALES ====================
 
-    abrirModalImportar() {
-        document.getElementById('modal-importar').style.display = 'flex';
-    }
-
-    cerrarModalImportar() {
-        document.getElementById('modal-importar').style.display = 'none';
-        document.getElementById('archivo-csv').value = '';
-    }
-
-    abrirSelectorArchivo() {
-        document.getElementById('archivo-csv').click();
-    }
-
-    async manejarArchivoCSV(event) {
-        const archivo = event.target.files[0];
-        if (!archivo) return;
-
-        try {
-            this.mostrarNotificacion('Importando archivo CSV...', 'info');
-            const respuesta = await window.apiService.importarCSV(archivo);
-            
-            this.mostrarNotificacion(respuesta.message, 'success');
-            this.cerrarModalImportar();
-            await this.cargarDatos();
-            
-        } catch (error) {
-            this.mostrarError(`Error al importar CSV: ${error.message}`);
-        }
-    }
-
     // Acá vivían mostrarEstadisticas() y cerrarModalEstadisticas(). El modal repetía
     // total de votantes, relevamientos y porcentaje: los mismos tres datos que la
     // franja de avance muestra sin abrir nada, y el análisis completo está en
@@ -1494,20 +1492,17 @@ class PadronComponent {
 
         // Limpiar formulario y estados de validación
         document.getElementById('form-nuevo-votante').reset();
-        document.getElementById('error-nuevo-votante').style.display = 'none';
-        document.getElementById('btn-guardar-votante').disabled = false;
+        this.mostrarErrorFormulario('');
+        document.getElementById('btn-guardar-votante').removeAttribute('aria-busy');
         this.limpiarEstadosValidacion();
 
-        document.getElementById('modal-nuevo-votante').style.display = 'flex';
-
-        // Focus en el primer campo después de la animación
-        setTimeout(() => {
-            document.getElementById('nuevo-dni').focus();
-        }, 300);
+        // <dialog> nativo: foco atrapado, Escape y fondo inerte. El foco va al DNI por el
+        // atributo `autofocus`, y al cerrar vuelve al botón "Nuevo votante".
+        window.dialogo.mostrar(document.getElementById('modal-nuevo-votante'));
     }
 
     cerrarModalNuevoVotante() {
-        document.getElementById('modal-nuevo-votante').style.display = 'none';
+        document.getElementById('modal-nuevo-votante')?.close();
     }
 
     /**
@@ -1525,6 +1520,8 @@ class PadronComponent {
             const val = dniInput.value.trim();
             dniValidationIcon.className = 'input-validation-icon';
             dniInput.classList.remove('input-valid', 'input-invalid');
+            dniInput.removeAttribute('aria-invalid');
+            document.getElementById('nuevo-dni-error').textContent = '';
             dniHelper.className = 'form-helper';
 
             if (val.length === 0) {
@@ -1534,55 +1531,74 @@ class PadronComponent {
 
             if (!/^\d*$/.test(val)) {
                 dniInput.classList.add('input-invalid');
+                dniInput.setAttribute('aria-invalid', 'true');
                 dniValidationIcon.classList.add('is-invalid');
                 dniHelper.textContent = 'Solo se permiten números';
                 dniHelper.classList.add('helper-error');
             } else if (val.length < 7 || val.length > 8) {
-                dniHelper.textContent = `${val.length} dígitos — debe tener 7 u 8`;
+                dniHelper.textContent = `${val.length} dígitos: debe tener 7 u 8`;
             } else {
                 dniInput.classList.add('input-valid');
                 dniValidationIcon.classList.add('is-valid');
-                dniHelper.textContent = `${val.length} dígitos — DNI válido`;
+                dniHelper.textContent = `${val.length} dígitos: DNI válido`;
                 dniHelper.classList.add('helper-success');
             }
         });
 
         // Filtrar caracteres no numéricos en DNI
         dniInput.addEventListener('keypress', (e) => {
-            if (!/\d/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+            if (!/\d/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && e.key !== 'Enter') {
                 e.preventDefault();
             }
         });
 
         // Validación de campos requeridos on blur
-        const validarRequerido = (input) => {
+        const validarRequerido = (input, mensaje) => {
             input.addEventListener('blur', () => {
                 if (input.value.trim() === '') {
-                    input.classList.add('input-invalid');
+                    this.marcarCampo(input, mensaje);
                 } else {
-                    input.classList.remove('input-invalid');
+                    this.marcarCampo(input, null);
                     input.classList.add('input-valid');
                 }
             });
             input.addEventListener('input', () => {
-                if (input.value.trim() !== '') {
-                    input.classList.remove('input-invalid');
-                }
+                if (input.value.trim() !== '') this.marcarCampo(input, null);
             });
         };
 
-        validarRequerido(apellidoInput);
-        validarRequerido(nombreInput);
+        validarRequerido(apellidoInput, 'Ingresá el apellido.');
+        validarRequerido(nombreInput, 'Ingresá el nombre.');
+        validarRequerido(document.getElementById('nuevo-anio-nac'), 'Ingresá el año de nacimiento.');
+    }
 
-        // Cerrar modal con ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const modal = document.getElementById('modal-nuevo-votante');
-                if (modal.style.display === 'flex') {
-                    this.cerrarModalNuevoVotante();
-                }
-            }
-        });
+    /**
+     * Marca un campo con error (o lo limpia con `null`): clase visual, aria-invalid y el
+     * mensaje en línea (`#<id>-error`, enlazado por aria-describedby). El color solo no
+     * alcanza: sin esto un lector de pantalla no sabía qué campo estaba mal ni por qué.
+     */
+    marcarCampo(input, mensaje) {
+        if (!input) return;
+        const error = document.getElementById(`${input.id}-error`);
+        if (mensaje) {
+            input.classList.add('input-invalid');
+            input.classList.remove('input-valid');
+            input.setAttribute('aria-invalid', 'true');
+            if (error) error.textContent = mensaje;
+        } else {
+            input.classList.remove('input-invalid');
+            input.removeAttribute('aria-invalid');
+            if (error) error.textContent = '';
+        }
+    }
+
+    /** Resumen de error del formulario (`role="alert"`); texto vacío lo oculta. */
+    mostrarErrorFormulario(texto) {
+        const div = document.getElementById('error-nuevo-votante');
+        const span = document.getElementById('error-nuevo-votante-text');
+        if (!div || !span) return;
+        span.textContent = texto;
+        div.hidden = !texto;
     }
 
     /**
@@ -1592,7 +1608,9 @@ class PadronComponent {
         const inputs = document.querySelectorAll('#form-nuevo-votante .form-input');
         inputs.forEach(input => {
             input.classList.remove('input-valid', 'input-invalid');
+            input.removeAttribute('aria-invalid');
         });
+        document.querySelectorAll('#form-nuevo-votante .campo-error').forEach(e => { e.textContent = ''; });
 
         const dniValidationIcon = document.getElementById('dni-validation-icon');
         if (dniValidationIcon) {
@@ -1607,10 +1625,8 @@ class PadronComponent {
     }
 
     async guardarNuevoVotante() {
-        const errorDiv = document.getElementById('error-nuevo-votante');
-        const errorText = document.getElementById('error-nuevo-votante-text');
         const btnGuardar = document.getElementById('btn-guardar-votante');
-        errorDiv.style.display = 'none';
+        this.mostrarErrorFormulario('');
 
         const dni = document.getElementById('nuevo-dni').value.trim();
         const apellido = document.getElementById('nuevo-apellido').value.trim();
@@ -1620,41 +1636,35 @@ class PadronComponent {
         const domicilio = document.getElementById('nuevo-domicilio').value.trim();
         const circuito = document.getElementById('nuevo-circuito').value;
 
-        // Validar campos requeridos con feedback visual
-        let hayError = false;
-        if (!dni) {
-            document.getElementById('nuevo-dni').classList.add('input-invalid');
-            hayError = true;
-        }
-        if (!apellido) {
-            document.getElementById('nuevo-apellido').classList.add('input-invalid');
-            hayError = true;
-        }
-        if (!nombre) {
-            document.getElementById('nuevo-nombre').classList.add('input-invalid');
-            hayError = true;
+        // Errores en línea, uno por campo, y el foco al primero. El resumen de abajo no
+        // reemplaza al mensaje del campo: lo acompaña.
+        const problemas = [];
+        if (!dni) problemas.push(['nuevo-dni', 'Ingresá el DNI.']);
+        else if (!/^\d{7,8}$/.test(dni)) problemas.push(['nuevo-dni', 'El DNI debe tener 7 u 8 números.']);
+        if (!apellido) problemas.push(['nuevo-apellido', 'Ingresá el apellido.']);
+        if (!nombre) problemas.push(['nuevo-nombre', 'Ingresá el nombre.']);
+
+        // El servidor exige el año (la columna es NOT NULL) y lo acota a 1900..año actual.
+        // El formulario lo presentaba como opcional y el error llegaba recién al enviar.
+        const anioActual = new Date().getFullYear();
+        const anio = Number(anioNac);
+        if (!anioNac) problemas.push(['nuevo-anio-nac', 'Ingresá el año de nacimiento.']);
+        else if (!Number.isInteger(anio) || anio < 1900 || anio > anioActual) {
+            problemas.push(['nuevo-anio-nac', `El año debe estar entre 1900 y ${anioActual}.`]);
         }
 
-        if (hayError) {
-            errorText.textContent = 'Completá los campos obligatorios: DNI, Apellido y Nombre';
-            errorDiv.style.display = 'flex';
-            // Scroll al primer campo con error
-            const primerError = document.querySelector('#form-nuevo-votante .input-invalid');
-            if (primerError) primerError.focus();
-            return;
-        }
-
-        if (!/^\d{7,8}$/.test(dni)) {
-            document.getElementById('nuevo-dni').classList.add('input-invalid');
-            errorText.textContent = 'El DNI debe contener 7 u 8 números';
-            errorDiv.style.display = 'flex';
-            document.getElementById('nuevo-dni').focus();
+        ['nuevo-dni', 'nuevo-apellido', 'nuevo-nombre', 'nuevo-anio-nac'].forEach(id => this.marcarCampo(document.getElementById(id), null));
+        if (problemas.length) {
+            problemas.forEach(([id, mensaje]) => this.marcarCampo(document.getElementById(id), mensaje));
+            this.mostrarErrorFormulario('Revisá los campos marcados.');
+            document.getElementById(problemas[0][0]).focus();
             return;
         }
 
         try {
-            btnGuardar.disabled = true;
-            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            // aria-busy y no `disabled`: el botón conserva el foco, y el spinner sale de
+            // design-system.css.
+            btnGuardar.setAttribute('aria-busy', 'true');
 
             await window.apiService.crearVotante({
                 dni,
@@ -1667,22 +1677,20 @@ class PadronComponent {
             });
 
             this.cerrarModalNuevoVotante();
-            this.mostrarNotificacion('Votante creado exitosamente', 'success');
+            this.mostrarNotificacion('Votante creado', 'success');
             await this.actualizarEstadisticasRapidas();
             await this.actualizarTabla();
 
         } catch (error) {
-            errorText.textContent = error.message || 'Error al crear el votante';
-            errorDiv.style.display = 'flex';
+            this.mostrarErrorFormulario(error.message || 'No se pudo crear el votante. Probá de nuevo.');
         } finally {
-            btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Votante';
+            btnGuardar.removeAttribute('aria-busy');
         }
     }
 
     async exportarDatos() {
         try {
-            this.mostrarNotificacion('Generando exportacion CSV...', 'info');
+            this.mostrarNotificacion('Generando la exportación en CSV…', 'info');
             const blob = await window.apiService.exportarDatos();
             const nombreArchivo = `relevamientos_${new Date().toISOString().slice(0, 10)}.csv`;
 
@@ -1696,24 +1704,15 @@ class PadronComponent {
 
     async exportarPadron() {
         try {
-            this.mostrarNotificacion('Generando exportacion del padron completo...', 'info');
+            this.mostrarNotificacion('Generando la exportación del padrón completo…', 'info');
             const blob = await window.apiService.exportarPadron();
             const nombreArchivo = `padron_completo_${new Date().toISOString().slice(0, 10)}.csv`;
 
             window.apiService.descargarArchivo(blob, nombreArchivo);
-            this.mostrarNotificacion('Padron exportado correctamente', 'success');
+            this.mostrarNotificacion('Padrón exportado correctamente', 'success');
 
         } catch (error) {
-            this.mostrarError(`Error al exportar padron: ${error.message}`);
-        }
-    }
-
-    verDetalles(dni) {
-        // Usar el nuevo componente de detalles
-        if (window.detalleVotanteComponent) {
-            window.detalleVotanteComponent.abrirModalDetalles(dni);
-        } else {
-            this.mostrarNotificacion('Componente de detalles no disponible', 'error');
+            this.mostrarError(`Error al exportar el padrón: ${error.message}`);
         }
     }
 
@@ -1724,24 +1723,39 @@ class PadronComponent {
      */
     toggleFiltrosMobile() {
         const filtrosContainer = document.getElementById('filtros-container');
-        filtrosContainer.classList.toggle('show');
-        
+        this.fijarFiltrosMobile(!filtrosContainer.classList.contains('show'));
+    }
+
+    /**
+     * Abre o cierra el panel de filtros del teléfono y lo dice con `aria-expanded` (el botón
+     * lo declaraba pero nunca lo actualizaba). Escape lo cierra y devuelve el foco al botón.
+     */
+    fijarFiltrosMobile(abierto, { devolverFoco = false } = {}) {
+        const filtrosContainer = document.getElementById('filtros-container');
+        const boton = document.getElementById('btn-filtros-mobile');
+        filtrosContainer.classList.toggle('show', abierto);
+
+        if (boton) {
+            boton.setAttribute('aria-expanded', String(abierto));
+            boton.setAttribute('aria-label', abierto ? 'Ocultar filtros' : 'Mostrar filtros');
+        }
+
         // Prevent body scroll when filters are open
-        if (filtrosContainer.classList.contains('show')) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
+        document.body.style.overflow = abierto ? 'hidden' : '';
+
+        if (abierto) {
+            document.getElementById('btn-cerrar-filtros')?.focus(); // no el buscador: en un teléfono abriría el teclado
+        } else if (devolverFoco && boton) {
+            boton.focus();
         }
     }
 
     /**
      * Cerrar filtros móviles
      */
-    cerrarFiltrosMobile() {
-        const filtrosContainer = document.getElementById('filtros-container');
-        filtrosContainer.classList.remove('show');
-        document.body.style.overflow = '';
-        
+    cerrarFiltrosMobile({ devolverFoco = false } = {}) {
+        this.fijarFiltrosMobile(false, { devolverFoco });
+
         // Auto-aplicar filtros al cerrar en móvil
         if (window.innerWidth <= 768) {
             this.aplicarFiltros();
@@ -1761,15 +1775,6 @@ class PadronComponent {
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
-    }
-
-    /**
-     * Detectar si es dispositivo táctil
-     */
-    isTouchDevice() {
-        return (('ontouchstart' in window) ||
-                (navigator.maxTouchPoints > 0) ||
-                (navigator.msMaxTouchPoints > 0));
     }
 
     /**
@@ -1836,7 +1841,7 @@ class PadronComponent {
         }
 
         if (this.rateLimit.retries >= maxRetries) {
-            this.mostrarBannerRateLimit(`${motivo} Intenta de nuevo en unos minutos.`, true);
+            this.mostrarBannerRateLimit(`${motivo} Intentá de nuevo en unos minutos.`, true);
             return;
         }
 
@@ -1846,7 +1851,7 @@ class PadronComponent {
         const delayMs = delay + jitter;
         const segundos = Math.ceil(delayMs / 1000);
 
-        this.mostrarBannerRateLimit(`${motivo} Reintentando en ${segundos}s...`, true);
+        this.mostrarBannerRateLimit(`${motivo} Reintentando en ${segundos} s…`, true);
 
         this.rateLimit.timerId = setTimeout(async () => {
             this.rateLimit.timerId = null;
@@ -1856,34 +1861,25 @@ class PadronComponent {
     }
 
     mostrarNotificacion(mensaje, tipo = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${tipo}`;
-
-        // El mensaje entra como texto, no como HTML. Media docena de llamadores le
-        // interpolan cosas que no controlan —`error.message`, el nombre de quien editó
-        // una ficha—, así que armar esto con innerHTML dejaba abierta una segunda puerta,
-        // más difícil de ver que la de la tabla porque acá el dato no parece un dato.
-        const contenido = document.createElement('div');
-        contenido.className = 'notification-content';
-
-        const icono = document.createElement('i');
-        icono.className = `fas ${this.getIconoTipo(tipo)}`;
-
-        contenido.appendChild(icono);
-        contenido.appendChild(document.createTextNode(` ${mensaje}`));
-        notification.appendChild(contenido);
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.parentElement.removeChild(notification);
-            }
-        }, 5000);
+        // lib/avisos.js: el mensaje entra como texto (no hace falta escapar) y se anuncia en
+        // la región viva que corresponde. Antes cada pantalla tenía su propio toast, y ninguno
+        // se anunciaba a un lector de pantalla.
+        window.avisos.mostrar(mensaje, tipo);
     }
 
     mostrarError(mensaje) {
+        // Sin la interfaz armada (la API no responde, o falló crearInterfaz) un aviso de unos
+        // segundos dejaba la página en blanco para siempre: el error pasa a ser la pantalla.
+        if (!this.elementos.tbody && this.container) {
+            this.container.innerHTML = estados.error({ texto: mensaje, reintentar: 'recargarPagina' });
+            return;
+        }
         this.mostrarNotificacion(mensaje, 'error');
+    }
+
+    /** "Reintentar" del estado de error de pantalla completa. */
+    recargarPagina() {
+        window.location.reload();
     }
 
     /* Acá vivían renderizarCondicionesEspeciales, renderizarCondicionesInline,
@@ -1946,25 +1942,7 @@ class PadronComponent {
         }
     }
 
-    getIconoTipo(tipo) {
-        const iconos = {
-            info: 'fa-info-circle',
-            success: 'fa-check-circle',
-            warning: 'fa-exclamation-triangle',
-            error: 'fa-times-circle'
-        };
-        return iconos[tipo] || iconos.info;
-    }
 }
 
 // Instancia global del componente
 window.padronComponent = new PadronComponent();
-console.log('🖥️ PadronComponent cargado correctamente');
-
-// Función de diagnóstico
-window.padronComponent.diagnosticar = function() {
-    console.log('🔍 Diagnóstico PadronComponent:');
-    console.log('  - Componente creado:', !!this);
-    console.log('  - Container asignado:', !!this.container);
-    console.log('  - Estado:', this.estado);
-};

@@ -625,6 +625,13 @@ textarea::placeholder {
 /* El centrado nativo del modal es `margin: auto`; un `* { margin: 0 }` de página lo pisa. */
 .dialogo:modal { margin: auto; }
 .dialogo::backdrop { background: var(--ds-scrim); }
+/* Un <form> dentro del diálogo ocupa su alto y deja que el cuerpo haga scroll. */
+.dialogo > form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: inherit;
+}
 .dialogo--ancho { width: min(720px, calc(100vw - var(--ds-space-8))); }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -812,6 +819,10 @@ textarea::placeholder {
 }
 .paginacion-pagina[disabled] { opacity: 0.55; cursor: not-allowed; }
 .paginacion-puntos { align-self: center; color: var(--ds-text-muted); }
+
+@media (max-width: 768px) {
+    .paginacion-pagina { min-width: 44px; min-height: 44px; }
+}
 
 /* —— Tabla ——
    Contenedor con scroll horizontal que es una región enfocable y con nombre (sin eso el

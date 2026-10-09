@@ -53,9 +53,9 @@ body {
 
 .app-main {
     flex: 1;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 0 20px;
     width: 100%;
 }
 
@@ -129,7 +129,7 @@ body {
     animation-delay: 100ms;
 }
 
-.padron-title h2 {
+.padron-title h1 {
     margin: 0;
     color: var(--padron-primary);
     font-size: 1.75rem;
@@ -139,7 +139,7 @@ body {
     gap: 0.5rem;
 }
 
-.padron-title h2 i {
+.padron-title h1 i {
     color: var(--padron-secondary);
 }
 
@@ -496,8 +496,9 @@ body {
     white-space: nowrap;
 }
 
+/* La columna ordenada se distingue por aria-sort (que también lo anuncia al lector de
+   pantalla) y no por una clase; la flecha la dibuja .th-orden en design-system.css. */
 .tabla-padron th.sortable {
-    cursor: pointer;
     user-select: none;
 }
 
@@ -505,13 +506,9 @@ body {
     background: var(--ds-bg-subtle);
 }
 
-.tabla-padron th.sortable.active {
-    color: var(--padron-secondary);
-}
-
-.tabla-padron th i {
-    margin-left: 0.25rem;
-    opacity: 0.5;
+.tabla-padron th[aria-sort="ascending"],
+.tabla-padron th[aria-sort="descending"] {
+    color: var(--ds-text-primary);
 }
 
 .tabla-padron td {
@@ -796,133 +793,17 @@ body {
     justify-content: center;
 }
 
-.paginacion {
-    display: flex;
-    gap: 0.25rem;
-    align-items: center;
-}
 
-.btn-paginacion {
-    min-width: 40px;
-    height: 40px;
-    border: 1px solid var(--padron-border);
-    background: var(--ds-bg-card);
-    color: var(--padron-text);
-    cursor: pointer;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
-}
 
-.btn-paginacion:hover {
-    background: var(--padron-bg);
-    border-color: var(--padron-secondary);
-    color: var(--padron-secondary);
-}
 
-.btn-paginacion.active {
-    background: var(--padron-secondary);
-    border-color: var(--padron-secondary);
-    color: var(--ds-text-inverse);
-}
 
-.paginacion-dots {
-    padding: 0 0.5rem;
-    color: var(--padron-text-light);
-}
 
 /* ==================== MODAL ==================== */
 
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: modalFadeIn 0.2s ease-out;
-}
 
-.modal-content {
-    background: var(--ds-bg-card);
-    border-radius: var(--ds-radius-xl);
-    box-shadow: var(--ds-shadow-xl);
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-.modal-content.modal-large {
-    max-width: 800px;
-}
 
-@keyframes modalFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
 
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--padron-border);
-}
-
-.modal-header h3 {
-    margin: 0;
-    color: var(--padron-primary);
-    font-weight: 600;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    color: var(--padron-text-light);
-    border-radius: 4px;
-    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
-}
-
-.modal-close:hover {
-    background: var(--padron-bg);
-    color: var(--padron-danger);
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding-top: 16px;
-    border-top: 1px solid var(--ds-border-light);
-    margin-top: 8px;
-}
 
 /* ==================== FORMULARIOS EN MODALES ==================== */
 
@@ -965,8 +846,8 @@ body {
 
 .form-input:focus {
     outline: none;
-    border-color: var(--ds-primary-500);
-    box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.1);
+    border-color: var(--ds-primary-700);
+    box-shadow: var(--ds-shadow-focus);
 }
 
 select.form-input {
@@ -983,68 +864,16 @@ select.form-input {
     margin-top: 8px;
 }
 
-.modal-footer .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, opacity 150ms ease;
-}
 
-.modal-footer .btn-primary {
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
-}
 
-.modal-footer .btn-primary:hover {
-    box-shadow: 0 4px 12px rgba(72, 101, 129, 0.4);
-}
 
-.modal-footer .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
 
-.modal-footer .btn-secondary {
-    background: var(--ds-bg-page);
-    color: var(--ds-text-secondary);
-    border: 1px solid var(--ds-border-default);
-}
 
-.modal-footer .btn-secondary:hover {
-    background: var(--ds-secondary-100);
-    border-color: var(--ds-border-strong);
-}
 
 /* ==================== MODAL NUEVO VOTANTE — UX MEJORADA ==================== */
 
-.modal-nuevo-votante {
-    max-width: 560px;
-}
 
-.modal-header-title {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
 
-.modal-header-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--ds-radius-lg);
-    background: var(--ds-gradient-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--ds-text-inverse);
-    font-size: 1.1rem;
-    flex-shrink: 0;
-}
 
 .modal-subtitle {
     margin: 2px 0 0;
@@ -1232,31 +1061,9 @@ select.form-input {
 
 /* ==================== IMPORTACIÓN CSV ==================== */
 
-.import-zone {
-    text-align: center;
-    padding: 2rem;
-    border: 2px dashed var(--padron-border);
-    border-radius: 8px;
-    margin-bottom: 1rem;
-}
 
-.import-zone i {
-    font-size: 3rem;
-    color: var(--padron-text-light);
-    margin-bottom: 1rem;
-}
 
-.import-format {
-    background: var(--padron-bg);
-    padding: 1rem;
-    border-radius: 6px;
-    border-left: 4px solid var(--padron-secondary);
-}
 
-.import-format h4 {
-    margin-bottom: 0.5rem;
-    color: var(--padron-primary);
-}
 
 .padron-banner {
     display: flex;
@@ -1284,11 +1091,6 @@ select.form-input {
 
 .padron-banner i {
     color: var(--padron-warning);
-}
-.import-format code {
-    font-family: monospace;
-    font-size: 0.875rem;
-    color: var(--padron-text);
 }
 
 /* ==================== SIN DATOS ==================== */
@@ -1500,7 +1302,7 @@ select.form-input {
         margin-bottom: 20px;
     }
     
-    .filtros-header h3 {
+    .filtros-header h2 {
         color: var(--primary);
         margin: 0;
     }
@@ -1759,21 +1561,8 @@ select.form-input {
         padding: 1rem;
     }
 
-    .paginacion {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 4px;
-    }
 
-    .btn-paginacion {
-        min-width: 44px;
-        height: 44px;
-        font-size: 14px;
-    }
 
-    .paginacion-dots {
-        padding: 0 4px;
-    }
 
     /* Tabla header en móvil */
     .tabla-acciones {
@@ -1794,19 +1583,7 @@ select.form-input {
         font-size: 16px;
     }
 
-    .modal-content {
-        margin: 1rem;
-        width: auto;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
     
-    .modal-header {
-        position: sticky;
-        top: 0;
-        background: var(--ds-bg-card);
-        z-index: 1;
-    }
 }
 
 @media (max-width: 480px) {
@@ -1820,7 +1597,7 @@ select.form-input {
         padding: 1rem;
     }
     
-    .padron-header h2 {
+    .padron-header h1 {
         font-size: 1.5rem;
     }
     
@@ -1915,15 +1692,7 @@ select.form-input {
     }
 
     /* Nuevo Votante modal mobile */
-    .modal-nuevo-votante {
-        max-width: 95%;
-    }
 
-    .modal-header-icon {
-        width: 38px;
-        height: 38px;
-        font-size: 0.95rem;
-    }
 
     .form-section {
         padding: 12px;
@@ -2185,13 +1954,17 @@ select.form-input {
     border-bottom: 1px solid var(--ds-border-light);
 }
 
-.panel-header h3 {
+.panel-header h2 {
     margin: 0;
     font-size: var(--ds-font-xl);
     font-weight: var(--ds-weight-semibold);
     color: var(--ds-text-primary);
     letter-spacing: var(--ds-tracking-tight);
     line-height: 1.25;
+}
+
+.panel-error {
+    margin: 0 0 var(--ds-space-3);
 }
 
 .panel-dni {

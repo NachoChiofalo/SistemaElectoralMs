@@ -42,9 +42,14 @@ test('ApiService aplica el timeout con un AbortController (FE-027)', () => {
   assert.ok(!/^\s*timeout: this\.timeout\s*$/m.test(fuente), 'timeout no es una opcion de fetch');
 });
 
-test('importar CSV sube el timeout propio: un padron entero tarda mas que 10 s', () => {
-  const fuente = leer('src', 'services', 'ApiService.js');
-  assert.match(fuente, /importar-csv[\s\S]{0,200}timeout:\s*\d{6,}/);
+test('el importador de CSV del padron se retiro a proposito: no vuelve el boton ni el modal', () => {
+  // Se retiro por decision del producto (el boton "importar" ya no estaba en la pantalla y el
+  // modal quedo inalcanzable). Sin esto, el codigo muerto vuelve a entrar sin que nadie recuerde
+  // que no tiene punto de entrada. El endpoint del backend no se toca.
+  const componente = leer('src', 'components', 'PadronComponent.js');
+  const api = leer('src', 'services', 'ApiService.js');
+  assert.doesNotMatch(componente, /modal-importar|archivo-csv|abrirModalImportar|manejarArchivoCSV/);
+  assert.doesNotMatch(api, /importarCSV/);
 });
 
 test('el error de login se anuncia a lectores de pantalla (FE-022)', () => {
@@ -111,4 +116,50 @@ test('ninguna hoja pone en mayuscula cada palabra de un texto en espanol', () =>
     .filter(f => f.endsWith('.css'))
     .filter(f => /text-transform:\s*capitalize/.test(fs.readFileSync(path.join(estilos, f), 'utf8')));
   assert.deepEqual(culpables, [], `capitalize en: ${culpables.join(', ')}`);
+});
+
+test('el padron usa los componentes compartidos y no vuelve a lo hecho a mano', () => {
+  const fuente = leer('src', 'components', 'PadronComponent.js').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  // Paginacion: <nav> con nombre y aria-current, de lib/paginacion.js (no botones "<" ">" sueltos).
+  assert.match(fuente, /window\.paginacion\.render\(/);
+  assert.doesNotMatch(fuente, /btn-paginacion/);
+
+  // Encabezados ordenables: <button> dentro del <th>, con aria-sort (antes eran <th> con clic).
+  assert.match(fuente, /class="th-orden"/);
+  assert.match(fuente, /aria-sort=/);
+
+  // Avisos: lib/avisos.js, no un toast propio.
+  assert.match(fuente, /window\.avisos\.mostrar\(/);
+  assert.doesNotMatch(fuente, /notification-content|createElement\('div'\);\s*notification/);
+
+  // El modal de nuevo votante es un <dialog> nativo; nada de display:none a mano.
+  assert.match(fuente, /<dialog id="modal-nuevo-votante"/);
+  assert.doesNotMatch(fuente, /style="display:\s*none/);
+  assert.doesNotMatch(fuente, /onclick=/);
+});
+
+test('la ficha del padron pregunta antes de descartar cambios y devuelve el foco', () => {
+  const fuente = leer('src', 'components', 'PadronComponent.js');
+  assert.match(fuente, /confirmarDescarte\(\)/);
+  assert.match(fuente, /enfocarFila\(/);
+  // El Escape que abre el dialogo de descartar se consume: si no, el navegador se lo aplica
+  // al dialogo recien abierto y lo cierra al instante (la confirmacion nunca se veia).
+  assert.match(fuente, /evento\.preventDefault\(\);\s*this\.pedirCerrarPanel\(\)/);
+});
+
+test('el formulario de nuevo votante pide el anio de nacimiento, como el servidor', () => {
+  // service.js lo exige (la columna es NOT NULL) y lo acota a 1900..anio actual. El formulario
+  // lo presentaba como opcional y el error llegaba recien al enviar.
+  const fuente = leer('src', 'components', 'PadronComponent.js');
+  assert.match(fuente, /id="nuevo-anio-nac"[^>]*required/);
+  assert.match(fuente, /anio < 1900 \|\| anio > anioActual/);
+});
+
+test('app.js no inventa permisos cuando falla /api/auth/me', () => {
+  // Antes asumia padron.view/edit/relevamiento/export: una llamada caida mostraba los botones
+  // de edicion a cualquiera. Un fallo es un estado de error con "Reintentar".
+  const fuente = leer('src', 'app.js').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+  assert.doesNotMatch(fuente, /userPermissions\s*=\s*\['padron/);
+  assert.doesNotMatch(fuente, /setTimeout/);
 });
