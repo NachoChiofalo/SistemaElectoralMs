@@ -11,7 +11,7 @@
     align-items: center;
     justify-content: center;
     font-family: var(--ds-font-family);
-    z-index: 9999;
+    z-index: var(--ds-z-modal);
     padding: 20px;
     box-sizing: border-box;
 }
@@ -34,24 +34,31 @@
 }
 
 .login-header .login-logo {
-    margin: 0;
-}
-
-.login-header .login-logo img {
+    display: block;
+    margin: 0 auto;
     max-width: 100%;
     width: 260px;
     height: auto;
 }
 
+/* El logo ya no es el contenido del <h1>: el título de la pantalla es éste. */
+.login-titulo {
+    margin: 20px 0 0;
+    font-size: var(--ds-font-xl);
+    font-weight: var(--ds-weight-semibold);
+    letter-spacing: var(--ds-tracking-tight);
+    color: var(--ds-text-primary);
+}
+
 /* El logo es un PNG con tinta oscura fija sobre transparencia: en modo oscuro se
    invierte para que siga leyéndose sobre la tarjeta oscura. */
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .login-header .login-logo img {
+    :root:not([data-theme="light"]) .login-header .login-logo {
         filter: invert(1);
     }
 }
 
-:root[data-theme="dark"] .login-header .login-logo img {
+:root[data-theme="dark"] .login-header .login-logo {
     filter: invert(1);
 }
 
@@ -101,6 +108,21 @@
     color: var(--ds-text-muted);
 }
 
+/* Campo con error: borde y mensaje en línea, enlazados por aria-invalid / aria-describedby. */
+.form-group input[aria-invalid="true"] {
+    border-color: var(--ds-danger-600);
+}
+
+.form-group .campo-error {
+    margin: 6px 0 0;
+}
+
+.campo-error:empty,
+.error-message:empty,
+.exito-message:empty {
+    display: none;
+}
+
 .login-btn {
     width: 100%;
     background: var(--ds-primary-600);
@@ -124,6 +146,11 @@
     cursor: not-allowed;
 }
 
+.login-btn[aria-busy="true"] {
+    opacity: 0.85;
+    cursor: progress;
+}
+
 .login-btn i {
     margin-right: 8px;
 }
@@ -140,6 +167,18 @@
     animation: ds-fadeIn 300ms ease both;
 }
 
+/* Éxito: otra región (role="status"), no el contenedor del error con otro color. */
+.exito-message {
+    background: var(--ds-success-50);
+    color: var(--ds-success-on-tint);
+    border: 1px solid var(--ds-success-200);
+    padding: 12px 16px;
+    border-radius: var(--ds-radius-md);
+    font-size: 0.9rem;
+    margin-top: 12px;
+    text-align: center;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
     .login-card {
@@ -147,7 +186,7 @@
         padding: 32px 24px 24px;
     }
 
-    .login-header .login-logo img {
+    .login-header .login-logo {
         width: 200px;
     }
 }

@@ -48,7 +48,12 @@ class ApiService {
             const response = await fetch(url, finalOptions);
             
             if (!response.ok) {
-                if (response.status === 401) {
+                // El login es la excepción: ahí un 401 significa "credenciales inválidas", no
+                // "sesión vencida". Sin esto, escribir mal la contraseña disparaba logout() y
+                // recargaba la página: la persona nunca llegaba a leer el motivo del rechazo
+                // y el formulario se vaciaba. Cae al manejo genérico, que lee el mensaje del
+                // cuerpo ("Credenciales inválidas") y lo lanza como Error.
+                if (response.status === 401 && !endpoint.includes('/api/auth/login')) {
                     // Token expirado o inválido - redirigir automáticamente
                     console.warn('🔒 Token expirado - redirigiendo a login');
                     // logout() es el unico que redirige (FE-046): antes lo hacian los dos.

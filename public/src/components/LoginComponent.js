@@ -1,5 +1,11 @@
 /**
  * Componente de Login para autenticación
+ *
+ * Accesibilidad: es un <main> con su <h1> (antes el h1 contenía solo el logo), cada campo
+ * tiene su error en línea enlazado con aria-describedby / aria-invalid, y el mensaje del
+ * servidor es una región `role="alert"` que PERMANECE hasta el próximo intento (antes se
+ * borraba solo a los 5 s: un lector de pantalla podía no alcanzar a leerlo). El éxito va en
+ * otra región, `role="status"`, porque no es un error y no debe interrumpir.
  */
 class LoginComponent {
     constructor() {
@@ -14,63 +20,63 @@ class LoginComponent {
      */
     render() {
         const html = `
-            <div class="login-container">
+            <main class="login-container" id="contenido">
                 <div class="login-card">
                     <div class="login-header">
-                        <h1 class="login-logo">
-                            <img src="/assets/images/agora-logo.png" alt="ÁGORA">
-                        </h1>
+                        <img class="login-logo" src="/assets/images/agora-logo.png" alt="ÁGORA" width="260" height="72">
+                        <h1 class="login-titulo">Iniciar sesión</h1>
                     </div>
 
-                    <form id="loginForm" class="login-form">
+                    <form id="loginForm" class="login-form" novalidate>
                         <div class="form-group">
-                            <label for="username">  
-                                <i class="fas fa-user"></i>
+                            <label for="username">
+                                <i class="fas fa-user" aria-hidden="true"></i>
                                 Usuario
                             </label>
-                            <input 
-                                type="text" 
-                                id="username" 
-                                name="username" 
-                                required
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
                                 autocomplete="username"
-                                placeholder="Ingrese su usuario"
+                                autocapitalize="none"
+                                spellcheck="false"
+                                aria-describedby="username-error"
                             >
+                            <p class="campo-error" id="username-error"></p>
                         </div>
 
                         <div class="form-group">
                             <label for="password">
-                                <i class="fas fa-lock"></i>
+                                <i class="fas fa-lock" aria-hidden="true"></i>
                                 Contraseña
                             </label>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
-                                required
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
                                 autocomplete="current-password"
-                                placeholder="Ingrese su contraseña"
+                                aria-describedby="password-error"
                             >
+                            <p class="campo-error" id="password-error"></p>
                         </div>
 
                         <button type="submit" class="login-btn" id="loginBtn">
-                            <i class="fas fa-sign-in-alt"></i>
-                            Iniciar Sesión
+                            <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                            Iniciar sesión
                         </button>
 
-                        <div id="loginError" class="error-message" role="alert" aria-live="assertive" style="display: none;"></div>
+                        <div id="loginError" class="error-message" role="alert"></div>
+                        <div id="loginExito" class="exito-message" role="status"></div>
                     </form>
-
-                    
                 </div>
-            </div>
+            </main>
         `;
 
         this.element = document.createElement('div');
         this.element.innerHTML = html;
-        
+
         this.initEventListeners();
-        
+
         return this.element;
     }
 
@@ -81,19 +87,43 @@ class LoginComponent {
         const form = this.element.querySelector('#loginForm');
         form.addEventListener('submit', (e) => this.handleLogin(e));
 
+        // Al corregir un campo, su error deja de aplicar.
+        this.element.querySelectorAll('input').forEach((input) => {
+            input.addEventListener('input', () => this.limpiarCampo(input));
+        });
+
         // Auto-focus en el campo de usuario
         setTimeout(() => {
             const usernameInput = this.element.querySelector('#username');
             usernameInput?.focus();
         }, 100);
+    }
 
-        // Enter en password field
-        const passwordInput = this.element.querySelector('#password');
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.handleLogin(e);
-            }
+    /**
+     * Validar los dos campos. Marca cada uno con su error en línea y deja el foco en el
+     * primero que falla. Devuelve true si se puede enviar.
+     */
+    validar(username, password) {
+        const faltantes = [];
+        if (!username) faltantes.push(['username', 'Ingresá tu usuario.']);
+        if (!password) faltantes.push(['password', 'Ingresá tu contraseña.']);
+
+        ['username', 'password'].forEach((id) => this.limpiarCampo(this.element.querySelector('#' + id)));
+        faltantes.forEach(([id, mensaje]) => {
+            const input = this.element.querySelector('#' + id);
+            input.setAttribute('aria-invalid', 'true');
+            this.element.querySelector('#' + id + '-error').textContent = mensaje;
         });
+
+        if (faltantes.length) this.element.querySelector('#' + faltantes[0][0]).focus();
+        return faltantes.length === 0;
+    }
+
+    limpiarCampo(input) {
+        if (!input) return;
+        input.removeAttribute('aria-invalid');
+        const error = this.element.querySelector('#' + input.id + '-error');
+        if (error) error.textContent = '';
     }
 
     /**
@@ -109,10 +139,7 @@ class LoginComponent {
         const username = formData.get('username').trim();
         const password = formData.get('password');
 
-        if (!username || !password) {
-            this.showError('Por favor complete todos los campos');
-            return;
-        }
+        if (!this.validar(username, password)) return;
 
         this.setLoading(true);
         this.hideError();
@@ -121,20 +148,16 @@ class LoginComponent {
 
         try {
             const result = await window.authService.login(username, password);
-            
-            // Login exitoso
-            console.log('✅ Login exitoso:', result.user);
-            
+
             // Mostrar mensaje de éxito
             this.showSuccess(`¡Bienvenido/a, ${result.user.nombre_completo}!`);
-            
+
             // Esperar un momento y luego redirigir al dashboard
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
             }, 1500);
 
         } catch (error) {
-            console.error('❌ Error en login:', error);
             this.showError(error.message || 'Error al iniciar sesión');
             // No dejar una clave ya rechazada lista para reenviarse (FE-051).
             const campoPassword = document.getElementById('password');
@@ -151,21 +174,22 @@ class LoginComponent {
     }
 
     /**
-     * Configurar estado de carga
+     * Configurar estado de carga.
+     *
+     * Los campos NO se deshabilitan: un input deshabilitado pierde el foco y un lector de
+     * pantalla deja de leer el formulario justo cuando hay algo que anunciar. `aria-busy`
+     * le dice al botón que está en curso y `isLoading` evita el doble envío.
      */
     setLoading(loading) {
         this.isLoading = loading;
         const btn = this.element.querySelector('#loginBtn');
-        const inputs = this.element.querySelectorAll('input');
 
         if (loading) {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando sesión...';
-            btn.disabled = true;
-            inputs.forEach(input => input.disabled = true);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Iniciando sesión…';
+            btn.setAttribute('aria-busy', 'true');
         } else {
-            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
-            btn.disabled = false;
-            inputs.forEach(input => input.disabled = false);
+            btn.innerHTML = '<i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión';
+            btn.removeAttribute('aria-busy');
         }
     }
 
@@ -185,12 +209,14 @@ class LoginComponent {
             if (this.cooldownRemaining <= 0) {
                 clearInterval(this.cooldownTimerId);
                 this.cooldownTimerId = null;
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+                btn.innerHTML = '<i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión';
                 btn.disabled = false;
                 return;
             }
 
-            btn.innerHTML = `<i class="fas fa-hourglass-half"></i> Reintentar en ${this.cooldownRemaining}s`;
+            // El mensaje del error ya dice cuánto esperar (se anuncia una vez); la cuenta
+            // regresiva del botón es visual, no una región viva que hable cada segundo.
+            btn.innerHTML = `<i class="fas fa-hourglass-half" aria-hidden="true"></i> Reintentar en ${this.cooldownRemaining} s`;
             this.cooldownRemaining -= 1;
         };
 
@@ -199,35 +225,27 @@ class LoginComponent {
     }
 
     /**
-     * Mostrar error
+     * Mostrar error. Permanece hasta el próximo intento: ocultarlo solo a los 5 s dejaba a
+     * quien lo lee con un lector de pantalla (o con la vista cansada) sin saber qué falló.
      */
     showError(message) {
-        const errorDiv = this.element.querySelector('#loginError');
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-        
-        // Auto-hide después de 5 segundos
-        setTimeout(() => this.hideError(), 5000);
+        this.element.querySelector('#loginExito').textContent = '';
+        this.element.querySelector('#loginError').textContent = message;
     }
 
     /**
      * Ocultar error
      */
     hideError() {
-        const errorDiv = this.element.querySelector('#loginError');
-        errorDiv.style.display = 'none';
+        this.element.querySelector('#loginError').textContent = '';
     }
 
     /**
-     * Mostrar mensaje de éxito
+     * Mostrar mensaje de éxito (región propia, `role="status"`).
      */
     showSuccess(message) {
-        const errorDiv = this.element.querySelector('#loginError');
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-        errorDiv.style.background = 'var(--ds-success-100)';
-        errorDiv.style.color = 'var(--ds-success-on-tint)';
-        errorDiv.style.borderColor = 'var(--ds-success-200)';
+        this.hideError();
+        this.element.querySelector('#loginExito').textContent = message;
     }
 }
 

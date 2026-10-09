@@ -85,3 +85,19 @@ test('ninguna pagina carga dos hojas que definan la misma tarjeta .stat-card (00
     assert.ok(conTarjeta.length <= 1, `${pagina} carga ${conTarjeta.join(' y ')}, que definen .stat-card las dos`);
   }
 });
+
+test('un 401 del login no se trata como sesion vencida (no recarga la pagina)', () => {
+  // Escribir mal la contrasena devuelve 401. Si ApiService lo trata como "token expirado"
+  // llama a logout(), que redirige: el formulario se vacia y la persona nunca lee el motivo.
+  // El login es el unico endpoint donde 401 significa "credenciales invalidas".
+  const fuente = leer('src', 'services', 'ApiService.js');
+  assert.match(fuente, /response\.status === 401 && !endpoint\.includes\('\/api\/auth\/login'\)/);
+});
+
+test('el login es un <main> con su <h1> y no borra el error solo', () => {
+  const fuente = leer('src', 'components', 'LoginComponent.js');
+  assert.match(fuente, /<main class="login-container"/);
+  assert.match(fuente, /<h1 class="login-titulo">/);
+  // El auto-ocultado a los 5 s dejaba sin mensaje a quien usa lector de pantalla.
+  assert.doesNotMatch(fuente.replace(/\/\*[\s\S]*?\*\//g, ''), /setTimeout\([^)]*hideError/);
+});
