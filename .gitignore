@@ -82,3 +82,6 @@ settings.local.json
 tmpclaude-*
 # snapshots de contrato (se generan localmente)
 scripts/snapshots/
+
+# Capturas y resultados de scripts/verificar-frontend.js (pueden mostrar datos reales)
+verificacion/
