@@ -840,3 +840,72 @@ body {
 .bloque .tabla-datos tbody tr:nth-child(even) {
     background: var(--ds-bg-subtle);
 }
+
+/* ==================== REDISEÑO (centro de control) ====================
+   Las tarjetas de cifras dejan de ser azulejos de colores con elevación: son KPI planos,
+   etiqueta + cifra en mono + detalle. El color queda solo donde es un dato (la opción
+   política lleva su marca en el borde); las condiciones especiales van neutras. */
+.container { max-width: 1440px; padding: 0 var(--ds-space-6); }
+
+.stats-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--ds-space-3); }
+
+.stat-card {
+    padding: var(--ds-space-4);
+    border: 1px solid var(--ds-border-light);
+    border-left: 3px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-lg);
+    box-shadow: none;
+    transition: border-color var(--ds-dur-fast) var(--ds-ease-out);
+}
+
+.stat-card:hover { transform: none; box-shadow: none; border-color: var(--ds-border-strong); }
+
+.stat-icon {
+    width: 28px;
+    margin-right: var(--ds-space-3);
+    font-size: 1.125rem;
+    color: var(--ds-text-muted);
+}
+
+.stat-number {
+    margin-bottom: var(--ds-space-1);
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-font-2xl);
+    font-weight: var(--ds-weight-medium);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.stat-label {
+    font-size: var(--ds-font-xs);
+    letter-spacing: var(--ds-tracking-wide);
+}
+
+.stat-percentage {
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-font-sm);
+    font-weight: var(--ds-weight-normal);
+    color: var(--ds-text-secondary);
+}
+
+/* Neutras: total, relevados y las cuatro condiciones. Solo la opción política lleva color. */
+.stat-card.total,
+.stat-card.relevados,
+.stat-card.condicion { border-left-color: var(--ds-border-strong); }
+.stat-card.total .stat-icon,
+.stat-card.relevados .stat-icon,
+.stat-card.condicion .stat-icon { color: var(--ds-text-muted); }
+
+/* Mismo peso de especificidad que las reglas por condición de arriba, para que ganen. */
+.stat-card.condicion.empleados,
+.stat-card.condicion.ayuda,
+.stat-card.condicion.nuevos,
+.stat-card.condicion.fallecidos { border-left-color: var(--ds-border-strong); }
+.stat-card.condicion.empleados .stat-icon,
+.stat-card.condicion.ayuda .stat-icon,
+.stat-card.condicion.nuevos .stat-icon,
+.stat-card.condicion.fallecidos .stat-icon { color: var(--ds-text-muted); }
+.stat-card.opcion.op-neutra { border-left-color: var(--opcion-color); }
+.stat-card.opcion.op-neutra .stat-icon { color: var(--opcion-color); }
+
+.stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }

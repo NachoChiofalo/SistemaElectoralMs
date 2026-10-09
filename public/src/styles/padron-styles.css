@@ -107,10 +107,8 @@ body {
 .padron-electoral-container {
     max-width: 100%;
     margin: 0 auto;
-    background: var(--padron-bg);
-    border-radius: var(--ds-radius-lg);
-    box-shadow: var(--padron-shadow);
-    animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    background: transparent;
+    animation: ds-fadeIn 150ms var(--ds-ease-out) both;
 }
 
 /* ==================== HEADER ==================== */
@@ -119,34 +117,31 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: var(--padron-card);
-    border-radius: var(--ds-radius-lg);
-    box-shadow: var(--padron-shadow);
-    border-left: 4px solid var(--padron-secondary);
-    animation: ds-fadeInUp 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
-    animation-delay: 100ms;
+    gap: var(--ds-space-4);
+    margin-bottom: var(--ds-space-5);
+    padding: 0;
+    animation: ds-fadeIn 150ms var(--ds-ease-out) both;
 }
 
 .padron-title h1 {
     margin: 0;
     color: var(--padron-primary);
-    font-size: 1.75rem;
-    font-weight: 600;
+    font-size: var(--ds-font-2xl);
+    font-weight: var(--ds-weight-semibold);
+    letter-spacing: var(--ds-tracking-tight);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--ds-space-2);
 }
 
 .padron-title h1 i {
-    color: var(--padron-secondary);
+    color: var(--ds-text-muted);
 }
 
 .padron-subtitle {
-    margin: 0.5rem 0 0 0;
-    color: var(--padron-text-light);
-    font-size: 0.9rem;
+    margin: var(--ds-space-1) 0 0 0;
+    color: var(--ds-text-muted);
+    font-size: var(--ds-font-sm);
 }
 
 .padron-actions {
@@ -155,65 +150,9 @@ body {
     flex-wrap: wrap;
 }
 
-.padron-actions .btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: var(--ds-radius-md);
-    cursor: pointer;
-    font-weight: 500;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    transition: color var(--ds-transition-smooth), background-color var(--ds-transition-smooth), border-color var(--ds-transition-smooth), box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), opacity var(--ds-transition-smooth);
-    font-size: 0.875rem;
-}
-
-.padron-actions .btn:hover {
-    filter: brightness(0.94);
-}
-
-.btn-primary {
-    background: var(--padron-secondary);
-    color: var(--ds-text-inverse);
-}
-
-.btn-primary:hover {
-    background: var(--ds-primary-600);
-}
-
-.btn-success {
-    background: var(--ds-primary-600);
-    color: var(--ds-on-primary);
-}
-
-.btn-success:hover {
-    background: var(--ds-primary-700);
-}
-
-/* "Estadísticas" venía en dorado, y con "Nuevo Votante" en verde el encabezado tenía
-   cuatro botones de cuatro colores sin ninguna jerarquía entre ellos. Navegar a otra
-   pantalla no es una acción destacada: va en el tono secundario, y el verde queda para
-   la única acción que crea algo. */
-.btn-info {
-    background: var(--padron-secondary);
-    color: var(--ds-text-inverse);
-}
-
-.btn-info:hover {
-    background: var(--ds-primary-600);
-}
-
-.btn-secondary {
-    /* Era --padron-text-light (el texto secundario): en oscuro eso es un gris claro y el
-       blanco encima daba 2:1. secondary-600/700 no se invierten entre temas. */
-    background: var(--ds-secondary-600);
-    color: var(--ds-text-inverse);
-}
-
-.btn-secondary:hover {
-    background: var(--ds-secondary-800);
-}
+/* Los botones de esta pantalla ya no se definen acá: .btn, .btn-primary, .btn-secondary y
+   .btn-sm salen de design-system.css (un patrón, un componente). Antes la hoja redefinía
+   .btn-primary y .btn-secondary con colores propios y le ganaba al sistema. */
 
 /* ==================== FILTROS ==================== */
 
@@ -2254,4 +2193,15 @@ select.form-input {
 .tabla-cargando {
     opacity: 0.55;
     transition: opacity 0.15s ease;
+}
+
+/* ==================== REDISEÑO (centro de control) ====================
+   Tabla densa: la cifra de datos va en la mono (DNI, edad, circuito) y el contenedor
+   aprovecha el ancho que deja la barra lateral. */
+.app-main { max-width: 1600px; padding: 0 var(--ds-space-6); }
+
+.tabla-padron td.edad,
+.tabla-padron td[data-label="Circuito"] {
+    font-family: var(--ds-font-mono);
+    font-variant-numeric: tabular-nums;
 }

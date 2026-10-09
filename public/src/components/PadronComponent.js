@@ -105,7 +105,7 @@ class PadronComponent {
                     <p class="padron-subtitle">Gestión y relevamiento del padrón electoral</p>
                 </div>
                 <div class="padron-actions">
-                    <button type="button" id="btn-nuevo-votante" class="btn btn-success" data-requires-permission="padron.edit"
+                    <button type="button" id="btn-nuevo-votante" class="btn btn-primary" data-requires-permission="padron.edit"
                             aria-label="Nuevo votante" title="Agregar un votante al padrón">
                         <i class="fas fa-user-plus" aria-hidden="true"></i> <span class="btn-text">Nuevo votante</span>
                     </button>

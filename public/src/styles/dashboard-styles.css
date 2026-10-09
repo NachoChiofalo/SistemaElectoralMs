@@ -498,3 +498,33 @@ body {
         display: none;
     }
 }
+
+/* ==================== REDISEÑO (centro de control) ====================
+   La pantalla ya tenía la jerarquía correcta (una cifra grande, tres apoyos, dónde falta).
+   Lo que cambia es la piel: toda cifra de datos en la mono, paneles planos de 8 px y un
+   ancho que aprovecha la pantalla ahora que la navegación es una columna lateral. */
+.dashboard-container { max-width: 1280px; padding: 0 var(--ds-space-6) var(--ds-space-12); }
+
+.situacion,
+.por-circuito,
+.actividad-reciente,
+.comicio-widget,
+.condiciones-pendientes { border-radius: var(--ds-radius-lg); }
+
+.situacion-porcentaje,
+.situacion-cifras dd,
+.intencion-pill strong,
+.circuito-cifra,
+.circuito-pct,
+.comicio-cifra,
+.condiciones-total,
+.actividad-fecha {
+    font-family: var(--ds-font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+.situacion-porcentaje { font-size: var(--ds-font-4xl); font-weight: var(--ds-weight-medium); letter-spacing: -0.04em; }
+.situacion-cifras dd { font-size: var(--ds-font-xl); }
+
+.inicio-header h1 { font-size: var(--ds-font-2xl); }
+.inicio-fecha { font-size: var(--ds-font-sm); }

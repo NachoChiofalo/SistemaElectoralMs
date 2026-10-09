@@ -19,20 +19,26 @@ class LoginComponent {
      * Renderizar componente de login
      */
     render() {
+        // Composición dividida: a la izquierda la marca (solo en pantallas anchas), a la derecha
+        // el formulario. El logo es una máscara tokenizada, igual que en la barra lateral.
         const html = `
             <main class="login-container" id="contenido">
+                <aside class="login-marca">
+                    <span class="login-logo login-logo--marca" role="img" aria-label="ÁGORA"></span>
+                    <p class="login-lema">Padrón, relevamiento, mesas y resultados de la elección, en un solo lugar.</p>
+                    <p class="login-pie">Acceso solo para personal autorizado. Cada cuenta es personal.</p>
+                </aside>
+
                 <div class="login-card">
                     <div class="login-header">
-                        <img class="login-logo" src="/assets/images/agora-logo.png" alt="ÁGORA" width="260" height="72">
+                        <span class="login-logo login-logo--card" role="img" aria-label="ÁGORA"></span>
                         <h1 class="login-titulo">Iniciar sesión</h1>
+                        <p class="login-sub">Ingresá con tu usuario y contraseña.</p>
                     </div>
 
                     <form id="loginForm" class="login-form" novalidate>
-                        <div class="form-group">
-                            <label for="username">
-                                <i class="fas fa-user" aria-hidden="true"></i>
-                                Usuario
-                            </label>
+                        <div class="campo">
+                            <label class="campo-etiqueta" for="username">Usuario</label>
                             <input
                                 type="text"
                                 id="username"
@@ -45,11 +51,8 @@ class LoginComponent {
                             <p class="campo-error" id="username-error"></p>
                         </div>
 
-                        <div class="form-group">
-                            <label for="password">
-                                <i class="fas fa-lock" aria-hidden="true"></i>
-                                Contraseña
-                            </label>
+                        <div class="campo">
+                            <label class="campo-etiqueta" for="password">Contraseña</label>
                             <input
                                 type="password"
                                 id="password"
@@ -60,7 +63,7 @@ class LoginComponent {
                             <p class="campo-error" id="password-error"></p>
                         </div>
 
-                        <button type="submit" class="login-btn" id="loginBtn">
+                        <button type="submit" class="btn btn-primary btn-lg login-btn" id="loginBtn">
                             <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
                             Iniciar sesión
                         </button>

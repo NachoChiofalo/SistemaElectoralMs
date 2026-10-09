@@ -1,121 +1,112 @@
-/* Estilos para el componente de Login */
+/* Login: composición dividida.
+   Izquierda, la marca (solo desde 900 px); derecha, el formulario. Todo plano y monocromo:
+   la personalidad sale de la retícula fina, la tipografía y el logo. */
 
 .login-container {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--ds-bg-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    inset: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    background: var(--ds-bg-page);
     font-family: var(--ds-font-family);
     z-index: var(--ds-z-modal);
-    padding: 20px;
-    box-sizing: border-box;
+    overflow-y: auto;
 }
+
+/* ---------- Marca ---------- */
+
+.login-marca {
+    display: none;
+    position: relative;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--ds-space-12);
+    background: var(--ds-bg-card);
+    border-right: 1px solid var(--ds-border-light);
+    overflow: hidden;
+}
+
+/* Retícula de líneas finas que se desvanece hacia abajo a la derecha: referencia a la
+   geometría del logo sin dibujar nada que compita con el formulario. Solo tokens. */
+.login-marca::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(var(--ds-border-light) 1px, transparent 1px),
+        linear-gradient(90deg, var(--ds-border-light) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse at 0% 0%, rgba(0, 0, 0, 1) 0%, transparent 70%);
+    mask-image: radial-gradient(ellipse at 0% 0%, rgba(0, 0, 0, 1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.login-marca > * { position: relative; }
+
+.login-lema {
+    max-width: 22ch;
+    margin: 0;
+    font-size: var(--ds-font-3xl);
+    font-weight: var(--ds-weight-medium);
+    line-height: 1.2;
+    letter-spacing: var(--ds-tracking-tight);
+    color: var(--ds-text-primary);
+}
+
+.login-pie {
+    margin: 0;
+    font-size: var(--ds-font-sm);
+    color: var(--ds-text-muted);
+}
+
+/* ---------- Logo (máscara: la tinta sigue al tema) ---------- */
+
+.login-logo {
+    display: block;
+    aspect-ratio: 904 / 249;
+    background: var(--ds-text-primary);
+    -webkit-mask: url('/assets/images/agora-logo.png') left center / contain no-repeat;
+    mask: url('/assets/images/agora-logo.png') left center / contain no-repeat;
+}
+
+.login-logo--marca { width: 200px; }
+.login-logo--card  { width: 168px; margin-bottom: var(--ds-space-8); }
+
+/* ---------- Formulario ---------- */
 
 .login-card {
-    background: var(--ds-bg-card);
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-lg);
-    box-shadow: var(--ds-shadow-lg);
+    align-self: center;
+    justify-self: center;
     width: 100%;
     max-width: 400px;
-    padding: 40px 32px 32px;
+    padding: var(--ds-space-8) var(--ds-space-6);
     box-sizing: border-box;
-    animation: ds-fadeIn 300ms var(--ds-transition-smooth) both;
+    animation: ds-fadeIn 150ms var(--ds-ease-out) both;
 }
 
-.login-header {
-    text-align: center;
-    margin-bottom: 28px;
-}
+.login-header { margin-bottom: var(--ds-space-8); }
 
-.login-header .login-logo {
-    display: block;
-    margin: 0 auto;
-    max-width: 100%;
-    width: 260px;
-    height: auto;
-}
-
-/* El logo ya no es el contenido del <h1>: el título de la pantalla es éste. */
 .login-titulo {
-    margin: 20px 0 0;
-    font-size: var(--ds-font-xl);
+    margin: 0;
+    font-size: var(--ds-font-2xl);
     font-weight: var(--ds-weight-semibold);
     letter-spacing: var(--ds-tracking-tight);
     color: var(--ds-text-primary);
 }
 
-/* El logo es un PNG con tinta oscura fija sobre transparencia: en modo oscuro se
-   invierte para que siga leyéndose sobre la tarjeta oscura. */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .login-header .login-logo {
-        filter: invert(1);
-    }
-}
-
-:root[data-theme="dark"] .login-header .login-logo {
-    filter: invert(1);
+.login-sub {
+    margin: var(--ds-space-1) 0 0;
+    font-size: var(--ds-font-sm);
+    color: var(--ds-text-muted);
 }
 
 .login-form {
+    display: grid;
+    gap: var(--ds-space-5);
     padding: 0;
 }
 
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: var(--ds-text-secondary);
-    font-size: 0.9rem;
-}
-
-.form-group label i {
-    margin-right: 6px;
-    color: var(--ds-text-muted);
-    width: 16px;
-    text-align: center;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1.5px solid var(--ds-border-default);
-    border-radius: var(--ds-radius-md);
-    font-size: 1rem;
-    font-family: var(--ds-font-family);
-    color: var(--ds-text-primary);
-    background: var(--ds-bg-card);
-    transition: border-color var(--ds-transition-base), box-shadow var(--ds-transition-base);
-    box-sizing: border-box;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: var(--ds-primary-500);
-    box-shadow: var(--ds-shadow-focus);
-}
-
-.form-group input::placeholder {
-    color: var(--ds-text-muted);
-}
-
-/* Campo con error: borde y mensaje en línea, enlazados por aria-invalid / aria-describedby. */
-.form-group input[aria-invalid="true"] {
-    border-color: var(--ds-danger-600);
-}
-
-.form-group .campo-error {
-    margin: 6px 0 0;
-}
+.login-form .campo :is(input) { min-height: 40px; }
 
 .campo-error:empty,
 .error-message:empty,
@@ -123,70 +114,40 @@
     display: none;
 }
 
-.login-btn {
-    width: 100%;
-    background: var(--ds-primary-600);
-    color: var(--ds-on-primary);
-    border: none;
-    padding: 13px 20px;
-    border-radius: var(--ds-radius-md);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color var(--ds-transition-base);
-    margin-bottom: 4px;
-}
+.login-btn { width: 100%; }
 
-.login-btn:hover:not(:disabled) {
-    background: var(--ds-primary-700);
-}
-
-.login-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.login-btn[aria-busy="true"] {
-    opacity: 0.85;
-    cursor: progress;
-}
-
-.login-btn i {
-    margin-right: 8px;
-}
+.login-btn[aria-busy="true"] { cursor: progress; }
 
 .error-message {
-    background: var(--ds-danger-50);
+    padding: var(--ds-space-3) var(--ds-space-4);
     color: var(--ds-danger-on-tint);
+    background: var(--ds-danger-50);
     border: 1px solid var(--ds-danger-100);
-    padding: 12px 16px;
     border-radius: var(--ds-radius-md);
-    font-size: 0.9rem;
-    margin-top: 12px;
-    text-align: center;
-    animation: ds-fadeIn 300ms ease both;
+    font-size: var(--ds-font-sm);
+    animation: ds-fadeIn 150ms var(--ds-ease-out) both;
 }
 
 /* Éxito: otra región (role="status"), no el contenedor del error con otro color. */
 .exito-message {
-    background: var(--ds-success-50);
+    padding: var(--ds-space-3) var(--ds-space-4);
     color: var(--ds-success-on-tint);
+    background: var(--ds-success-50);
     border: 1px solid var(--ds-success-200);
-    padding: 12px 16px;
     border-radius: var(--ds-radius-md);
-    font-size: 0.9rem;
-    margin-top: 12px;
-    text-align: center;
+    font-size: var(--ds-font-sm);
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-    .login-card {
-        max-width: none;
-        padding: 32px 24px 24px;
-    }
+/* ---------- Pantallas anchas: aparece la marca ---------- */
 
-    .login-header .login-logo {
-        width: 200px;
-    }
+@media (min-width: 900px) {
+    .login-container { grid-template-columns: minmax(0, 5fr) minmax(0, 4fr); }
+    .login-marca { display: flex; }
+    .login-logo--card { display: none; }
+    .login-card { padding: var(--ds-space-12) var(--ds-space-8); }
+}
+
+@media (max-width: 480px) {
+    .login-card { padding: var(--ds-space-8) var(--ds-space-4); }
+    .login-logo--card { width: 140px; }
 }
