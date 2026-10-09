@@ -138,6 +138,35 @@
     font-size: var(--ds-font-sm);
 }
 
+/* ---------- Interruptor de tema ---------- */
+
+.login-tema {
+    position: absolute;
+    top: var(--ds-space-4);
+    right: var(--ds-space-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--ds-text-secondary);
+    background: transparent;
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-md);
+    cursor: pointer;
+    transition: color var(--ds-dur-fast) var(--ds-ease-out), background-color var(--ds-dur-fast) var(--ds-ease-out), border-color var(--ds-dur-fast) var(--ds-ease-out);
+}
+
+.login-tema:hover {
+    color: var(--ds-text-primary);
+    background: var(--ds-bg-subtle);
+    border-color: var(--ds-border-strong);
+}
+
+.login-tema:active { transform: translateY(1px); }
+.login-tema i { font-size: 1rem; }
+
 /* ---------- Pantallas anchas: aparece la marca ---------- */
 
 @media (min-width: 900px) {

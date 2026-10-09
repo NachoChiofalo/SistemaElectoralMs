@@ -58,6 +58,15 @@
             : 'light';
     }
 
+    /** Fija un tema concreto (lo guarda y lo aplica). Lo usa el interruptor del login. */
+    function establecer(tema) {
+        if (!CICLO.includes(tema)) return leerGuardado();
+        guardar(tema);
+        aplicar(tema);
+        global.dispatchEvent(new CustomEvent('tema:cambiado', { detail: { tema } }));
+        return tema;
+    }
+
     function cambiar() {
         const siguiente = CICLO[(CICLO.indexOf(leerGuardado()) + 1) % CICLO.length];
         guardar(siguiente);
@@ -100,5 +109,5 @@
         (sistema.addEventListener ? sistema.addEventListener.bind(sistema, 'change') : sistema.addListener.bind(sistema))(sincronizarBarra);
     }
 
-    global.tema = { elegido: leerGuardado, efectivo, cambiar, aplicar };
+    global.tema = { elegido: leerGuardado, efectivo, cambiar, establecer, aplicar };
 })(window);

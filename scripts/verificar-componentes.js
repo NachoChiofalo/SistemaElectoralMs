@@ -257,6 +257,28 @@ async function main() {
     await ctx.close();
   }
 
+  // ------------------------------------------------------------ interruptor de tema del login
+  {
+    const ctx = await navegador.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+    const p = await ctx.newPage();
+    await p.goto(url + '/index.html', { waitUntil: 'networkidle' });
+    await p.waitForSelector('#login-tema');
+    const tema = () => p.evaluate(() => document.documentElement.dataset.theme || 'sistema');
+    chequear('el login arranca en oscuro', await tema() === 'dark', await tema());
+    chequear('el interruptor dice qué hará', /claro/i.test(await p.getAttribute('#login-tema', 'aria-label')));
+    await p.locator('#login-tema').click();
+    chequear('un clic pasa a claro', await tema() === 'light', await tema());
+    chequear('el nombre accesible se actualiza', /oscuro/i.test(await p.getAttribute('#login-tema', 'aria-label')));
+    await p.reload({ waitUntil: 'networkidle' });
+    await p.waitForSelector('#login-tema');
+    chequear('la elección sobrevive a recargar', await tema() === 'light', await tema());
+    await p.keyboard.press('Tab'); // el primer Tab cae en el campo de usuario (autofoco) o más adelante: el interruptor se alcanza con teclado
+    await p.locator('#login-tema').focus();
+    await p.keyboard.press('Enter');
+    chequear('se opera con teclado (Enter)', await tema() === 'dark', await tema());
+    await ctx.close();
+  }
+
   await navegador.close();
 
   const fallas = resultados.filter((r) => !r.ok);

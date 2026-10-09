@@ -72,6 +72,11 @@ class LoginComponent {
                         <div id="loginExito" class="exito-message" role="status"></div>
                     </form>
                 </div>
+
+                <!-- Interruptor oscuro/claro: en el login todavía no hay barra lateral que lo lleve. -->
+                <button type="button" class="login-tema" id="login-tema" aria-label="Cambiar tema">
+                    <i class="fas" id="login-tema-icono" aria-hidden="true"></i>
+                </button>
             </main>
         `;
 
@@ -95,11 +100,40 @@ class LoginComponent {
             input.addEventListener('input', () => this.limpiarCampo(input));
         });
 
+        this.initTema();
+
         // Auto-focus en el campo de usuario
         setTimeout(() => {
             const usernameInput = this.element.querySelector('#username');
             usernameInput?.focus();
         }, 100);
+    }
+
+    /**
+     * Interruptor oscuro/claro. Alterna entre los dos temas según el que se ve ahora (si estaba en
+     * "Sistema", el que resuelva el sistema). El icono muestra el tema actual, igual que la barra
+     * lateral, y el nombre accesible dice qué pasa al activarlo.
+     */
+    initTema() {
+        const boton = this.element.querySelector('#login-tema');
+        if (!boton || !window.tema) {
+            boton?.remove();
+            return;
+        }
+
+        const pintar = () => {
+            const oscuro = window.tema.efectivo() === 'dark';
+            this.element.querySelector('#login-tema-icono').className = `fas ${oscuro ? 'fa-moon' : 'fa-sun'}`;
+            const accion = oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+            boton.setAttribute('aria-label', accion);
+            boton.title = accion;
+        };
+
+        pintar();
+        boton.addEventListener('click', () => {
+            window.tema.establecer(window.tema.efectivo() === 'dark' ? 'light' : 'dark');
+            pintar();
+        });
     }
 
     /**
