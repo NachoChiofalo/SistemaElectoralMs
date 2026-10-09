@@ -302,89 +302,10 @@
     margin: 0;
 }
 
-/* ==================== Modales ==================== */
-
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(16, 42, 67, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease;
-}
-
-.modal-content {
-    background: var(--ds-bg-card);
-    border-radius: var(--ds-radius-xl);
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--ds-shadow-xl);
-    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.modal-sm {
-    max-width: 420px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--ds-border-light);
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--ds-text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.modal-header h3 i {
-    color: var(--ds-primary-500);
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--ds-text-muted);
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: color var(--ds-transition-fast) ease;
-}
-
-.modal-close:hover {
-    color: var(--ds-text-primary);
-}
-
-.modal-body {
-    padding: 24px;
-}
-
 .modal-info {
     margin: 0 0 16px;
     color: var(--ds-text-secondary);
     font-size: 0.9rem;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding-top: 20px;
-    border-top: 1px solid var(--ds-border-light);
-    margin-top: 8px;
 }
 
 /* ==================== Forms ==================== */
@@ -473,90 +394,6 @@ select.form-input {
     margin-top: 8px;
 }
 
-/* Buttons in modal */
-.modal-footer .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color var(--ds-transition-fast) ease, background-color var(--ds-transition-fast) ease, border-color var(--ds-transition-fast) ease, box-shadow var(--ds-transition-fast) ease, transform var(--ds-transition-fast) ease, opacity var(--ds-transition-fast) ease;
-}
-
-.modal-footer .btn-primary {
-    background: var(--ds-gradient-primary);
-    color: var(--ds-text-inverse);
-}
-
-.modal-footer .btn-primary:hover {
-    box-shadow: var(--ds-shadow-md);
-}
-
-.modal-footer .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.modal-footer .btn-secondary {
-    background: var(--ds-bg-page);
-    color: var(--ds-text-secondary);
-    border: 1px solid var(--ds-border-default);
-}
-
-.modal-footer .btn-secondary:hover {
-    background: var(--ds-bg-card);
-    border-color: var(--ds-text-muted);
-}
-
-/* ==================== Toast ==================== */
-
-.toast-container {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.toast {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--ds-text-inverse);
-    box-shadow: var(--ds-shadow-lg);
-    transform: translateX(120%);
-    opacity: 0;
-    transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 360px;
-}
-
-.toast-visible {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.toast-success {
-    background: var(--ds-success-600);
-}
-
-.toast-error {
-    background: var(--ds-danger-600);
-}
-
-.toast-info {
-    background: var(--ds-info-600);
-}
-
 /* ==================== Animations ==================== */
 
 @keyframes fadeIn {
@@ -604,19 +441,6 @@ select.form-input {
         min-width: 700px;
     }
 
-    .modal-content {
-        margin: 16px;
-        max-height: calc(100vh - 32px);
-    }
-
-    .toast-container {
-        left: 16px;
-        right: 16px;
-    }
-
-    .toast {
-        max-width: unset;
-    }
 }
 
 @media (max-width: 480px) {
@@ -631,20 +455,6 @@ select.form-input {
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-    .modal-overlay,
-    .modal-content,
-    .toast {
-        animation: none;
-    }
-
-    .toast {
-        transition: opacity 0.15s ease;
-        transform: none;
-    }
-
-    .toast-visible {
-        transform: none;
-    }
 
     .btn-accion:hover,
     .usuarios-actions .btn-primary:hover {

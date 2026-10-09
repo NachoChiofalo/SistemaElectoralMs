@@ -279,6 +279,82 @@ async function main() {
     await ctx.close();
   }
 
+  // ------------------------------------------------------------ modales de Usuarios, Configuración y Auditoría
+  {
+    const { p, ctx } = await pagina({ ruta: '/usuarios.html', tema: 'dark' });
+    await p.waitForSelector('#usuarios-tbody tr');
+    chequear('Usuarios: ya no hay overlays a mano ni contenedor de toasts propio',
+      await p.locator('.modal-overlay, #toast-container').count() === 0);
+    chequear('Usuarios: carga y vacío usan hidden, no style="display"',
+      await p.evaluate(() => !document.querySelector('#usuarios-loading').hasAttribute('style') && !document.querySelector('#usuarios-empty').hasAttribute('style')));
+    chequear('Usuarios: las acciones de la fila nombran al usuario',
+      await p.evaluate(() => [...document.querySelectorAll('#usuarios-tbody .btn-accion')].every((b) => /\S+ a \S+|de \S+/.test(b.getAttribute('aria-label') || ''))));
+
+    await p.locator('#btn-crear-usuario').click();
+    chequear('Usuarios: "Nuevo usuario" abre un <dialog> modal', await p.locator('dialog#modal-usuario[open]').count() === 1);
+    chequear('Usuarios: el foco cae en el primer campo', await p.evaluate(() => document.activeElement.id === 'form-username'), await p.evaluate(() => document.activeElement.id));
+    // foco atrapado: tras muchos Tab no sale del diálogo
+    for (let i = 0; i < 14; i++) await p.keyboard.press('Tab');
+    chequear('Usuarios: el foco queda atrapado dentro del diálogo', await p.evaluate(() => !!document.activeElement.closest('dialog#modal-usuario')));
+    await p.locator('#form-password').fill('corta');
+    await p.locator('#btn-guardar-usuario').click();
+    chequear('Usuarios: un dato inválido muestra el error en una región role="alert"',
+      await p.evaluate(() => { const e = document.getElementById('form-error'); return !e.hidden && e.getAttribute('role') === 'alert' && e.textContent.length > 0; }));
+    await p.locator('#toggle-password').click();
+    chequear('Usuarios: ver contraseña comunica su estado', await p.evaluate(() => document.getElementById('toggle-password').getAttribute('aria-pressed') === 'true' && document.getElementById('form-password').type === 'text'));
+    await p.keyboard.press('Escape');
+    await p.waitForTimeout(150);
+    chequear('Usuarios: Escape cierra el diálogo', await p.locator('dialog[open]').count() === 0);
+    chequear('Usuarios: el foco vuelve al botón que lo abrió', await p.evaluate(() => document.activeElement.id === 'btn-crear-usuario'), await p.evaluate(() => document.activeElement.id));
+
+    await p.locator('.btn-desactivar').first().click();
+    await p.waitForSelector('dialog[open][role="alertdialog"]');
+    chequear('Usuarios: desactivar pide confirmación con el diálogo del sistema (no confirm())', true);
+    await p.keyboard.press('Escape');
+    await ctx.close();
+  }
+  {
+    const { p, ctx } = await pagina({ ruta: '/configuracion.html', tema: 'dark' });
+    await p.waitForSelector('#opciones-tbody tr');
+    chequear('Configuración: sin overlays a mano ni toasts propios', await p.locator('.modal-overlay, #toast-container').count() === 0);
+    await p.locator('#btn-nueva-opcion').click();
+    chequear('Configuración: "Nueva opción" abre un <dialog> modal', await p.locator('dialog#modal-opcion[open]').count() === 1);
+    await p.locator('#btn-guardar-opcion').click();
+    chequear('Configuración: el error de validación se anuncia (role="alert")',
+      await p.evaluate(() => { const e = document.getElementById('form-opcion-error'); return !e.hidden && e.getAttribute('role') === 'alert'; }));
+    await p.keyboard.press('Escape');
+    await p.waitForTimeout(150);
+    chequear('Configuración: Escape cierra y devuelve el foco', await p.evaluate(() => document.activeElement.id === 'btn-nueva-opcion'), await p.evaluate(() => document.activeElement.id));
+    await p.locator('[data-accion="borrar"]').first().click();
+    chequear('Configuración: "Borrar" abre su diálogo', await p.locator('dialog#modal-borrar-opcion[open]').count() === 1);
+    await p.locator('#btn-cancelar-borrar').click();
+    await p.waitForTimeout(150);
+    chequear('Configuración: Cancelar cierra sin borrar', await p.locator('dialog[open]').count() === 0 && await p.locator('#opciones-tbody tr').count() >= 2);
+    await ctx.close();
+  }
+  {
+    const { p, ctx } = await pagina({ ruta: '/auditoria.html', tema: 'dark' });
+    await p.waitForSelector('.fila-auditoria');
+    chequear('Auditoría: las filas se alcanzan con teclado y tienen nombre',
+      await p.evaluate(() => [...document.querySelectorAll('.fila-auditoria')].every((r) => r.tabIndex === 0 && (r.getAttribute('aria-label') || '').length > 5)));
+    await p.locator('.fila-auditoria').first().focus();
+    await p.keyboard.press('Enter');
+    chequear('Auditoría: Enter sobre una fila abre el detalle en un <dialog>', await p.locator('dialog[open]').count() === 1);
+    chequear('Auditoría: el detalle no repite niveles de título (h2 > h3)',
+      await p.evaluate(() => !document.querySelector('dialog[open] h4')));
+    await p.keyboard.press('Escape');
+    await p.waitForTimeout(150);
+    chequear('Auditoría: Escape cierra y el foco vuelve a la fila', await p.evaluate(() => document.activeElement.classList.contains('fila-auditoria')), await p.evaluate(() => document.activeElement.tagName + '.' + document.activeElement.className));
+    await ctx.close();
+  }
+  {
+    const { p, ctx } = await pagina({ ruta: '/listas.html', tema: 'dark' });
+    await p.waitForSelector('#btn-crear-lista');
+    chequear('Listas: sin contenedor de toasts propio ni style="display"',
+      await p.locator('#toast-container').count() === 0 && await p.evaluate(() => !document.querySelector('#listas-loading').hasAttribute('style')));
+    await ctx.close();
+  }
+
   await navegador.close();
 
   const fallas = resultados.filter((r) => !r.ok);

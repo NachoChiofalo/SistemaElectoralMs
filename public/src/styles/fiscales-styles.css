@@ -151,8 +151,6 @@
     margin: 0;
 }
 
-
-
 .form-input:disabled {
     background-color: var(--ds-bg-page);
     color: var(--ds-text-muted);
@@ -294,9 +292,7 @@
     .selectores-row { flex-direction: column; align-items: stretch; }
     .selectores-row .form-group { min-width: unset; }
     .form-row { flex-direction: column; gap: 0; }
-    .modal-content { margin: 16px; max-height: calc(100vh - 32px); }
-    .toast-container { left: 16px; right: 16px; }
-    .toast { max-width: unset; }
+
 }
 
 @media (max-width: 480px) {
@@ -305,9 +301,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .modal-overlay, .modal-content, .toast { animation: none; }
-    .toast { transition: opacity 0.15s ease; transform: none; }
-    .toast-visible { transform: none; }
+
     .btn-accion:hover, .fiscales-actions .btn-primary:hover { transform: none; }
 }
 

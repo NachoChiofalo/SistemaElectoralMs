@@ -65,16 +65,15 @@ class ListasComponent {
 
             <datalist id="sugerencias-nombres"></datalist>
 
-            <div id="listas-loading" class="listas-loading" style="display: none;">
-                <i class="fas fa-spinner fa-spin"></i> Cargando listas...
+            <div id="listas-loading" class="listas-loading" role="status" hidden>
+                <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Cargando listas…
             </div>
-            <div id="listas-empty" class="listas-empty" style="display: none;">
-                <i class="fas fa-folder-open"></i>
+            <div id="listas-empty" class="listas-empty" hidden>
+                <i class="fas fa-folder-open" aria-hidden="true"></i>
                 <p>No hay listas cargadas todavía</p>
             </div>
             <div id="listas-cards" class="listas-cards"></div>
 
-            <div id="toast-container" class="toast-container"></div>
         `;
     }
 
@@ -106,9 +105,9 @@ class ListasComponent {
 
     async cargarListas() {
         this.cargando = true;
-        document.getElementById('listas-loading').style.display = 'flex';
-        document.getElementById('listas-cards').style.display = 'none';
-        document.getElementById('listas-empty').style.display = 'none';
+        document.getElementById('listas-loading').hidden = false;
+        document.getElementById('listas-cards').hidden = true;
+        document.getElementById('listas-empty').hidden = true;
 
         try {
             // El techo de 100 lo aplica el servidor igual; se pide explicito para que
@@ -124,7 +123,7 @@ class ListasComponent {
             this.mostrarToast('Error al cargar listas: ' + error.message, 'error');
         } finally {
             this.cargando = false;
-            document.getElementById('listas-loading').style.display = 'none';
+            document.getElementById('listas-loading').hidden = true;
         }
     }
 
@@ -208,13 +207,13 @@ class ListasComponent {
         count.textContent = `${indices.length} lista${indices.length !== 1 ? 's' : ''}`;
 
         if (indices.length === 0) {
-            cont.style.display = 'none';
-            empty.style.display = 'flex';
+            cont.hidden = true;
+            empty.hidden = false;
             return;
         }
 
-        cont.style.display = 'flex';
-        empty.style.display = 'none';
+        cont.hidden = false;
+        empty.hidden = true;
         cont.innerHTML = indices.map((i) => this.renderizarTarjeta(i)).join('');
     }
 
@@ -486,7 +485,12 @@ class ListasComponent {
 
     async eliminarLista(indice) {
         const lista = this.listas[indice];
-        const confirmado = confirm(`¿Eliminar la lista "${lista.nombre}"? Esta acción no se puede deshacer.`);
+        const confirmado = await window.dialogo.confirmar({
+            titulo: 'Eliminar lista',
+            mensaje: `¿Eliminar la lista "${lista.nombre}"? Esta acción no se puede deshacer.`,
+            confirmar: 'Eliminar',
+            tono: 'peligro',
+        });
         if (!confirmado) return;
 
         try {
@@ -566,18 +570,9 @@ class ListasComponent {
         return nombres[tipo] || tipo;
     }
 
+    /** Avisos del sistema (regiones vivas), no un contenedor propio. */
     mostrarToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
-        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${escaparHtml(message)}`;
-        container.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('toast-visible'));
-        setTimeout(() => {
-            toast.classList.remove('toast-visible');
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
+        window.avisos.mostrar(message, type);
     }
 }
 

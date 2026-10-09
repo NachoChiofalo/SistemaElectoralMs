@@ -428,43 +428,6 @@ textarea.form-input {
     gap: 8px;
 }
 
-/* ==================== Toast ==================== */
-
-.toast-container {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.toast {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
-    border-radius: var(--ds-radius-md);
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--ds-text-inverse);
-    box-shadow: var(--ds-shadow-lg);
-    transform: translateX(120%);
-    opacity: 0;
-    transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 360px;
-}
-
-.toast-visible {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.toast-success { background: var(--ds-success-600); }
-.toast-error { background: var(--ds-danger-600); }
-.toast-info { background: var(--ds-info-600); }
-
 /* ==================== Responsive ==================== */
 
 @media (max-width: 768px) {
@@ -477,8 +440,7 @@ textarea.form-input {
     .lista-card-header { flex-direction: column; align-items: stretch; }
     .lista-card-acciones { justify-content: flex-end; }
     .candidato-detalle { margin-left: 0; }
-    .toast-container { left: 16px; right: 16px; }
-    .toast { max-width: unset; }
+
 }
 
 @media (max-width: 480px) {
@@ -487,7 +449,6 @@ textarea.form-input {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .toast { transition: opacity 0.15s ease; transform: none; }
-    .toast-visible { transform: none; }
+
     .btn-accion:hover, .listas-actions .btn-primary:hover { transform: none; }
 }

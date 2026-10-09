@@ -445,25 +445,11 @@ body {
 /* ==================== Modal ====================
    Los modales son <dialog class="dialogo"> (design-system.css); aquí solo queda el texto de ayuda. */
 
-
-
-
-
-
-
-
-
-
 .modal-info {
     margin: 0 0 16px;
     color: var(--ds-text-secondary);
     font-size: 0.85rem;
 }
-
-
-
-
-
 
 /* ==================== Forms ==================== */
 
@@ -537,11 +523,6 @@ select.form-input {
     font-size: 0.85rem;
     color: var(--ds-text-muted);
 }
-
-
-
-
-
 
 /* ==================== Responsive ==================== */
 

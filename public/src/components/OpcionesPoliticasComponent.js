@@ -53,8 +53,8 @@ class OpcionesPoliticasComponent {
             </div>
 
             <div class="usuarios-tabla-container">
-                <div id="opciones-loading" class="usuarios-loading" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i> Cargando opciones...
+                <div id="opciones-loading" class="usuarios-loading" role="status" hidden>
+                    <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Cargando opciones…
                 </div>
                 <table class="usuarios-tabla" id="opciones-tabla">
                     <thead>
@@ -73,60 +73,44 @@ class OpcionesPoliticasComponent {
                 la <strong>etiqueta</strong> sí. Una opción que ya fue marcada en algún relevamiento no se puede borrar.
             </p>
 
-            <div id="modal-opcion" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-opcion-titulo">
-                <div class="modal-content modal-sm">
-                    <div class="modal-header">
-                        <h3 id="modal-opcion-titulo"><i class="fas fa-flag"></i> Nueva opción</h3>
-                        <button class="modal-close" id="modal-opcion-close" aria-label="Cerrar">&times;</button>
+            ${window.dialogo.html({
+                id: 'modal-opcion', form: 'form-opcion', icono: 'fa-flag', titulo: 'Nueva opción',
+                cuerpo: `
+                    <div class="form-group">
+                        <label for="form-codigo">Código <span class="required" aria-hidden="true">*</span></label>
+                        <input type="text" id="form-codigo" class="form-input" maxlength="20" autocomplete="off" spellcheck="false"
+                               placeholder="Ej: FP" aria-describedby="form-codigo-ayuda">
+                        <small class="form-ayuda" id="form-codigo-ayuda">Hasta 20 caracteres. No se puede cambiar después.</small>
                     </div>
-                    <form id="form-opcion" class="modal-body">
-                        <div class="form-group">
-                            <label for="form-codigo">Código <span class="required">*</span></label>
-                            <input type="text" id="form-codigo" class="form-input" maxlength="20" autocomplete="off"
-                                   placeholder="Ej: FP">
-                            <small class="form-ayuda">Hasta 20 caracteres. No se puede cambiar después.</small>
+                    <div class="form-group">
+                        <label for="form-etiqueta">Etiqueta <span class="required" aria-hidden="true">*</span></label>
+                        <input type="text" id="form-etiqueta" class="form-input" maxlength="50" autocomplete="off"
+                               placeholder="Cómo se muestra">
+                    </div>
+                    <div class="form-group" id="grupo-color">
+                        <span class="form-etiqueta-grupo" id="etiqueta-color">Color</span>
+                        <div class="colores" role="radiogroup" aria-labelledby="etiqueta-color">${colores}
                         </div>
-                        <div class="form-group">
-                            <label for="form-etiqueta">Etiqueta <span class="required">*</span></label>
-                            <input type="text" id="form-etiqueta" class="form-input" maxlength="50" autocomplete="off"
-                                   placeholder="Cómo se muestra">
-                        </div>
-                        <div class="form-group" id="grupo-color">
-                            <span class="form-etiqueta-grupo" id="etiqueta-color">Color</span>
-                            <div class="colores" role="radiogroup" aria-labelledby="etiqueta-color">${colores}
-                            </div>
-                        </div>
-                        <div id="form-opcion-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-opcion">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" id="btn-guardar-opcion">
-                                <i class="fas fa-save"></i> Guardar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                    </div>
+                    <div id="form-opcion-error" class="form-error" role="alert" hidden></div>`,
+                pie: `
+                    <button type="button" class="btn btn-secondary" id="btn-cancelar-opcion">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-guardar-opcion">
+                        <i class="fas fa-save" aria-hidden="true"></i> Guardar
+                    </button>`,
+            })}
 
-            <div id="modal-borrar-opcion" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-borrar-titulo">
-                <div class="modal-content modal-sm">
-                    <div class="modal-header">
-                        <h3 id="modal-borrar-titulo"><i class="fas fa-trash"></i> Borrar opción</h3>
-                        <button class="modal-close" id="modal-borrar-close" aria-label="Cerrar">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <p class="modal-info">¿Borrar la opción <strong id="borrar-nombre"></strong>? Esta acción no se puede deshacer.</p>
-                        <div id="borrar-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-borrar">Cancelar</button>
-                            <button type="button" class="btn btn-primary" id="btn-confirmar-borrar">
-                                <i class="fas fa-trash"></i> Borrar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="toast-container" class="toast-container"></div>
+            ${window.dialogo.html({
+                id: 'modal-borrar-opcion', icono: 'fa-trash', titulo: 'Borrar opción',
+                cuerpo: `
+                    <p class="modal-info">¿Borrar la opción <strong id="borrar-nombre"></strong>? Esta acción no se puede deshacer.</p>
+                    <div id="borrar-error" class="form-error" role="alert" hidden></div>`,
+                pie: `
+                    <button type="button" class="btn btn-secondary" id="btn-cancelar-borrar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-confirmar-borrar">
+                        <i class="fas fa-trash" aria-hidden="true"></i> Borrar
+                    </button>`,
+            })}
         `;
     }
 
@@ -136,19 +120,13 @@ class OpcionesPoliticasComponent {
         $('btn-nueva-opcion').addEventListener('click', () => this.abrirModal(null));
         $('modal-opcion-close').addEventListener('click', () => this.cerrarModal());
         $('btn-cancelar-opcion').addEventListener('click', () => this.cerrarModal());
-        $('modal-opcion').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) this.cerrarModal();
-        });
         $('form-opcion').addEventListener('submit', (e) => {
             e.preventDefault();
             this.guardar();
         });
 
-        $('modal-borrar-close').addEventListener('click', () => this.cerrarBorrar());
+        $('modal-borrar-opcion-close').addEventListener('click', () => this.cerrarBorrar());
         $('btn-cancelar-borrar').addEventListener('click', () => this.cerrarBorrar());
-        $('modal-borrar-opcion').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) this.cerrarBorrar();
-        });
         $('btn-confirmar-borrar').addEventListener('click', () => this.borrar());
 
         // Una sola delegación para las acciones de la tabla: las filas se redibujan.
@@ -162,26 +140,22 @@ class OpcionesPoliticasComponent {
             if (accion === 'bajar') this.mover(codigo, +1);
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.cerrarModal();
-                this.cerrarBorrar();
-            }
-        });
+        // Escape cierra un <dialog> solo; el estado de "borrando" se limpia cuando se cierra.
+        $('modal-borrar-opcion').addEventListener('close', () => { this.borrando = null; });
     }
 
     // ------------------------------------------------------------- datos
 
     async cargar() {
         const cargando = document.getElementById('opciones-loading');
-        cargando.style.display = 'flex';
+        cargando.hidden = false;
         try {
             this.opciones = await window.opcionesPoliticas.cargar(true);
             this.renderizar();
         } catch (error) {
             this.toast('No se pudieron cargar las opciones: ' + error.message, 'error');
         } finally {
-            cargando.style.display = 'none';
+            cargando.hidden = true;
         }
     }
 
@@ -195,17 +169,17 @@ class OpcionesPoliticasComponent {
                     <div class="acciones-cell">
                         <button class="btn-accion" data-accion="subir" data-codigo="${escaparHtml(opcion.codigo)}"
                                 title="Subir" aria-label="Subir ${escaparHtml(opcion.etiqueta)}" ${i === 0 ? 'disabled' : ''}>
-                            <i class="fas fa-arrow-up"></i>
+                            <i class="fas fa-arrow-up" aria-hidden="true"></i>
                         </button>
                         <button class="btn-accion" data-accion="bajar" data-codigo="${escaparHtml(opcion.codigo)}"
                                 title="Bajar" aria-label="Bajar ${escaparHtml(opcion.etiqueta)}" ${i === ultima ? 'disabled' : ''}>
-                            <i class="fas fa-arrow-down"></i>
+                            <i class="fas fa-arrow-down" aria-hidden="true"></i>
                         </button>
                     </div>
                 </td>
                 <td>
                     <span class="opcion-nombre">
-                        <span class="color-muestra ${window.opcionesPoliticas.clase(opcion)}"></span>
+                        <span class="color-muestra ${window.opcionesPoliticas.clase(opcion)}" aria-hidden="true"></span>
                         ${escaparHtml(opcion.etiqueta)}
                         ${opcion.esNeutra ? '<span class="estado-badge estado-activo" title="Se asigna sola a un votante al que solo se le cargó un teléfono u otro dato">Neutra</span>' : ''}
                     </span>
@@ -215,12 +189,12 @@ class OpcionesPoliticasComponent {
                     <div class="acciones-cell">
                         <button class="btn-accion btn-editar" data-accion="editar" data-codigo="${escaparHtml(opcion.codigo)}"
                                 title="Editar" aria-label="Editar ${escaparHtml(opcion.etiqueta)}">
-                            <i class="fas fa-pen"></i>
+                            <i class="fas fa-pen" aria-hidden="true"></i>
                         </button>
                         ${opcion.esNeutra ? '' : `
                         <button class="btn-accion btn-desactivar" data-accion="borrar" data-codigo="${escaparHtml(opcion.codigo)}"
                                 title="Borrar" aria-label="Borrar ${escaparHtml(opcion.etiqueta)}">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>`}
                     </div>
                 </td>
@@ -268,10 +242,7 @@ class OpcionesPoliticasComponent {
         const opcion = codigo === null ? null : this.opciones.find(o => o.codigo === codigo);
         this.editando = opcion ? opcion.codigo : null;
 
-        const titulo = document.getElementById('modal-opcion-titulo');
-        titulo.innerHTML = opcion
-            ? '<i class="fas fa-flag"></i> Editar opción'
-            : '<i class="fas fa-flag"></i> Nueva opción';
+        window.dialogo.fijarTitulo('modal-opcion', 'fa-flag', opcion ? 'Editar opción' : 'Nueva opción');
 
         const campoCodigo = document.getElementById('form-codigo');
         campoCodigo.value = opcion ? opcion.codigo : '';
@@ -279,7 +250,7 @@ class OpcionesPoliticasComponent {
         document.getElementById('form-etiqueta').value = opcion ? opcion.etiqueta : '';
 
         // La neutra no lleva color; en una nueva se propone el primero que no esté usado.
-        document.getElementById('grupo-color').style.display = opcion?.esNeutra ? 'none' : '';
+        document.getElementById('grupo-color').hidden = Boolean(opcion?.esNeutra);
         const usados = new Set(this.opciones.map(o => o.color));
         this.colorElegido = opcion?.color
             || [1, 2, 3, 4, 5, 6, 7, 8].find(n => !usados.has(n))
@@ -289,12 +260,12 @@ class OpcionesPoliticasComponent {
         });
 
         this.mostrarError('form-opcion-error', '');
-        document.getElementById('modal-opcion').style.display = 'flex';
+        window.dialogo.mostrar(document.getElementById('modal-opcion'));
         (opcion ? document.getElementById('form-etiqueta') : campoCodigo).focus();
     }
 
     cerrarModal() {
-        document.getElementById('modal-opcion').style.display = 'none';
+        document.getElementById('modal-opcion').close();
     }
 
     abrirBorrar(codigo) {
@@ -303,12 +274,11 @@ class OpcionesPoliticasComponent {
         this.borrando = opcion.codigo;
         document.getElementById('borrar-nombre').textContent = opcion.etiqueta;
         this.mostrarError('borrar-error', '');
-        document.getElementById('modal-borrar-opcion').style.display = 'flex';
+        window.dialogo.mostrar(document.getElementById('modal-borrar-opcion'));
     }
 
     cerrarBorrar() {
-        document.getElementById('modal-borrar-opcion').style.display = 'none';
-        this.borrando = null;
+        document.getElementById('modal-borrar-opcion').close();
     }
 
     // ------------------------------------------------------------- acciones
@@ -364,25 +334,12 @@ class OpcionesPoliticasComponent {
     mostrarError(id, mensaje) {
         const caja = document.getElementById(id);
         caja.textContent = mensaje;
-        caja.style.display = mensaje ? 'block' : 'none';
+        caja.hidden = !mensaje;
     }
 
+    /** Avisos del sistema (regiones vivas), no un contenedor propio. */
     toast(mensaje, tipo = 'info') {
-        const contenedor = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${tipo}`;
-        const iconos = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
-
-        const icono = document.createElement('i');
-        icono.className = `fas ${iconos[tipo] || iconos.info}`;
-        toast.append(icono, ' ', document.createTextNode(mensaje));
-
-        contenedor.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('toast-visible'));
-        setTimeout(() => {
-            toast.classList.remove('toast-visible');
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
+        window.avisos.mostrar(mensaje, tipo);
     }
 }
 

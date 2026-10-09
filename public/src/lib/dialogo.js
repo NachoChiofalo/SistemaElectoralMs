@@ -169,5 +169,39 @@
         });
     }
 
-    global.dialogo = { abrir, confirmar, avisar, mostrar };
+    /**
+     * Markup de un <dialog class="dialogo"> de formulario, para que las pantallas no se lo armen
+     * cada una a mano. Devuelve un string: se inserta con el resto de la pantalla y se abre con
+     * `mostrar(elemento)`. `titulo` y `cuerpo` son HTML de la pantalla (los datos del usuario,
+     * escapados antes); el botón de cerrar es `#<id>-close` y el título `#<id>-titulo`.
+     */
+    function html({ id, icono, titulo, ancho = false, cuerpo, pie = '', form = null }) {
+        const interior = `
+            <div class="dialogo-cabecera">
+                <h2 class="dialogo-titulo" id="${id}-titulo"><i class="fas ${icono}" aria-hidden="true"></i> ${titulo}</h2>
+                <button type="button" class="btn btn-ghost btn-icono btn-sm dialogo-cerrar" id="${id}-close" aria-label="Cerrar">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="dialogo-cuerpo">${cuerpo}</div>
+            ${pie ? `<div class="dialogo-pie">${pie}</div>` : ''}
+        `;
+        return `
+            <dialog id="${id}" class="dialogo${ancho ? ' dialogo--ancho' : ''}" aria-labelledby="${id}-titulo">
+                ${form ? `<form id="${form}" novalidate>${interior}</form>` : interior}
+            </dialog>
+        `;
+    }
+
+    /** Cambia el título (ícono decorativo + texto) de un diálogo armado con `html()`. */
+    function fijarTitulo(id, icono, texto) {
+        const h = document.getElementById(`${id}-titulo`);
+        if (!h) return;
+        const i = document.createElement('i');
+        i.className = `fas ${icono}`;
+        i.setAttribute('aria-hidden', 'true');
+        h.replaceChildren(i, ` ${texto}`);
+    }
+
+    global.dialogo = { abrir, confirmar, avisar, mostrar, html, fijarTitulo };
 })(window);

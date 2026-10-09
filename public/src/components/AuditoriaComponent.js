@@ -198,7 +198,7 @@
                     <div class="stat-icon operacion"><i class="fas fa-star"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">${opMasFrecuente}</div>
-                        <div class="stat-label">Operacion mas frecuente</div>
+                        <div class="stat-label">Operación más frecuente</div>
                     </div>
                 </div>
             `;
@@ -246,11 +246,15 @@
             `;
 
             // Event listeners for row clicks
+            // La fila entera abre el detalle: con mouse (clic) y con teclado (Enter o Espacio, con foco).
             wrapper.querySelectorAll('.fila-auditoria').forEach(fila => {
-                fila.addEventListener('click', () => {
-                    const id = fila.dataset.id;
-                    const registro = this.registros.find(r => String(r.id) === id);
+                const abrir = () => {
+                    const registro = this.registros.find(r => String(r.id) === fila.dataset.id);
                     if (registro) this.mostrarDetalle(registro);
+                };
+                fila.addEventListener('click', abrir);
+                fila.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); }
                 });
             });
 
@@ -268,7 +272,7 @@
             const horaStr = fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 
             return `
-                <tr class="fila-auditoria" data-id="${registro.id}">
+                <tr class="fila-auditoria" data-id="${registro.id}" tabindex="0" aria-label="Ver el detalle: ${op.label}, ${this.escapeHtml(registro.usuario_nombre || registro.usuario_username)}, ${fechaStr} ${horaStr}">
                     <td>
                         <div class="fecha-texto">${fechaStr}</div>
                         <div class="fecha-texto">${horaStr}</div>
@@ -281,7 +285,7 @@
                     </td>
                     <td>
                         <span class="badge-operacion ${op.clase}">
-                            <i class="fas ${op.icon}"></i> ${op.label}
+                            <i class="fas ${op.icon}" aria-hidden="true"></i> ${op.label}
                         </span>
                     </td>
                     <td>${this.escapeHtml(registro.entidad)}</td>
@@ -295,12 +299,12 @@
             const { paginaActual, totalPaginas } = this.paginacion;
             return `
                 <div class="auditoria-paginacion">
-                    <button class="btn-pag" id="btn-pag-anterior" ${paginaActual <= 1 ? 'disabled' : ''}>
-                        <i class="fas fa-chevron-left"></i> Anterior
+                    <button type="button" class="btn-pag" id="btn-pag-anterior" ${paginaActual <= 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left" aria-hidden="true"></i> Anterior
                     </button>
-                    <span class="pag-info">Pagina ${paginaActual} de ${totalPaginas}</span>
-                    <button class="btn-pag" id="btn-pag-siguiente" ${paginaActual >= totalPaginas ? 'disabled' : ''}>
-                        Siguiente <i class="fas fa-chevron-right"></i>
+                    <span class="pag-info" aria-live="polite">Página ${paginaActual} de ${totalPaginas}</span>
+                    <button type="button" class="btn-pag" id="btn-pag-siguiente" ${paginaActual >= totalPaginas ? 'disabled' : ''}>
+                        Siguiente <i class="fas fa-chevron-right" aria-hidden="true"></i>
                     </button>
                 </div>
             `;
@@ -321,77 +325,70 @@
                 ? JSON.stringify(registro.datos_nuevos, null, 2)
                 : null;
 
-            const modal = document.createElement('div');
-            modal.className = 'modal-overlay';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3><i class="fas ${op.icon}"></i> Detalle de Operacion</h3>
-                        <button class="modal-close" id="modal-close-btn"><i class="fas fa-times"></i></button>
+            // El detalle es un diálogo del sistema (foco atrapado, Escape, fondo inerte, foco de vuelta
+            // a la fila que lo abrió), no un overlay armado a mano.
+            const cuerpo = document.createElement('div');
+            cuerpo.innerHTML = `
+                    <div class="detalle-campo">
+                        <div class="campo-label">Operación</div>
+                        <div class="campo-valor">
+                            <span class="badge-operacion ${op.clase}">
+                                <i class="fas ${op.icon}" aria-hidden="true"></i> ${op.label}
+                            </span>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                        <div class="detalle-campo">
-                            <div class="campo-label">Operacion</div>
-                            <div class="campo-valor">
-                                <span class="badge-operacion ${op.clase}">
-                                    <i class="fas ${op.icon}"></i> ${op.label}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="detalle-campo">
-                            <div class="campo-label">Fecha y Hora</div>
-                            <div class="campo-valor">${fechaCompleta}</div>
-                        </div>
-                        <div class="detalle-campo">
-                            <div class="campo-label">Usuario</div>
-                            <div class="campo-valor">${this.escapeHtml(registro.usuario_nombre)} (@${this.escapeHtml(registro.usuario_username)})</div>
-                        </div>
-                        <div class="detalle-campo">
-                            <div class="campo-label">Entidad</div>
-                            <div class="campo-valor">${this.escapeHtml(registro.entidad)} ${registro.entidad_id ? '(ID: ' + this.escapeHtml(registro.entidad_id) + ')' : ''}</div>
-                        </div>
-                        ${registro.detalles ? `
-                        <div class="detalle-campo">
-                            <div class="campo-label">Descripcion</div>
-                            <div class="campo-valor">${this.escapeHtml(registro.detalles)}</div>
-                        </div>
-                        ` : ''}
-                        ${registro.ip_address ? `
-                        <div class="detalle-campo">
-                            <div class="campo-label">Direccion IP</div>
-                            <div class="campo-valor">${this.escapeHtml(registro.ip_address)}</div>
-                        </div>
-                        ` : ''}
-                        ${(datosAnteriores || datosNuevos) ? `
-                        <div class="detalle-campo">
-                            <div class="campo-label">Datos</div>
-                            <div class="datos-comparacion">
-                                ${datosAnteriores ? `
-                                <div class="datos-col">
-                                    <h4>Antes</h4>
-                                    <div class="datos-json">${this.escapeHtml(datosAnteriores)}</div>
-                                </div>
-                                ` : ''}
-                                ${datosNuevos ? `
-                                <div class="datos-col">
-                                    <h4>Despues</h4>
-                                    <div class="datos-json">${this.escapeHtml(datosNuevos)}</div>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                        ` : ''}
+                    <div class="detalle-campo">
+                        <div class="campo-label">Fecha y Hora</div>
+                        <div class="campo-valor">${fechaCompleta}</div>
                     </div>
-                </div>
+                    <div class="detalle-campo">
+                        <div class="campo-label">Usuario</div>
+                        <div class="campo-valor">${this.escapeHtml(registro.usuario_nombre)} (@${this.escapeHtml(registro.usuario_username)})</div>
+                    </div>
+                    <div class="detalle-campo">
+                        <div class="campo-label">Entidad</div>
+                        <div class="campo-valor">${this.escapeHtml(registro.entidad)} ${registro.entidad_id ? '(ID: ' + this.escapeHtml(registro.entidad_id) + ')' : ''}</div>
+                    </div>
+                    ${registro.detalles ? `
+                    <div class="detalle-campo">
+                        <div class="campo-label">Descripción</div>
+                        <div class="campo-valor">${this.escapeHtml(registro.detalles)}</div>
+                    </div>
+                    ` : ''}
+                    ${registro.ip_address ? `
+                    <div class="detalle-campo">
+                        <div class="campo-label">Dirección IP</div>
+                        <div class="campo-valor">${this.escapeHtml(registro.ip_address)}</div>
+                    </div>
+                    ` : ''}
+                    ${(datosAnteriores || datosNuevos) ? `
+                    <div class="detalle-campo">
+                        <div class="campo-label">Datos</div>
+                        <div class="datos-comparacion">
+                            ${datosAnteriores ? `
+                            <div class="datos-col">
+                                <h3>Antes</h3>
+                                <div class="datos-json">${this.escapeHtml(datosAnteriores)}</div>
+                            </div>
+                            ` : ''}
+                            ${datosNuevos ? `
+                            <div class="datos-col">
+                                <h3>Después</h3>
+                                <div class="datos-json">${this.escapeHtml(datosNuevos)}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+                
             `;
 
-            document.body.appendChild(modal);
-
-            // Close handlers
-            const closeBtn = modal.querySelector('#modal-close-btn');
-            closeBtn.addEventListener('click', () => modal.remove());
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.remove();
+            window.dialogo.abrir({
+                titulo: 'Detalle de la operación',
+                icono: op.icon,
+                cuerpo,
+                ancho: true,
+                acciones: [{ id: 'cerrar', texto: 'Cerrar', tipo: 'secundario', foco: true }],
             });
         }
 

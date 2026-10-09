@@ -61,8 +61,8 @@ class UsuariosComponent {
             </div>
 
             <div class="usuarios-tabla-container">
-                <div id="usuarios-loading" class="usuarios-loading" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i> Cargando usuarios...
+                <div id="usuarios-loading" class="usuarios-loading" role="status" hidden>
+                    <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Cargando usuarios…
                 </div>
                 <table class="usuarios-tabla" id="usuarios-tabla">
                     <thead>
@@ -79,91 +79,72 @@ class UsuariosComponent {
                     <tbody id="usuarios-tbody">
                     </tbody>
                 </table>
-                <div id="usuarios-empty" class="usuarios-empty" style="display: none;">
-                    <i class="fas fa-users-slash"></i>
+                <div id="usuarios-empty" class="usuarios-empty" hidden>
+                    <i class="fas fa-users-slash" aria-hidden="true"></i>
                     <p>No se encontraron usuarios</p>
                 </div>
             </div>
 
-            <!-- Modal Crear/Editar Usuario -->
-            <div id="modal-usuario" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-usuario-titulo">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 id="modal-usuario-titulo"><i class="fas fa-user-plus"></i> Nuevo Usuario</h3>
-                        <button class="modal-close" id="modal-usuario-close" aria-label="Cerrar">&times;</button>
+            ${window.dialogo.html({
+                id: 'modal-usuario', form: 'form-usuario', icono: 'fa-user-plus', titulo: 'Nuevo usuario',
+                cuerpo: `
+                    <input type="hidden" id="form-usuario-id" value="">
+                    <div class="form-group">
+                        <label for="form-username">Usuario <span class="required" aria-hidden="true">*</span></label>
+                        <input type="text" id="form-username" class="form-input" placeholder="Nombre de usuario" required aria-required="true" minlength="3" autocomplete="off" autocapitalize="none" spellcheck="false">
                     </div>
-                    <form id="form-usuario" class="modal-body">
-                        <input type="hidden" id="form-usuario-id" value="">
-                        <div class="form-group">
-                            <label for="form-username">Usuario <span class="required">*</span></label>
-                            <input type="text" id="form-username" class="form-input" placeholder="Nombre de usuario" required minlength="3" autocomplete="off">
-                        </div>
-                        <div class="form-group" id="form-password-group">
-                            <label for="form-password">Contrase\u00f1a <span class="required">*</span></label>
-                            <div class="password-input-wrapper">
-                                <input type="password" id="form-password" class="form-input" placeholder="M\u00ednimo 8 caracteres" required minlength="8" maxlength="72" autocomplete="new-password">
-                                <button type="button" class="password-toggle" id="toggle-password" aria-label="Mostrar u ocultar la contrase\u00f1a">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="form-nombre">Nombre Completo <span class="required">*</span></label>
-                            <input type="text" id="form-nombre" class="form-input" placeholder="Nombre y apellido" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="form-email">Email</label>
-                            <input type="email" id="form-email" class="form-input" placeholder="correo@ejemplo.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="form-rol">Rol <span class="required">*</span></label>
-                            <select id="form-rol" class="form-input" required>
-                                <option value="">Seleccionar rol…</option>
-                            </select>
-                        </div>
-                        <div id="form-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-usuario">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" id="btn-guardar-usuario">
-                                <i class="fas fa-save"></i> Guardar
+                    <div class="form-group" id="form-password-group">
+                        <label for="form-password">Contraseña <span class="required" aria-hidden="true">*</span></label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="form-password" class="form-input" placeholder="Mínimo 8 caracteres" required aria-required="true" minlength="8" maxlength="72" autocomplete="new-password">
+                            <button type="button" class="password-toggle" id="toggle-password" aria-label="Mostrar la contraseña" aria-pressed="false">
+                                <i class="fas fa-eye" aria-hidden="true"></i>
                             </button>
                         </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Modal Resetear Contrase\u00f1a -->
-            <div id="modal-password" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-password-titulo">
-                <div class="modal-content modal-sm">
-                    <div class="modal-header">
-                        <h3 id="modal-password-titulo"><i class="fas fa-key"></i> Resetear Contrase\u00f1a</h3>
-                        <button class="modal-close" id="modal-password-close" aria-label="Cerrar">&times;</button>
                     </div>
-                    <form id="form-password-reset" class="modal-body">
-                        <input type="hidden" id="reset-user-id" value="">
-                        <p class="modal-info">Establecer nueva contrase\u00f1a para <strong id="reset-username"></strong></p>
-                        <div class="form-group">
-                            <label for="reset-new-password">Nueva Contrase\u00f1a <span class="required">*</span></label>
-                            <div class="password-input-wrapper">
-                                <input type="password" id="reset-new-password" class="form-input" placeholder="M\u00ednimo 8 caracteres" required minlength="8" maxlength="72" autocomplete="new-password">
-                                <button type="button" class="password-toggle" id="toggle-reset-password" aria-label="Mostrar u ocultar la contrase\u00f1a">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div id="reset-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-cancelar-password">Cancelar</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-key"></i> Resetear
+                    <div class="form-group">
+                        <label for="form-nombre">Nombre completo <span class="required" aria-hidden="true">*</span></label>
+                        <input type="text" id="form-nombre" class="form-input" placeholder="Nombre y apellido" required aria-required="true">
+                    </div>
+                    <div class="form-group">
+                        <label for="form-email">Email</label>
+                        <input type="email" id="form-email" class="form-input" placeholder="correo@ejemplo.com" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="form-group">
+                        <label for="form-rol">Rol <span class="required" aria-hidden="true">*</span></label>
+                        <select id="form-rol" class="form-input" required aria-required="true">
+                            <option value="">Seleccionar rol…</option>
+                        </select>
+                    </div>
+                    <div id="form-error" class="form-error" role="alert" hidden></div>`,
+                pie: `
+                    <button type="button" class="btn btn-secondary" id="btn-cancelar-usuario">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-guardar-usuario">
+                        <i class="fas fa-save" aria-hidden="true"></i> Guardar
+                    </button>`,
+            })}
+
+            ${window.dialogo.html({
+                id: 'modal-password', form: 'form-password-reset', icono: 'fa-key', titulo: 'Resetear contraseña',
+                cuerpo: `
+                    <input type="hidden" id="reset-user-id" value="">
+                    <p class="modal-info">Establecer nueva contraseña para <strong id="reset-username"></strong></p>
+                    <div class="form-group">
+                        <label for="reset-new-password">Nueva contraseña <span class="required" aria-hidden="true">*</span></label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="reset-new-password" class="form-input" placeholder="Mínimo 8 caracteres" required aria-required="true" minlength="8" maxlength="72" autocomplete="new-password">
+                            <button type="button" class="password-toggle" id="toggle-reset-password" aria-label="Mostrar la contraseña" aria-pressed="false">
+                                <i class="fas fa-eye" aria-hidden="true"></i>
                             </button>
                         </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Notificaci\u00f3n toast -->
-            <div id="toast-container" class="toast-container"></div>
+                    </div>
+                    <div id="reset-error" class="form-error" role="alert" hidden></div>`,
+                pie: `
+                    <button type="button" class="btn btn-secondary" id="btn-cancelar-password">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-key" aria-hidden="true"></i> Resetear
+                    </button>`,
+            })}
         `;
     }
 
@@ -191,38 +172,20 @@ class UsuariosComponent {
         document.getElementById('modal-password-close').addEventListener('click', () => this.cerrarModalPassword());
         document.getElementById('btn-cancelar-password').addEventListener('click', () => this.cerrarModalPassword());
 
-        // Cerrar modales con click en overlay
-        document.getElementById('modal-usuario').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) this.cerrarModalUsuario();
+        // Mostrar/ocultar contraseña
+        const alternarClave = (idInput, idBoton) => document.getElementById(idBoton).addEventListener('click', (e) => {
+            const input = document.getElementById(idInput);
+            const boton = e.currentTarget;
+            const visible = input.type === 'password';
+            input.type = visible ? 'text' : 'password';
+            boton.setAttribute('aria-pressed', String(visible));
+            boton.setAttribute('aria-label', visible ? 'Ocultar la contraseña' : 'Mostrar la contraseña');
+            const icon = boton.querySelector('i');
+            icon.classList.toggle('fa-eye', !visible);
+            icon.classList.toggle('fa-eye-slash', visible);
         });
-        document.getElementById('modal-password').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) this.cerrarModalPassword();
-        });
-
-        // Toggle password visibility
-        document.getElementById('toggle-password').addEventListener('click', () => {
-            const input = document.getElementById('form-password');
-            const icon = document.getElementById('toggle-password').querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        });
-
-        document.getElementById('toggle-reset-password').addEventListener('click', () => {
-            const input = document.getElementById('reset-new-password');
-            const icon = document.getElementById('toggle-reset-password').querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        });
+        alternarClave('form-password', 'toggle-password');
+        alternarClave('reset-new-password', 'toggle-reset-password');
 
         // Filtros
         document.getElementById('filtro-rol').addEventListener('change', (e) => {
@@ -232,14 +195,6 @@ class UsuariosComponent {
         document.getElementById('filtro-estado').addEventListener('change', (e) => {
             this.filtros.estado = e.target.value;
             this.renderizarTabla();
-        });
-
-        // Cerrar modales con Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.cerrarModalUsuario();
-                this.cerrarModalPassword();
-            }
         });
     }
 
@@ -275,9 +230,9 @@ class UsuariosComponent {
 
     async cargarUsuarios() {
         this.cargando = true;
-        document.getElementById('usuarios-loading').style.display = 'flex';
-        document.getElementById('usuarios-tabla').style.display = 'none';
-        document.getElementById('usuarios-empty').style.display = 'none';
+        document.getElementById('usuarios-loading').hidden = false;
+        document.getElementById('usuarios-tabla').hidden = true;
+        document.getElementById('usuarios-empty').hidden = true;
 
         try {
             const response = await window.apiService.obtenerUsuarios();
@@ -290,7 +245,7 @@ class UsuariosComponent {
             this.mostrarToast('Error al cargar usuarios: ' + error.message, 'error');
         } finally {
             this.cargando = false;
-            document.getElementById('usuarios-loading').style.display = 'none';
+            document.getElementById('usuarios-loading').hidden = true;
         }
     }
 
@@ -313,13 +268,13 @@ class UsuariosComponent {
         count.textContent = `${filtrados.length} usuario${filtrados.length !== 1 ? 's' : ''}`;
 
         if (filtrados.length === 0) {
-            tabla.style.display = 'none';
-            empty.style.display = 'flex';
+            tabla.hidden = true;
+            empty.hidden = false;
             return;
         }
 
-        tabla.style.display = 'table';
-        empty.style.display = 'none';
+        tabla.hidden = false;
+        empty.hidden = true;
 
         tbody.innerHTML = filtrados.map(usuario => `
             <tr class="${!usuario.activo ? 'usuario-inactivo' : ''}">
@@ -341,17 +296,18 @@ class UsuariosComponent {
                 <td>${this.formatearFecha(usuario.created_at)}</td>
                 <td>
                     <div class="acciones-cell">
-                        <button class="btn-accion btn-editar" title="Editar usuario" data-id="${usuario.id}">
-                            <i class="fas fa-edit"></i>
+                        <button type="button" class="btn-accion btn-editar" title="Editar usuario" aria-label="Editar a ${this.escapeHtml(usuario.username)}" data-id="${usuario.id}">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
                         </button>
-                        <button class="btn-accion btn-password" title="Resetear contrase\u00f1a" data-id="${usuario.id}" data-username="${this.escapeHtml(usuario.username)}">
-                            <i class="fas fa-key"></i>
+                        <button type="button" class="btn-accion btn-password" title="Resetear contrase\u00f1a" aria-label="Resetear la contrase\u00f1a de ${this.escapeHtml(usuario.username)}" data-id="${usuario.id}" data-username="${this.escapeHtml(usuario.username)}">
+                            <i class="fas fa-key" aria-hidden="true"></i>
                         </button>
-                        <button class="btn-accion ${usuario.activo ? 'btn-desactivar' : 'btn-activar'}"
+                        <button type="button" class="btn-accion ${usuario.activo ? 'btn-desactivar' : 'btn-activar'}"
                                 title="${usuario.activo ? 'Desactivar' : 'Activar'} usuario"
+                                aria-label="${usuario.activo ? 'Desactivar' : 'Activar'} a ${this.escapeHtml(usuario.username)}"
                                 data-id="${usuario.id}"
                                 data-activo="${usuario.activo}">
-                            <i class="fas ${usuario.activo ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                            <i class="fas ${usuario.activo ? 'fa-user-slash' : 'fa-user-check'}" aria-hidden="true"></i>
                         </button>
                     </div>
                 </td>
@@ -373,52 +329,60 @@ class UsuariosComponent {
     // Modal operations
 
     abrirModalCrear() {
-        document.getElementById('modal-usuario-titulo').innerHTML = '<i class="fas fa-user-plus"></i> Nuevo Usuario';
+        window.dialogo.fijarTitulo('modal-usuario', 'fa-user-plus', 'Nuevo usuario');
         document.getElementById('form-usuario-id').value = '';
         document.getElementById('form-username').value = '';
         document.getElementById('form-username').disabled = false;
         document.getElementById('form-password').value = '';
-        document.getElementById('form-password-group').style.display = 'block';
+        document.getElementById('form-password-group').hidden = false;
         document.getElementById('form-nombre').value = '';
         document.getElementById('form-email').value = '';
         document.getElementById('form-rol').value = '';
-        document.getElementById('form-error').style.display = 'none';
-        document.getElementById('modal-usuario').style.display = 'flex';
-        document.getElementById('form-username').focus();
+        this.ocultarFormError('form-error');
+        this.abrirDialogo('modal-usuario', 'form-username');
     }
 
     abrirModalEditar(userId) {
         const usuario = this.usuarios.find(u => u.id === userId);
         if (!usuario) return;
 
-        document.getElementById('modal-usuario-titulo').innerHTML = '<i class="fas fa-user-edit"></i> Editar Usuario';
+        window.dialogo.fijarTitulo('modal-usuario', 'fa-user-edit', 'Editar usuario');
         document.getElementById('form-usuario-id').value = usuario.id;
         document.getElementById('form-username').value = usuario.username;
         document.getElementById('form-username').disabled = true;
-        document.getElementById('form-password-group').style.display = 'none';
+        document.getElementById('form-password-group').hidden = true;
         document.getElementById('form-nombre').value = usuario.nombre_completo || '';
         document.getElementById('form-email').value = usuario.email || '';
         document.getElementById('form-rol').value = usuario.rol || '';
-        document.getElementById('form-error').style.display = 'none';
-        document.getElementById('modal-usuario').style.display = 'flex';
-        document.getElementById('form-nombre').focus();
+        this.ocultarFormError('form-error');
+        this.abrirDialogo('modal-usuario', 'form-nombre');
     }
 
     cerrarModalUsuario() {
-        document.getElementById('modal-usuario').style.display = 'none';
+        document.getElementById('modal-usuario').close();
     }
 
     abrirModalPassword(userId, username) {
         document.getElementById('reset-user-id').value = userId;
         document.getElementById('reset-username').textContent = username;
         document.getElementById('reset-new-password').value = '';
-        document.getElementById('reset-error').style.display = 'none';
-        document.getElementById('modal-password').style.display = 'flex';
-        document.getElementById('reset-new-password').focus();
+        this.ocultarFormError('reset-error');
+        this.abrirDialogo('modal-password', 'reset-new-password');
     }
 
     cerrarModalPassword() {
-        document.getElementById('modal-password').style.display = 'none';
+        document.getElementById('modal-password').close();
+    }
+
+    /**
+     * Abre un diálogo nativo y pone el foco en el campo pedido. `dialogo.mostrar` devuelve el foco
+     * al botón que lo abrió cuando se cierra (incluido con Escape).
+     */
+    abrirDialogo(id, campoId) {
+        const dlg = document.getElementById(id);
+        if (dlg.open) return;
+        window.dialogo.mostrar(dlg);
+        document.getElementById(campoId)?.focus();
     }
 
     // CRUD operations
@@ -486,7 +450,12 @@ class UsuariosComponent {
 
     async toggleEstadoUsuario(userId, currentlyActive) {
         const action = currentlyActive ? 'desactivar' : 'activar';
-        const confirmed = confirm(`\u00bfEst\u00e1 seguro que desea ${action} este usuario?`);
+        const confirmed = await window.dialogo.confirmar({
+            titulo: currentlyActive ? 'Desactivar usuario' : 'Activar usuario',
+            mensaje: `\u00bfEst\u00e1 seguro que desea ${action} este usuario?`,
+            confirmar: currentlyActive ? 'Desactivar' : 'Activar',
+            tono: currentlyActive ? 'peligro' : undefined,
+        });
         if (!confirmed) return;
 
         try {
@@ -559,26 +528,18 @@ class UsuariosComponent {
     mostrarFormError(elementId, message) {
         const el = document.getElementById(elementId);
         el.textContent = message;
-        el.style.display = 'block';
+        el.hidden = false;
     }
 
+    ocultarFormError(elementId) {
+        const el = document.getElementById(elementId);
+        el.textContent = '';
+        el.hidden = true;
+    }
+
+    /** Avisos del sistema (regiones vivas), no un contenedor propio. */
     mostrarToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-
-        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
-        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${this.escapeHtml(message)}`;
-
-        container.appendChild(toast);
-
-        // Trigger animation
-        requestAnimationFrame(() => toast.classList.add('toast-visible'));
-
-        setTimeout(() => {
-            toast.classList.remove('toast-visible');
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
+        window.avisos.mostrar(message, type);
     }
 }
 
