@@ -398,8 +398,9 @@
     }
 
     /* El contenido se corre lo que mide la columna. `:has()` limita esto a las páginas que
-       sí tienen barra (el login no la dibuja). */
-    body:has(.navbar-unified) {
+       sí tienen barra (el login no la dibuja). Se apoya en #navbar-container, que viene en el HTML,
+       y no en la barra, que dibuja JS después: si no, el contenido saltaba 240 px al cargar (CLS). */
+    body:has(#navbar-container) {
         padding-left: var(--nav-ancho);
         padding-top: var(--ds-space-6);
         transition: padding-left var(--ds-dur-base) var(--ds-ease-out);
@@ -468,7 +469,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .navbar-unified,
-    body:has(.navbar-unified),
+    body:has(#navbar-container),
     .nav-item,
     .nav-colapsar i,
     .hamburger-line {

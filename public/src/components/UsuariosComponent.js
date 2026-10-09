@@ -118,7 +118,7 @@ class UsuariosComponent {
                         <div class="form-group">
                             <label for="form-rol">Rol <span class="required">*</span></label>
                             <select id="form-rol" class="form-input" required>
-                                <option value="">Seleccionar rol...</option>
+                                <option value="">Seleccionar rol…</option>
                             </select>
                         </div>
                         <div id="form-error" class="form-error" style="display: none;"></div>
@@ -267,7 +267,7 @@ class UsuariosComponent {
 
         // Select del formulario
         const formRol = document.getElementById('form-rol');
-        formRol.innerHTML = '<option value="">Seleccionar rol...</option>';
+        formRol.innerHTML = '<option value="">Seleccionar rol…</option>';
         this.roles.forEach(rol => {
             formRol.innerHTML += `<option value="${escaparHtml(rol.nombre)}">${escaparHtml(this.formatearRol(rol.nombre))}</option>`;
         });
@@ -458,7 +458,7 @@ class UsuariosComponent {
 
         const btn = document.getElementById('btn-guardar-usuario');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando…';
 
         try {
             let response;

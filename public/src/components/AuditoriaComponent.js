@@ -102,7 +102,7 @@
                     <div id="auditoria-tabla-wrapper">
                         <div class="auditoria-loading">
                             <i class="fas fa-spinner"></i>
-                            <p>Cargando registros de auditoria...</p>
+                            <p>Cargando registros de auditoría…</p>
                         </div>
                     </div>
                 </div>
@@ -438,7 +438,7 @@
 
         truncar(texto, max) {
             if (!texto) return '';
-            return texto.length > max ? texto.substring(0, max) + '...' : texto;
+            return texto.length > max ? texto.substring(0, max) + '…' : texto;
         }
 
         /**

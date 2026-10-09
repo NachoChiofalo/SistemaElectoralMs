@@ -37,7 +37,7 @@ Hoy no se le pide nada a nadie:
 
 - **Iconos**: dibujos de [Lucide](https://lucide.dev), emitidos como reglas CSS con
   `mask-image`. 30,7 KB en disco, **3,9 KB en Brotli**.
-- **Tipografía**: Inter servida desde el mismo origen, subset latin, cuatro pesos.
+- **Tipografía**: Geist Sans (interfaz, 400/500/600) y Geist Mono (cifras, 400/500) servidas desde el mismo origen, subset latin.
 - **Gráficos**: `src/lib/microchart.js`, 5 KB gzip.
 
 Hay un test que falla si vuelve a aparecer un `<link>` a un CDN. No es purismo: son bytes
@@ -193,7 +193,7 @@ npm run build:assets
 No compila nada. Genera:
 
 1. `src/styles/icons.css` — las máscaras, a partir de los dibujos de Lucide
-2. `src/styles/fonts.css` + `assets/fonts/*.woff2` — Inter
+2. `src/styles/fonts.css` + `assets/fonts/*.woff2` — Geist Sans y Geist Mono
 3. El `?v=<hash>` en las referencias del HTML
 4. Los `.br` y `.gz` de cada archivo de texto
 

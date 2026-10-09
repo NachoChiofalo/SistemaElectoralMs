@@ -230,7 +230,7 @@ class ListasComponent {
                             <input type="text" class="form-input lista-input-nombre" data-campo="nombre"
                                 placeholder="Nombre de la lista" maxlength="200" required value="${escaparHtml(lista.nombre)}">
                             <select class="form-input lista-input-tipo" data-campo="tipoEleccion" required>
-                                <option value="" ${lista.tipoEleccion ? '' : 'selected'}>Tipo...</option>
+                                <option value="" ${lista.tipoEleccion ? '' : 'selected'}>Tipo…</option>
                                 ${this.tiposEleccion.map((t) => `<option value="${t}" ${lista.tipoEleccion === t ? 'selected' : ''}>${this.formatearTipo(t)}</option>`).join('')}
                             </select>
                             <input type="number" class="form-input lista-input-lugares" data-campo="cantidadLugares"

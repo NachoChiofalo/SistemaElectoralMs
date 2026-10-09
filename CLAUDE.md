@@ -102,8 +102,17 @@ sostienen; una regla de estas no se discute con una captura, se rompe con un tes
   poco rompe todas las pantallas a la vez y ningún otro test lo ve.
 - *Nunca `transition: all`*: se listan las propiedades que cambian. El test lo impide.
 - *Foco*: nunca `outline: none` sin reemplazo; el anillo es `--ds-shadow-focus` (sólido).
-- *Sin scroll horizontal*: la barra de navegación entra en una fila de 769 px para arriba.
-  Se medía a ojo y estuvo rota meses a 1280 px.
+- *Sin scroll horizontal*: ni en móvil ni en escritorio. La navegación es una barra lateral
+  (240 px, o 68 colapsada) y el contenido se corre por `--nav-ancho`; el lugar se reserva en CSS
+  (`body:has(#navbar-container)`) y no cuando JS dibuja la barra, o la página salta al cargar.
+- *Una pantalla es igual a las demás*: contenedor `main#contenido` (1440 px), cabecera con
+  `h1` + subtítulo + acciones, encabezado de tabla y botones salen de `design-system.css`
+  (sección "Pantalla"). Una hoja de pantalla no define su ancho, su título ni su botón.
+- *El tema de entrada es el oscuro*; "Sistema" es una elección guardada, no la ausencia de
+  elección (`tema.js`). El claro es el espejo del oscuro y se mide igual.
+- *Teclado en lo que dibuja*: gráficos (`microchart.js`) y mapa tienen un solo tope de
+  tabulación y flechas; el calendario de fiscales trae su tabla. Lo miden
+  `scripts/verificar-componentes.js` y `scripts/verificar-mapa.js`.
 - *Todo control tiene nombre accesible y se opera con teclado*; todo lo asíncrono tiene
   estado cargando, vacío y error visibles (el toast es sólo para lo transitorio).
 - *Un patrón, un componente*: botón, campo, diálogo, aviso, tabla, pestañas y paginación
@@ -168,7 +177,8 @@ significando algo con más de un usuario activo, que es exactamente el escenario
 | Por qué el frontend es como es | [docs/FRONTEND.md](docs/FRONTEND.md) |
 | Paleta, tipografía, logo e ícono — la identidad de marca | [docs/IDENTIDAD.md](docs/IDENTIDAD.md) |
 | Cómo hace el sistema para que dos personas no se pisen | [docs/MULTIUSUARIO.md](docs/MULTIUSUARIO.md) |
-| Selector de tema claro/oscuro | `public/src/tema.js` |
+| Selector de tema claro/oscuro (oscuro por defecto) | `public/src/tema.js` |
+| Barra lateral, logo como máscara, colapso | `public/src/components/NavbarComponent.js`, `public/src/styles/navbar-styles.css` |
 | Dirección visual, contraste, forma, movimiento y reglas de verificación del frontend | [docs/DESIGN.md](docs/DESIGN.md) |
 | Opciones políticas de la instancia (qué se puede marcar al relevar) | `src/modules/padron/opciones.js`, `public/src/lib/opciones.js`, pantalla `configuracion.html` |
 | Mapa por manzana y radio censal (018) | `src/modules/territorio/` (esquema `territorio`, solo administrador por `territorio.view`). Cómo se ubica un domicilio: `ubicacion.js`; de dónde salen las capas: `capas.js`; el umbral de privacidad: `aplicarUmbral` en `service.js`; el dibujo: `public/src/components/MapaComponent.js` y `lib/geometria-svg.js` |
@@ -229,8 +239,8 @@ relevamiento invalida el caché** — si agregás una escritura, invalidá.
 **`public/` no le pide nada a ningún tercero.** Antes cada página cargaba Font Awesome
 entero y Google Fonts desde dos CDN, y `resultados.html` sumaba Chart.js: sólo Font
 Awesome eran 175 KB transferidos para usar 79 iconos de los ~2000 que trae. Ahora los
-iconos son máscaras CSS con dibujos de Lucide (31 KB, **3,9 KB en Brotli**), Inter se
-sirve desde acá y los gráficos son `microchart.js` (5 KB gzip). Hay un test que falla si
+iconos son máscaras CSS con dibujos de Lucide (31 KB, **3,9 KB en Brotli**), Geist Sans y
+Geist Mono se sirven desde acá y los gráficos son `microchart.js` (5 KB gzip). Hay un test que falla si
 vuelve a aparecer un `<link>` a un CDN, porque son bytes que no controlamos y un punto
 de falla fuera del VPS.
 

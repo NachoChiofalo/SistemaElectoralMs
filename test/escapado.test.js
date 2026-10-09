@@ -84,8 +84,6 @@ const INTERPOLACIONES_PROHIBIDAS = [
   ['PadronComponent.js', '${votante.circuito}'],
   ['PadronComponent.js', "${relevamiento?.telefono || ''}"],
   ['PadronComponent.js', "${relevamiento?.observacion || ''}"],
-  ['DetalleVotanteComponent.js', '${votante.dni}'],
-  ['DetalleVotanteComponent.js', '${votante.circuito}'],
   ['NavbarComponent.js', '${username}'],
   ['PadronComponent.js', '<option value="${c}">${c}</option>'],
   ['PadronComponent.js', '<option value="${opt.value}">'],

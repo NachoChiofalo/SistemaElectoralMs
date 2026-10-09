@@ -86,6 +86,12 @@
 
     aplicar(leerGuardado());
 
+    // Ancho de la barra lateral antes del primer pintado: si se aplicara cuando la barra se dibuja,
+    // quien la dejó colapsada vería el contenido saltar 172 px (CLS). Misma clave que NavbarComponent.js.
+    try {
+        if (localStorage.getItem('sistema-electoral:nav') === 'colapsada') document.documentElement.dataset.nav = 'colapsada';
+    } catch (e) { /* sin persistencia: queda expandida */ }
+
     global.addEventListener('load', sincronizarBarra);
     global.addEventListener('tema:cambiado', sincronizarBarra);
     if (global.matchMedia) {
