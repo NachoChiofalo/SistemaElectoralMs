@@ -59,6 +59,18 @@ for (const [tema, token] of Object.entries(TEMAS)) {
     assert.deepEqual(fallas, [], `Contraste insuficiente (WCAG AA 4,5:1):\n  ${fallas.join('\n  ')}`);
   });
 
+  test(`el texto atenuado cumple 4,5:1 sobre bg-muted en el tema ${tema}`, () => {
+    const r = contraste(token('text-muted'), token('bg-muted'));
+    assert.ok(r >= 4.5, `text-muted sobre bg-muted = ${r.toFixed(2)}:1`);
+  });
+
+  test(`el borde de los controles cumple 3:1 (WCAG 1.4.11) sobre card y elevated en el tema ${tema}`, () => {
+    for (const superficie of ['bg-card', 'bg-elevated']) {
+      const r = contraste(token('border-strong'), token(superficie));
+      assert.ok(r >= 3, `border-strong sobre ${superficie} = ${r.toFixed(2)}:1`);
+    }
+  });
+
   test(`el texto primario y secundario cumplen 4,5:1 sobre bg-muted en el tema ${tema}`, () => {
     for (const texto of ['text-primary', 'text-secondary']) {
       const r = contraste(token(texto), token('bg-muted'));

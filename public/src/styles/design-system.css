@@ -28,44 +28,44 @@
        leen mil filas eso se paga caro. El grafito no puede confundirse con ningún dato
        porque no tiene matiz, y deja que el único color fuerte de la pantalla sea el que
        de verdad informa: el del partido. */
-    --ds-primary-50:  #f0f0f0;
-    --ds-primary-100: #e5e5e5;
-    --ds-primary-200: #d4d4d4;
-    --ds-primary-300: #a3a3a3;
-    --ds-primary-400: #737373;
-    --ds-primary-500: #404040;
-    --ds-primary-600: #343434;
-    --ds-primary-700: #1c1c1c;
-    --ds-primary-800: #0f0f0f;
+    --ds-primary-50:  #F4F4F5;
+    --ds-primary-100: #EBECEE;
+    --ds-primary-200: #D9DBDF;
+    --ds-primary-300: #A9AEB7;
+    --ds-primary-400: #8A8E96;
+    --ds-primary-500: #3A3D44;
+    --ds-primary-600: #121316;
+    --ds-primary-700: #0A0B0D;
+    --ds-primary-800: #0A0B0D;
     --ds-primary-900: #000000;
 
     /* —— Neutros ——
        Grises reales, sin tinte azul. Es lo que más hace que la interfaz se lea como un
        panel moderno y no como un sistema institucional: el navy de antes teñía cada
        borde y cada fondo, y eso le daba un peso que en una pantalla de trabajo cansa. */
-    --ds-secondary-50:  #fafafa;
-    --ds-secondary-100: #f5f5f5;
-    --ds-secondary-200: #ebebeb;
-    --ds-secondary-300: #e0e0e0;
-    --ds-secondary-400: #a1a1a1;
-    --ds-secondary-500: #737373;
-    --ds-secondary-600: #525252;
-    --ds-secondary-700: #404040;
-    --ds-secondary-800: #343434;
-    --ds-secondary-900: #1c1c1c;
+    --ds-secondary-50:  #F8F8F9;
+    --ds-secondary-100: #F4F4F5;
+    --ds-secondary-200: #EBECEE;
+    --ds-secondary-300: #D9DBDF;
+    --ds-secondary-400: #8A8E96;
+    --ds-secondary-500: #62676F;
+    --ds-secondary-600: #52565E;
+    --ds-secondary-700: #3A3D44;
+    --ds-secondary-800: #2A2D33;
+    --ds-secondary-900: #121316;
 
     /* —— Acento secundario ——
        Era dorado. Hoy duplica la rampa de acento a propósito: mantener dos escalas
        distintas fue lo que llevó al arcoíris que tenía el dashboard. Existe como alias
        para no tener que reescribir los usos de `--ds-accent-*` repartidos por las hojas. */
-    --ds-accent-50:  #f0f0f0;
-    --ds-accent-100: #e5e5e5;
-    --ds-accent-200: #d4d4d4;
-    --ds-accent-300: #a3a3a3;
-    --ds-accent-400: #737373;
-    --ds-accent-500: #404040;
-    --ds-accent-600: #343434;
-    --ds-accent-700: #1c1c1c;
+    --ds-accent-50:  #F4F4F5;
+    --ds-accent-100: #EBECEE;
+    --ds-accent-200: #D9DBDF;
+    --ds-accent-300: #A9AEB7;
+    --ds-accent-400: #8A8E96;
+    --ds-accent-500: #3A3D44;
+    --ds-accent-600: #121316;
+    --ds-accent-700: #0A0B0D;
 
     /* —— Estados semánticos —— */
     --ds-success-50:  #ecfdf5;
@@ -161,40 +161,40 @@
        que darse vuelta. Son dos necesidades distintas y por eso son dos tokens. */
     --ds-on-primary: #ffffff;
 
-    --ds-primary-on-tint: #1c1c1c;
+    --ds-primary-on-tint: #121316;
     --ds-success-on-tint: #047857;
     --ds-warning-on-tint: #8f6410;
     --ds-danger-on-tint:  #b91c1c;
     --ds-info-on-tint:    #1d4ed8;
-    --ds-accent-on-tint:  #1c1c1c;
+    --ds-accent-on-tint:  #121316;
 
     /* —— Superficies ——
        Planas y muy cercanas entre sí: la jerarquía la dan los bordes y el espacio, no
        la sombra ni el color. La página es apenas más oscura que la tarjeta, lo justo
        para que la tarjeta se recorte. */
-    --ds-bg-page:    #fafaf9;
+    --ds-bg-page:    #F4F4F5;
     --ds-bg-card:    #ffffff;
     --ds-bg-elevated: #ffffff;
-    --ds-bg-subtle:  #f5f5f5;
-    --ds-bg-muted:   #ebebeb;
+    --ds-bg-subtle:  #F8F8F9;
+    --ds-bg-muted:   #EBECEE;
 
     /* —— Bordes ——
        Son el recurso principal de separación, así que van finos y claros. Un borde de
        1px a #ebebeb ordena tanto como una sombra y no ensucia el fondo. */
-    --ds-border-light:  #ebebeb;
-    --ds-border-default: #e0e0e0;
-    --ds-border-strong: #a1a1a1;
+    --ds-border-light:  #E7E8EA;
+    --ds-border-default: #D9DBDF;
+    --ds-border-strong: #8A8E96;
 
     /* —— Texto ——
        Casi negro para el contenido, no negro puro: sobre blanco el #1c1c1c se lee igual
        de nítido y vibra menos. */
-    --ds-text-primary:   #1c1c1c;
-    --ds-text-secondary: #525252;
+    --ds-text-primary:   #121316;
+    --ds-text-secondary: #52565E;
     /* Muted era #a1a1a1: 2,6:1 sobre blanco, bajo el 4,5:1 de WCAG AA para texto. Es el
        texto de etiquetas, ayudas y placeholders, o sea el que más se lee en una tabla.
        #666666 da 5,7:1 sobre blanco y 4,8:1 sobre --ds-bg-muted, la superficie más oscura
        donde aparece. Lo cuida test/design-tokens.test.js. */
-    --ds-text-muted:     #666666;
+    --ds-text-muted:     #62676F;
     --ds-text-inverse:   #ffffff;
 
     /* Negro puro, sólo para `prefers-contrast: high`. Es un token y no un literal para
@@ -234,11 +234,12 @@
     --ds-z-toast:   1200;
 
     /* —— Radios ——
-       Más angulares que antes (6/8/12/16): el logo es geometría isométrica de vértices
-       rectos, y las esquinas muy redondeadas le quedaban de otra familia. Una sola
-       escala: controles md, paneles lg, modales xl; full solo para avatares y chips. */
-    --ds-radius-sm:  4px;
-    --ds-radius-md:  6px;
+       Todavía más angulares (3/5/8/12; antes 4/6/8/12 y antes 6/8/12/16): el logo es
+       geometría isométrica de vértices rectos y el centro de control pide esquinas
+       contenidas. Una sola escala: controles md, paneles lg, modales xl; full solo para
+       avatares y chips. */
+    --ds-radius-sm:  3px;
+    --ds-radius-md:  5px;
     --ds-radius-lg:  8px;
     --ds-radius-xl:  12px;
     --ds-radius-full: 9999px;
@@ -263,16 +264,20 @@
 
        El salto entre pasos es más marcado que antes, para que la jerarquía se note sin
        depender del color. */
-    --ds-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --ds-font-xs:   0.6875rem;  /* 11px — etiquetas de columna, badges */
-    --ds-font-sm:   0.75rem;    /* 12px — texto auxiliar */
+    /* Geist Sans para la interfaz y Geist Mono para toda cifra de datos (DNI, mesa, hora,
+       porcentaje, KPI): en un centro de control los números se leen en columna y se
+       comparan, así que ancho fijo y forma propia. Autoalojadas (scripts/build-assets.js). */
+    --ds-font-family: 'Geist Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --ds-font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --ds-font-xs:   0.75rem;    /* 12px — etiquetas de columna, badges */
+    --ds-font-sm:   0.8125rem;  /* 13px — texto auxiliar */
     --ds-font-base: 0.875rem;   /* 14px — cuerpo y celdas */
     --ds-font-chrome: 0.8125rem; /* 13px — navegación y controles densos de la barra: no crece con la base, o los nueve ítems más el usuario no entran en 1280 */
     --ds-font-lg:   1rem;       /* 16px — subtítulos */
-    --ds-font-xl:   1.125rem;   /* 18px — títulos de sección */
-    --ds-font-2xl:  1.375rem;   /* 22px — título de página */
+    --ds-font-xl:   1.25rem;    /* 20px — títulos de sección */
+    --ds-font-2xl:  1.5rem;     /* 24px — título de página */
     --ds-font-3xl:  1.75rem;    /* 28px — cifras destacadas */
-    --ds-font-4xl:  2.25rem;    /* 36px */
+    --ds-font-4xl:  2.75rem;    /* 44px — el KPI principal, en mono */
 
     /* —— Interletrado ——
        Inter se aprieta en los tamaños grandes y se abre en los chicos. Sin esto, un
@@ -996,23 +1001,23 @@ th[aria-sort="descending"] .th-orden::after { content: "\2193"; }
        contra el blanco cálido del modo claro; #202020 es el fondo alternativo
        de la identidad y deja más margen para que la tarjeta se recorte arriba
        sin recurrir a una sombra. La elevación sigue siendo luminosidad. —— */
-    --modo-oscuro-bg-page:     #202020;
-    --modo-oscuro-bg-card:     #2a2a2a;
-    --modo-oscuro-bg-elevated: #323232;
-    --modo-oscuro-bg-subtle:   #323232;
-    --modo-oscuro-bg-muted:    #3c3c3c;
+    --modo-oscuro-bg-page:     #0C0D0F;
+    --modo-oscuro-bg-card:     #131417;
+    --modo-oscuro-bg-elevated: #1A1C20;
+    --modo-oscuro-bg-subtle:   #17181C;
+    --modo-oscuro-bg-muted:    #22252A;
 
     /* —— Bordes: sobre fondo oscuro separan mejor que cualquier sombra —— */
-    --modo-oscuro-border-light:   #3a3a3a;
-    --modo-oscuro-border-default: #454545;
-    --modo-oscuro-border-strong:  #5c5c5c;
+    --modo-oscuro-border-light:   #1F2226;
+    --modo-oscuro-border-default: #2A2D33;
+    --modo-oscuro-border-strong:  #666B75;
 
     /* —— Texto: off-white, no blanco puro: sobre #2a2a2a el #fff vibra y cansa en una
        pantalla de lectura larga. Secundario y muted suben para llegar a 4,5:1 sobre
        las superficies más claras del tema (--modo-oscuro-bg-muted). —— */
-    --modo-oscuro-text-primary:   #f2f2f2;
-    --modo-oscuro-text-secondary: #b8b8b8;
-    --modo-oscuro-text-muted:     #a0a0a0;
+    --modo-oscuro-text-primary:   #ECEEF1;
+    --modo-oscuro-text-secondary: #A9AEB7;
+    --modo-oscuro-text-muted:     #8B919B;
 
     /* —— Partidos, aclarados para que se lean sobre fondo oscuro —— */
     --modo-oscuro-party-pj:       #60a5fa;
@@ -1039,28 +1044,28 @@ th[aria-sort="descending"] .th-orden::after { content: "\2193"; }
     --modo-oscuro-mapa-5: #6fd29c;
 
     /* —— Texto sobre tinte: acá el par se da vuelta y el texto pasa a ser el claro —— */
-    --modo-oscuro-primary-on-tint: #ffffff;
+    --modo-oscuro-primary-on-tint: #ECEEF1;
     --modo-oscuro-success-on-tint: #6ee7b7;
     --modo-oscuro-warning-on-tint: #fcd34d;
     --modo-oscuro-danger-on-tint:  #fca5a5;
     --modo-oscuro-info-on-tint:    #93c5fd;
-    --modo-oscuro-accent-on-tint:  #ffffff;
+    --modo-oscuro-accent-on-tint:  #ECEEF1;
 
     /* —— Tintes: los -50/-100 se usan como fondo de badges y en claro son casi
            blancos. Acá son grises oscuros apenas teñidos del color que representan. —— */
-    --modo-oscuro-primary-50:   #292929;
-    --modo-oscuro-primary-100:  #353535;
-    --modo-oscuro-primary-200:  #424242;
+    --modo-oscuro-primary-50:   #1A1C20;
+    --modo-oscuro-primary-100:  #22252A;
+    --modo-oscuro-primary-200:  #2A2D33;
     /* El acento se invierte: en claro va de claro a oscuro, en oscuro al reves. Un
        boton primario grafito sobre un fondo #2a2a2a seria invisible, y la barra de
        avance tambien. Blanco puro, la "version invertida" de la identidad. */
-    --modo-oscuro-primary-500:  #8f8f8f;
-    --modo-oscuro-primary-600:  #d4d4d4;
-    --modo-oscuro-primary-700:  #ffffff;
+    --modo-oscuro-primary-500:  #A9AEB7;
+    --modo-oscuro-primary-600:  #ECEEF1;
+    --modo-oscuro-primary-700:  #FFFFFF;
     /* Y si el acento pasa a ser claro, su texto pasa a ser oscuro. */
-    --modo-oscuro-on-primary:   #1c1c1c;
-    --modo-oscuro-secondary-100: #262626;
-    --modo-oscuro-secondary-200: #303030;
+    --modo-oscuro-on-primary:   #0C0D0F;
+    --modo-oscuro-secondary-100: #17181C;
+    --modo-oscuro-secondary-200: #22252A;
     --modo-oscuro-success-50:   #0f2820;
     --modo-oscuro-success-100:  #14342a;
     --modo-oscuro-success-200:  #1b4738;
@@ -1071,15 +1076,15 @@ th[aria-sort="descending"] .th-orden::after { content: "\2193"; }
     --modo-oscuro-info-100:     #1c3a5a;
 
     /* —— Gradientes: los de claro se confunden con el fondo, van un tono arriba —— */
-    --modo-oscuro-gradient-primary: #525252;
-    --modo-oscuro-gradient-navbar:  #2a2a2a;
-    --modo-oscuro-gradient-subtle:  #323232;
+    --modo-oscuro-gradient-primary: #4A4E56;
+    --modo-oscuro-gradient-navbar:  #131417;
+    --modo-oscuro-gradient-subtle:  #17181C;
 
-    --modo-oscuro-gradient-modulo-padron:     #525252;
-    --modo-oscuro-gradient-modulo-resultados: #404040;
-    --modo-oscuro-gradient-modulo-usuarios:   #3a3a3a;
-    --modo-oscuro-gradient-modulo-auditoria:  #333333;
-    --modo-oscuro-gradient-modulo-pendiente:  #2a2a2a;
+    --modo-oscuro-gradient-modulo-padron:     #4A4E56;
+    --modo-oscuro-gradient-modulo-resultados: #3A3D44;
+    --modo-oscuro-gradient-modulo-usuarios:   #33363C;
+    --modo-oscuro-gradient-modulo-auditoria:  #2A2D33;
+    --modo-oscuro-gradient-modulo-pendiente:  #1A1C20;
 
     /* —— Sombras: sobre oscuro casi no se ven; se compensan con más opacidad —— */
     --modo-oscuro-shadow-xs: none;

@@ -5,18 +5,21 @@
  * primer pintado. Si se aplicara después, quien eligió el tema oscuro vería un
  * destello blanco en cada navegación — el error clásico de los selectores de tema.
  *
- * Por defecto el tema lo decide el sistema operativo, vía `prefers-color-scheme` en
- * design-system.css. Este archivo sólo entra en juego cuando el usuario eligió algo
- * distinto: ahí escribe `data-theme` en el <html> y esa elección gana.
+ * El tema de diseño es el OSCURO (centro de control): si la persona nunca eligió nada, se
+ * muestra oscuro, sin importar cómo tenga el sistema operativo. Antes el defecto seguía
+ * al sistema. "Sistema" sigue existiendo, pero como una ELECCIÓN explícita (se guarda), no
+ * como el estado de "no elegí": en ese caso se borra `data-theme` y manda
+ * `prefers-color-scheme` en design-system.css.
  *
- * Los tres estados son "sistema" (nada guardado), "light" y "dark". Es el ciclo que
- * recorre el botón de la barra de navegación.
+ * Los tres estados son "dark" (defecto), "light" y "sistema". Es el ciclo que recorre el
+ * botón de la barra de navegación.
  */
 (function (global) {
     'use strict';
 
     const CLAVE = 'sistema-electoral:tema';
-    const CICLO = ['sistema', 'light', 'dark'];
+    const CICLO = ['dark', 'light', 'sistema'];
+    const DEFECTO = 'dark';
 
     /**
      * localStorage puede tirar excepción —modo privado, cookies bloqueadas por
@@ -25,16 +28,17 @@
     function leerGuardado() {
         try {
             const valor = localStorage.getItem(CLAVE);
-            return CICLO.includes(valor) ? valor : 'sistema';
+            return CICLO.includes(valor) ? valor : DEFECTO;
         } catch {
-            return 'sistema';
+            return DEFECTO;
         }
     }
 
     function guardar(tema) {
         try {
-            if (tema === 'sistema') localStorage.removeItem(CLAVE);
-            else localStorage.setItem(CLAVE, tema);
+            // "sistema" se guarda: es una elección, y borrarla la confundiría con "no elegí"
+            // (que ahora es oscuro).
+            localStorage.setItem(CLAVE, tema);
         } catch {
             // Sin persistencia el tema vale para esta página y nada más. Aceptable.
         }

@@ -40,12 +40,14 @@ const DIR_FUENTES = path.join(DIR_PUBLICO, 'assets', 'fonts');
 
 const SVGS_LUCIDE = path.join(RAIZ, 'node_modules', 'lucide-static', 'icons');
 const MAPA_ICONOS = require('./iconos-lucide');
-const FILES_INTER = path.join(RAIZ, 'node_modules', '@fontsource', 'inter', 'files');
-
-// Pesos que el frontend usa de verdad. Google Fonts servia seis; las hojas de estilo
-// declaran 400/500/600/700 y dos casos sueltos de 800/900 que el navegador sintetiza
-// desde 700. Cada peso es un archivo aparte y el navegador baja solo los que renderiza.
-const PESOS = [400, 500, 600, 700];
+// Familias que el frontend usa de verdad, con los pesos que renderiza. Cada peso es un archivo
+// aparte y el navegador baja solo los que dibuja. Geist Sans llega hasta 600: lo que pide 700
+// (los titulos) cae en el 600, y los 800/900 sueltos tambien.
+//   Geist Sans: la interfaz.   Geist Mono: toda cifra de datos (DNI, mesa, hora, KPI).
+const FUENTES = [
+  { familia: 'Geist Sans', paquete: 'geist-sans', pesos: [400, 500, 600] },
+  { familia: 'Geist Mono', paquete: 'geist-mono', pesos: [400, 500] },
+];
 
 // Iconos que no aparecen literales en el codigo porque se arman por concatenacion.
 // `fa-sort-${direccion}` en PadronComponent y `fa-${tipo}-circle` en ResultadosComponent.
@@ -240,22 +242,29 @@ function generarFuentes() {
   fs.mkdirSync(DIR_FUENTES, { recursive: true });
 
   const caras = [];
+  const generados = new Set();
   let bytes = 0;
+  let cantidad = 0;
 
-  for (const peso of PESOS) {
-    const archivo = `inter-latin-${peso}-normal.woff2`;
-    const origen = path.join(FILES_INTER, archivo);
-    if (!fs.existsSync(origen)) throw new Error(`Falta ${origen}. Corre npm install.`);
+  for (const { familia, paquete, pesos } of FUENTES) {
+    const origenes = path.join(RAIZ, 'node_modules', '@fontsource', paquete, 'files');
 
-    const destino = path.join(DIR_FUENTES, archivo);
-    fs.copyFileSync(origen, destino);
-    bytes += fs.statSync(origen).size;
+    for (const peso of pesos) {
+      const archivo = `${paquete}-latin-${peso}-normal.woff2`;
+      const origen = path.join(origenes, archivo);
+      if (!fs.existsSync(origen)) throw new Error(`Falta ${origen}. Corre npm install.`);
 
-    // El mismo hash que `estampar()` le pone al <link rel="preload"> del HTML. Si las
-    // dos URL no coincidieran, el navegador bajaria la fuente dos veces: una por el
-    // preload y otra por la @font-face.
-    caras.push(`@font-face {
-  font-family: 'Inter';
+      const destino = path.join(DIR_FUENTES, archivo);
+      fs.copyFileSync(origen, destino);
+      generados.add(archivo);
+      bytes += fs.statSync(origen).size;
+      cantidad++;
+
+      // El mismo hash que `estampar()` le pone al <link rel="preload"> del HTML. Si las
+      // dos URL no coincidieran, el navegador bajaria la fuente dos veces: una por el
+      // preload y otra por la @font-face.
+      caras.push(`@font-face {
+  font-family: '${familia}';
   font-style: normal;
   font-weight: ${peso};
   font-display: swap;
@@ -264,25 +273,28 @@ function generarFuentes() {
     U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
     U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }`);
+    }
+  }
+
+  // Las fuentes de una generacion anterior (Inter) no se sirven mas: fuera del repo tambien.
+  for (const viejo of fs.readdirSync(DIR_FUENTES)) {
+    if (viejo.endsWith('.woff2') && !generados.has(viejo)) fs.unlinkSync(path.join(DIR_FUENTES, viejo));
   }
 
   const css = `/* ==========================================================================
    TIPOGRAFIA — generado por scripts/build-assets.js. No editar a mano.
 
-   Inter servida desde el mismo origen. Antes era un @import a Google Fonts dentro de
-   design-system.css: el navegador tenia que bajar y parsear esa hoja para recien
-   enterarse de que existia otra hoja, y recien despues pedir las fuentes. Tres saltos
-   encadenados bloqueando el primer render, contra cero ahora.
-
-   Subset latin, que cubre castellano completo. font-display: swap muestra el texto con
-   la fuente de sistema mientras baja Inter, en vez de dejar la pagina en blanco.
+   Geist Sans (interfaz) y Geist Mono (cifras) servidas desde el mismo origen: ningun
+   @import ni CDN. Subset latin, que cubre castellano completo (tildes, n con tilde,
+   signos de apertura; verificado con fontTools). font-display: swap muestra el texto con
+   la fuente de sistema mientras baja la propia, en vez de dejar la pagina en blanco.
    ========================================================================== */
 
 ${caras.join('\n\n')}
 `;
 
   fs.writeFileSync(path.join(DIR_ESTILOS, 'fonts.css'), css);
-  return { cantidad: PESOS.length, bytes };
+  return { cantidad, bytes };
 }
 
 // ---- versionado de referencias -------------------------------------------
