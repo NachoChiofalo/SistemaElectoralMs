@@ -1,4 +1,3 @@
-// Configuración de módulos por rol
 // Estado de la aplicación
 let currentUser = null;
 let currentUserRole = null;
@@ -6,47 +5,29 @@ let userPermissions = [];
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Iniciando Dashboard...');
-    console.log('📋 Servicios disponibles:', {
-        authService: !!window.authService,
-        apiService: !!window.apiService,
-        navbarComponent: !!window.navbarComponent
-    });
-
     try {
         // Inicializar navbar
         if (window.navbarComponent && typeof window.navbarComponent.init === 'function') {
             window.navbarComponent.init('navbar-container', 'dashboard');
-            console.log('✅ Navbar inicializado');
         }
 
         // Verificar autenticación y obtener datos del usuario
         const isAuthenticated = await initAuth();
-        console.log('🔐 Estado de autenticación:', isAuthenticated);
 
         if (!isAuthenticated) {
-            console.warn('⚠️ No autenticado - redirigiendo a index.html');
             window.location.href = 'index.html';
             return;
         }
 
         // Obtener información completa del usuario
         await loadUserInfo();
-        console.log('👤 Usuario actual:', {
-            user: currentUser?.username,
-            role: currentUserRole,
-            permissions: userPermissions.length
-        });
 
         // Cargar dashboard
         await loadDashboard();
-        console.log('📊 Dashboard cargado con', userPermissions.length, 'permisos');
-
-        console.log('✅ Dashboard iniciado correctamente');
 
     } catch (error) {
-        console.error('❌ Error iniciando dashboard:', error);
-        showError('Error al cargar el panel de control: ' + error.message);
+        console.error('Error iniciando dashboard:', error);
+        showError('No se pudo cargar el panel de control. Revisá tu conexión y volvé a intentar.');
     }
 });
 
@@ -67,40 +48,27 @@ async function initAuth() {
     }
 }
 
-// Obtener información completa del usuario desde el backend
+// Obtener información completa del usuario desde el backend.
+//
+// Si falla NO se inventa un perfil: antes se asumía rol de administrador con un listado de
+// permisos escrito a mano. Eso solo afectaba lo que se dibujaba (el servidor igual rechaza
+// lo que no corresponde), pero mostrarle a una persona módulos que no son suyos porque una
+// llamada falló es el tipo de error que después nadie recuerda por qué está. Un fallo acá
+// es un estado de error con salida (ver showError), no un administrador por defecto.
 async function loadUserInfo() {
-    try {
-        const response = await window.apiService.request('/api/auth/me', {
-            method: 'GET'
-        });
+    const response = await window.apiService.request('/api/auth/me', {
+        method: 'GET'
+    });
 
-        if (response.success && response.data) {
-            currentUser = response.data;
-            currentUserRole = response.data.rol;
-            userPermissions = response.data.permisos || [];
-
-            console.log('✅ Usuario cargado:', {
-                nombre: currentUser.nombre_completo,
-                rol: currentUserRole,
-                permisos: userPermissions
-            });
-
-            updateUserInfo();
-        } else {
-            throw new Error('No se pudo obtener información del usuario');
-        }
-    } catch (error) {
-        console.error('❌ Error cargando información del usuario:', error);
-        // Si falla, usar datos básicos del authService
-        if (currentUser) {
-            currentUserRole = 'administrador'; // Fallback por defecto
-            // Asignar permisos por defecto para administrador
-            userPermissions = ['padron.view', 'padron.edit', 'padron.relevamiento', 'padron.export',
-                             'resultados.view', 'resultados.export', 'fiscales.view', 'fiscales.edit',
-                             'comicio.view', 'comicio.edit', 'reportes.view'];
-            updateUserInfo();
-        }
+    if (!(response.success && response.data)) {
+        throw new Error('No se pudo obtener información del usuario');
     }
+
+    currentUser = response.data;
+    currentUserRole = response.data.rol;
+    userPermissions = response.data.permisos || [];
+
+    updateUserInfo();
 }
 
 // El nombre y el rol del usuario ya los muestra la barra de navegación en todas
@@ -109,19 +77,12 @@ async function loadUserInfo() {
 function updateUserInfo() {
     const fecha = document.getElementById('inicio-fecha');
     if (!fecha) return;
-    fecha.textContent = new Date().toLocaleDateString('es-AR', {
+    const texto = new Date().toLocaleDateString('es-AR', {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
-}
-
-// Obtener nombre de rol para mostrar
-function getRoleDisplayName(role) {
-    const roleNames = {
-        'administrador': 'Administrador',
-        'encargado_relevamiento': 'Encargado de Relevamiento',
-        'consultor': 'Consultor'
-    };
-    return roleNames[role] || 'Usuario';
+    // En español los días y los meses van en minúscula ("viernes, 9 de octubre de 2026");
+    // se pone mayúscula sólo a la primera letra, no a cada palabra.
+    fecha.textContent = texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 // Cargar dashboard según rol y permisos
@@ -161,11 +122,14 @@ async function loadVistaEncargado() {
     await loadCondicionesPendientes();
 }
 
-// Obtener módulos basados en los permisos del usuario
+// Obtener módulos basados en los permisos del usuario.
+//
+// Tiene que coincidir con la barra de navegación (NavbarComponent): antes Mapa, Listas,
+// Auditoría y Configuración existían en la barra pero no aparecían acá, así que el inicio
+// no era un índice fiable de lo que el sistema ofrece. Mismas reglas de acceso que ella.
 function getModulesForUser() {
     const availableModules = [];
-
-    // Módulo Dashboard (siempre disponible)
+    const esAdmin = currentUserRole === 'administrador';
 
     // Módulo Padrón
     if (hasPermission('padron.view')) {
@@ -193,6 +157,32 @@ function getModulesForUser() {
         });
     }
 
+    // Módulo Mapa (018): por permiso, hoy solo lo tiene el administrador.
+    if (hasPermission('territorio.view')) {
+        availableModules.push({
+            id: 'mapa',
+            title: 'Mapa por manzana',
+            description: 'Avance del relevamiento por manzana y radio censal, sin exponer personas.',
+            icon: 'fa-map',
+            href: 'mapa.html',
+            status: 'available',
+            features: ['Avance por zona', 'Resultado por opción política', 'Umbral de privacidad']
+        });
+    }
+
+    // Módulo Listas electorales
+    if (hasPermission('listas.view')) {
+        availableModules.push({
+            id: 'listas',
+            title: 'Listas electorales',
+            description: 'Armado de listas de candidatos y suplentes, en borrador.',
+            icon: 'fa-list-ol',
+            href: 'listas.html',
+            status: 'available',
+            features: ['Candidatos y suplentes', 'Orden de la lista', 'Notas por candidato']
+        });
+    }
+
     // Módulo Comicio: absorbe Fiscales (gestionar un comicio implica gestionar los
     // fiscales de sus mesas). Entra con cualquiera de los dos permisos; las secciones
     // de adentro se gatean cada una con el suyo.
@@ -209,7 +199,7 @@ function getModulesForUser() {
     }
 
     // Módulo Usuarios (solo admin)
-    if (hasPermission('usuarios.view') || hasPermission('usuarios.edit') || currentUserRole === 'administrador') {
+    if (hasPermission('usuarios.view') || hasPermission('usuarios.edit') || esAdmin) {
         availableModules.push({
             id: 'usuarios',
             title: 'Gestión de Usuarios',
@@ -223,6 +213,28 @@ function getModulesForUser() {
                 'Activar/desactivar usuarios',
                 'Resetear contraseñas'
             ]
+        });
+    }
+
+    // Auditoría y Configuración: solo administrador, igual que en la barra.
+    if (esAdmin) {
+        availableModules.push({
+            id: 'auditoria',
+            title: 'Auditoría',
+            description: 'Quién tocó qué y cuándo: registro de operaciones sobre el padrón y las cuentas.',
+            icon: 'fa-clipboard-list',
+            href: 'auditoria.html',
+            status: 'available',
+            features: ['Filtro por operación y fecha', 'Detalle antes y después', 'Estadísticas de actividad']
+        });
+        availableModules.push({
+            id: 'configuracion',
+            title: 'Configuración',
+            description: 'Opciones políticas de esta instancia: qué se puede marcar al relevar.',
+            icon: 'fa-sliders-h',
+            href: 'configuracion.html',
+            status: 'available',
+            features: ['Alta y baja de opciones', 'Color y orden', 'Opción neutra']
         });
     }
 
@@ -274,21 +286,23 @@ function renderModules(modules) {
     const container = document.getElementById('modules-grid');
     if (!container) return;
 
+    // Los textos son literales de este archivo, pero se escapan igual: el día que alguno
+    // venga de la base (un módulo configurable), el escape ya está.
     container.innerHTML = modules.map(module => `
-        <a href="${module.href}" class="module-card ${module.id} ${module.status === 'coming-soon' ? 'disabled' : ''}">
+        <a href="${escaparHtml(module.href)}" class="module-card ${escaparHtml(module.id)} ${module.status === 'coming-soon' ? 'disabled' : ''}">
             <div class="module-icon">
-                <i class="fas ${module.icon}"></i>
+                <i class="fas ${escaparHtml(module.icon)}" aria-hidden="true"></i>
             </div>
             <div class="module-content">
-                <h3>${module.title}</h3>
-                <p>${module.description}</p>
+                <h3>${escaparHtml(module.title)}</h3>
+                <p>${escaparHtml(module.description)}</p>
                 <ul class="module-features">
                     ${module.features.map(feature => `
-                        <li><i class="fas fa-check-circle"></i> ${feature}</li>
+                        <li><i class="fas fa-check-circle" aria-hidden="true"></i> ${escaparHtml(feature)}</li>
                     `).join('')}
                 </ul>
-                <span class="module-status ${module.status}">
-                    <i class="fas ${module.status === 'available' ? 'fa-check-circle' : 'fa-clock'}"></i>
+                <span class="module-status ${escaparHtml(module.status)}">
+                    <i class="fas ${module.status === 'available' ? 'fa-check-circle' : 'fa-clock'}" aria-hidden="true"></i>
                     ${module.status === 'available' ? 'Disponible' : 'Próximamente'}
                 </span>
             </div>
@@ -303,7 +317,23 @@ document.addEventListener('click', (event) => {
     if (tarjeta) {
         event.preventDefault();
     }
+    // "Reintentar" de los estados de error: recargar la pantalla.
+    if (event.target.closest('[data-action="reintentar"]')) {
+        location.reload();
+    }
 });
+
+/**
+ * Anchos de las barras de progreso. Se aplican desde JavaScript (CSSOM) y no con
+ * `style="width: N%"` en el markup: un atributo `style` inline es lo que impide sacar
+ * 'unsafe-inline' de la CSP de estilos, y las asignaciones por `element.style` no cuentan.
+ * El markup lleva `data-ancho="N"`.
+ */
+function aplicarAnchos(raiz) {
+    raiz.querySelectorAll('[data-ancho]').forEach((el) => {
+        el.style.width = `${Number(el.dataset.ancho) || 0}%`;
+    });
+}
 
 /**
  * Una píldora de intención de voto por cada opción política de la instancia, sobre el
@@ -362,7 +392,7 @@ async function loadQuickStats() {
                     <p class="situacion-titulo">del padrón relevado</p>
                     <div class="situacion-barra" role="progressbar" aria-valuenow="${porcentaje}"
                          aria-valuemin="0" aria-valuemax="100" aria-label="Avance del relevamiento">
-                        <div class="situacion-relleno" style="width: ${porcentaje}%"></div>
+                        <div class="situacion-relleno" data-ancho="${porcentaje}"></div>
                     </div>
                     ${renderIntencionVoto({ votos: d.votos, totalRelevados: relevados })}
                 </div>
@@ -373,11 +403,16 @@ async function loadQuickStats() {
                 <div><dt>Padrón total</dt><dd>${numero(total)}</dd></div>
             </dl>
         `;
+        aplicarAnchos(contenedor);
 
         await cargarPorCircuito();
     } catch (error) {
         console.error('Error cargando la situacion:', error);
-        contenedor.innerHTML = '<p class="situacion-error">No se pudo cargar el estado del relevamiento.</p>';
+        contenedor.innerHTML = estados.error({
+            titulo: 'No se pudo cargar el estado del relevamiento',
+            reintentar: 'reintentar',
+            compacto: true
+        });
     }
 }
 
@@ -396,7 +431,13 @@ async function cargarPorCircuito() {
     try {
         const respuesta = await window.apiService.request('/api/padron/resultados/por-circuito');
         const filas = Array.isArray(respuesta?.data) ? respuesta.data : [];
-        if (filas.length === 0) return;
+        if (filas.length === 0) {
+            contenedor.innerHTML = `
+                <h2 class="titulo-seccion">Avance por circuito</h2>
+                ${estados.vacio({ titulo: 'Todavía no hay circuitos', texto: 'Aparecen cuando se carga el padrón.', icono: 'fa-map', compacto: true })}
+            `;
+            return;
+        }
 
         const conAvance = filas.map(f => {
             const total = Number(f.total_votantes) || 0;
@@ -410,9 +451,10 @@ async function cargarPorCircuito() {
             <ul class="circuitos">
                 ${conAvance.map(c => `
                     <li class="circuito">
-                        <span class="circuito-nombre">Circuito ${c.circuito}</span>
-                        <span class="circuito-barra">
-                            <span class="circuito-relleno" style="width: ${c.pct}%"></span>
+                        <span class="circuito-nombre">Circuito ${escaparHtml(c.circuito)}</span>
+                        <span class="circuito-barra" role="progressbar" aria-valuenow="${c.pct}"
+                              aria-valuemin="0" aria-valuemax="100" aria-label="Avance del circuito ${escaparHtml(c.circuito)}">
+                            <span class="circuito-relleno" data-ancho="${c.pct}"></span>
                         </span>
                         <span class="circuito-cifra">${c.relevados.toLocaleString('es-AR')} / ${c.total.toLocaleString('es-AR')}</span>
                         <span class="circuito-pct">${c.pct}%</span>
@@ -420,21 +462,39 @@ async function cargarPorCircuito() {
                 `).join('')}
             </ul>
         `;
+        aplicarAnchos(contenedor);
     } catch (error) {
         console.error('Error cargando el avance por circuito:', error);
+        contenedor.innerHTML = `
+            <h2 class="titulo-seccion">Avance por circuito</h2>
+            ${estados.error({ titulo: 'No se pudo cargar el avance por circuito', reintentar: 'reintentar', compacto: true })}
+        `;
     }
 }
 
 // Etiquetas cortas para el widget del dashboard. El listado completo, con ícono y
 // clase por operación, vive en AuditoriaComponent.js -- acá alcanza con el texto.
+//
+// Tiene que cubrir las MISMAS operaciones que Auditoría: antes faltaban casi todas las de
+// cuentas y sesión, y la actividad reciente decía "hizo un cambio" para cualquiera de ellas.
+// Además tenía EXPORTAR_DATOS, que el sistema nunca registra (la operación es EXPORTAR_CSV).
 const ETIQUETA_OPERACION = {
+    CREAR: 'creó un registro',
+    EDITAR: 'editó un registro',
+    MODIFICAR: 'modificó un registro',
+    ELIMINAR: 'eliminó un registro',
     CREAR_VOTANTE: 'dio de alta un votante',
     ACTUALIZAR_RELEVAMIENTO: 'actualizó un relevamiento',
     CREAR_DETALLE: 'cargó un detalle',
     ACTUALIZAR_DETALLE: 'actualizó un detalle',
     ELIMINAR_DETALLE: 'eliminó un detalle',
     IMPORTAR_CSV: 'importó un CSV',
-    EXPORTAR_DATOS: 'exportó datos',
+    EXPORTAR_CSV: 'exportó un CSV',
+    ACTIVAR: 'activó una cuenta',
+    DESACTIVAR: 'desactivó una cuenta',
+    LOGIN: 'inició sesión',
+    LOGOUT: 'cerró sesión',
+    LOGIN_FALLIDO: 'tuvo un intento de acceso fallido',
 };
 
 /**
@@ -451,7 +511,13 @@ async function loadActividadReciente() {
     try {
         const respuesta = await window.apiService.request('/api/padron/auditoria?limit=5');
         const registros = Array.isArray(respuesta?.data) ? respuesta.data : [];
-        if (registros.length === 0) return;
+        if (registros.length === 0) {
+            contenedor.innerHTML = `
+                <h2 class="titulo-seccion">Actividad reciente</h2>
+                ${estados.vacio({ titulo: 'Sin actividad registrada', icono: 'fa-clipboard-list', compacto: true })}
+            `;
+            return;
+        }
 
         const fecha = valor => new Date(valor).toLocaleString('es-AR', {
             day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
@@ -464,16 +530,20 @@ async function loadActividadReciente() {
                     <li class="actividad-item">
                         <span class="actividad-texto">
                             <strong>${escaparHtml(r.usuario_nombre || r.usuario_username || 'Alguien')}</strong>
-                            ${ETIQUETA_OPERACION[r.operacion] || 'hizo un cambio'}
+                            ${escaparHtml(ETIQUETA_OPERACION[r.operacion] || 'hizo un cambio')}
                         </span>
                         <span class="actividad-fecha">${fecha(r.created_at)}</span>
                     </li>
                 `).join('')}
             </ul>
-            <a class="ver-todo" href="auditoria.html">Ver auditoría completa →</a>
+            <a class="ver-todo" href="auditoria.html">Ver auditoría completa <span aria-hidden="true">→</span></a>
         `;
     } catch (error) {
         console.error('Error cargando la actividad reciente:', error);
+        contenedor.innerHTML = `
+            <h2 class="titulo-seccion">Actividad reciente</h2>
+            ${estados.error({ titulo: 'No se pudo cargar la actividad', reintentar: 'reintentar', compacto: true })}
+        `;
     }
 }
 
@@ -483,6 +553,9 @@ async function loadActividadReciente() {
  * No hay noción de "próximo" comicio -- la tabla no tiene fecha, sólo
  * created_at -- así que se toma el último cargado, que es el que
  * `listarComicios` ya devuelve primero.
+ *
+ * Sin ningún comicio cargado el bloque no se dibuja: no hay nada que esperar, y un
+ * "sin comicios" fijo en el inicio de quien nunca usa esa parte sería ruido.
  */
 async function loadEstadoComicio() {
     const contenedor = document.getElementById('comicio-widget');
@@ -504,15 +577,21 @@ async function loadEstadoComicio() {
             <h2 class="titulo-seccion">Comicio: ${escaparHtml(comicio.nombre)}</h2>
             <p class="titulo-ayuda">Mesas con resultado cargado.</p>
             <div class="comicio-avance">
-                <div class="situacion-barra">
-                    <div class="situacion-relleno" style="width: ${pct}%"></div>
+                <div class="situacion-barra" role="progressbar" aria-valuenow="${pct}"
+                     aria-valuemin="0" aria-valuemax="100" aria-label="Mesas con resultado cargado">
+                    <div class="situacion-relleno" data-ancho="${pct}"></div>
                 </div>
                 <span class="comicio-cifra">${mesasConVotos} / ${mesasTotal} mesas (${pct}%)</span>
             </div>
-            <a class="ver-todo" href="comicio.html">Ir a Comicio →</a>
+            <a class="ver-todo" href="comicio.html">Ir a Comicio <span aria-hidden="true">→</span></a>
         `;
+        aplicarAnchos(contenedor);
     } catch (error) {
         console.error('Error cargando el estado del comicio:', error);
+        contenedor.innerHTML = `
+            <h2 class="titulo-seccion">Comicio</h2>
+            ${estados.error({ titulo: 'No se pudo cargar el estado del comicio', reintentar: 'reintentar', compacto: true })}
+        `;
     }
 }
 
@@ -544,7 +623,7 @@ async function loadResumenEncargado() {
                     <p class="situacion-titulo">de tu padrón relevado</p>
                     <div class="situacion-barra" role="progressbar" aria-valuenow="${porcentaje}"
                          aria-valuemin="0" aria-valuemax="100" aria-label="Avance del relevamiento">
-                        <div class="situacion-relleno" style="width: ${porcentaje}%"></div>
+                        <div class="situacion-relleno" data-ancho="${porcentaje}"></div>
                     </div>
                 </div>
             </div>
@@ -554,9 +633,14 @@ async function loadResumenEncargado() {
                 <div><dt>Padrón total</dt><dd>${numero(total)}</dd></div>
             </dl>
         `;
+        aplicarAnchos(contenedor);
     } catch (error) {
         console.error('Error cargando el resumen de relevamiento:', error);
-        contenedor.innerHTML = '<p class="situacion-error">No se pudo cargar tu avance de relevamiento.</p>';
+        contenedor.innerHTML = estados.error({
+            titulo: 'No se pudo cargar tu avance de relevamiento',
+            reintentar: 'reintentar',
+            compacto: true
+        });
     }
 }
 
@@ -579,16 +663,27 @@ async function loadCondicionesPendientes() {
         contenedor.innerHTML = `
             <h2 class="titulo-seccion">Condiciones especiales</h2>
             <p class="titulo-ayuda">Relevamientos marcados como nuevo votante, fallecido, empleado municipal o con ayuda social.</p>
-            <p class="condiciones-total">${total.toLocaleString('es-AR')}<span>de ${Number(d.total_relevamientos || 0).toLocaleString('es-AR')} relevamientos (${d.porcentaje_condiciones_especiales ?? 0}%)</span></p>
+            <p class="condiciones-total">${total.toLocaleString('es-AR')}<span>de ${Number(d.total_relevamientos || 0).toLocaleString('es-AR')} relevamientos (${escaparHtml(d.porcentaje_condiciones_especiales ?? 0)}%)</span></p>
         `;
     } catch (error) {
         console.error('Error cargando condiciones especiales:', error);
+        contenedor.innerHTML = `
+            <h2 class="titulo-seccion">Condiciones especiales</h2>
+            ${estados.error({ titulo: 'No se pudieron cargar las condiciones especiales', reintentar: 'reintentar', compacto: true })}
+        `;
     }
 }
 
-// Mostrar errores
+/**
+ * Error de toda la pantalla (no se pudo verificar la sesión o armar el panel). Reemplaza al
+ * `alert()` que había: se cerraba con un clic y la página quedaba vacía, sin salida.
+ */
 function showError(message) {
-    console.error('❌ Error:', message);
-    // TODO: Implementar sistema de notificaciones
-    alert('Error: ' + message);
+    const contenedor = document.getElementById('dash-error');
+    if (!contenedor) return;
+    document.getElementById('vista-admin-consultor').hidden = true;
+    document.getElementById('vista-encargado').hidden = true;
+    document.getElementById('modules-grid').closest('section').hidden = true;
+    contenedor.innerHTML = estados.error({ texto: message, reintentar: 'reintentar' });
+    contenedor.hidden = false;
 }

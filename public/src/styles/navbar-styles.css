@@ -125,7 +125,6 @@
 .user-info .user-role {
     color: var(--ds-text-muted);
     font-size: var(--ds-font-xs);
-    text-transform: capitalize;
 }
 
 .user-info i {

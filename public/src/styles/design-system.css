@@ -736,6 +736,8 @@ textarea::placeholder {
 .estado-titulo  { margin: 0; font-size: var(--ds-font-lg); font-weight: var(--ds-weight-semibold); color: var(--ds-text-primary); }
 .estado-texto   { margin: 0; max-width: 46ch; }
 .estado--error .estado-icono { color: var(--ds-danger-on-tint); }
+.estado--compacto { padding: var(--ds-space-4); }
+.estado--compacto .estado-icono { font-size: 1.25rem; }
 
 .spinner {
     width: 1.5rem;

@@ -16,6 +16,8 @@
  *
  * `accion` y `reintentar` son nombres de `data-action`: el componente los atiende con la
  * misma delegación de eventos que ya usa para el resto (no hay `onclick` en el markup).
+ * `compacto: true` es para un bloque dentro de una pantalla (un widget del inicio), sin el
+ * relleno de un estado que ocupa la página entera.
  * `enlace` ({ texto, href }) es para navegar: un <a>, no un botón que cambia
  * `location` por JavaScript (el botón no se abre en otra pestaña ni se copia).
  */
@@ -52,8 +54,8 @@
     }
 
     /** Sin resultados. Dice qué falta y, si se puede, cómo llenarlo. */
-    function vacio({ icono = 'fa-inbox', titulo, texto, accion, enlace: destino } = {}) {
-        return `<div class="estado">` +
+    function vacio({ icono = 'fa-inbox', titulo, texto, accion, enlace: destino, compacto = false } = {}) {
+        return `<div class="estado${compacto ? ' estado--compacto' : ''}">` +
             `<i class="fas ${esc(icono)} estado-icono" aria-hidden="true"></i>` +
             (titulo ? `<p class="estado-titulo">${esc(titulo)}</p>` : '') +
             (texto ? `<p class="estado-texto">${esc(texto)}</p>` : '') +
@@ -63,8 +65,8 @@
     }
 
     /** Falló la carga. `role="alert"` para que se anuncie, y con salida: reintentar. */
-    function error({ titulo = 'No se pudo cargar', texto, reintentar, icono = 'fa-exclamation-triangle', enlace: destino } = {}) {
-        return `<div class="estado estado--error" role="alert">` +
+    function error({ titulo = 'No se pudo cargar', texto, reintentar, icono = 'fa-exclamation-triangle', enlace: destino, compacto = false } = {}) {
+        return `<div class="estado estado--error${compacto ? ' estado--compacto' : ''}" role="alert">` +
             `<i class="fas ${esc(icono)} estado-icono" aria-hidden="true"></i>` +
             `<p class="estado-titulo">${esc(titulo)}</p>` +
             (texto ? `<p class="estado-texto">${esc(texto)}</p>` : '') +

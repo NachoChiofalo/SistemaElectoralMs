@@ -101,3 +101,14 @@ test('el login es un <main> con su <h1> y no borra el error solo', () => {
   // El auto-ocultado a los 5 s dejaba sin mensaje a quien usa lector de pantalla.
   assert.doesNotMatch(fuente.replace(/\/\*[\s\S]*?\*\//g, ''), /setTimeout\([^)]*hideError/);
 });
+
+test('ninguna hoja pone en mayuscula cada palabra de un texto en espanol', () => {
+  // `text-transform: capitalize` convierte "9 de octubre de 2026" en "9 De Octubre De 2026".
+  // En espanol los dias, los meses y las preposiciones van en minuscula; la fecha del inicio
+  // lo mostraba mal aunque el texto del DOM estuviera bien (el CSS lo pisaba).
+  const estilos = path.join(PUBLICO, 'src', 'styles');
+  const culpables = fs.readdirSync(estilos)
+    .filter(f => f.endsWith('.css'))
+    .filter(f => /text-transform:\s*capitalize/.test(fs.readFileSync(path.join(estilos, f), 'utf8')));
+  assert.deepEqual(culpables, [], `capitalize en: ${culpables.join(', ')}`);
+});

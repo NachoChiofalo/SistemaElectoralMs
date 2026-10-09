@@ -36,6 +36,21 @@
         { href: 'configuracion.html', icon: 'fa-sliders-h', label: 'Configuración', key: 'configuracion', adminOnly: true }
     ];
 
+    // El rol llega como identificador (`encargado_relevamiento`). Con `text-transform:
+    // capitalize` se mostraba "Encargado_relevamiento", con el guión bajo a la vista.
+    const NOMBRE_ROL = {
+        administrador: 'Administrador',
+        encargado_relevamiento: 'Encargado de relevamiento',
+        consultor: 'Consultor'
+    };
+
+    function nombreDeRol(rol) {
+        if (!rol) return '';
+        if (NOMBRE_ROL[rol]) return NOMBRE_ROL[rol];
+        const texto = String(rol).replace(/_/g, ' ');
+        return texto.charAt(0).toUpperCase() + texto.slice(1);
+    }
+
     function renderNavbar(activeKey) {
         const user = (window.authService && window.authService.getCurrentUser && window.authService.getCurrentUser()) || { username: 'Usuario' };
         const username = user.nombre_completo || user.username || 'Usuario';
@@ -80,7 +95,7 @@
                              botón, y el rol debajo responde "por qué veo lo que veo". -->
                         <div class="user-info">
                             <span class="username" id="username">${escaparHtml(username)}</span>
-                            <span class="user-role">${escaparHtml(userRole)}</span>
+                            <span class="user-role">${escaparHtml(nombreDeRol(userRole))}</span>
                         </div>
                         <!-- Tema y salir son iconos: dicen lo mismo con un tercio del ancho,
                              y ese ancho es el que la barra va a necesitar al crecer. El texto
