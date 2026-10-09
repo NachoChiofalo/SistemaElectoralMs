@@ -26,6 +26,18 @@ const COLORES = {
     ],
 };
 
+/**
+ * Porcentaje con la coma decimal de es-AR ("33,3"). `toFixed` devolvía "33.3", que en una
+ * interfaz en español es inconsistente con formatNumber() y se lee mal en una planilla.
+ */
+function formatPct(valor, decimales = 1) {
+    const n = Number(valor);
+    return new Intl.NumberFormat('es-AR', {
+        minimumFractionDigits: decimales,
+        maximumFractionDigits: decimales
+    }).format(Number.isFinite(n) ? n : 0);
+}
+
 class ResultadosComponent {
     constructor() {
         this.container = null;
@@ -46,13 +58,13 @@ class ResultadosComponent {
         }
 
         if (typeof Chart === 'undefined') {
-            this.mostrarError('El modulo de graficos (microchart.js) no esta disponible. Verifique que este incluido en el HTML.');
+            this.mostrarError('El módulo de gráficos (microchart.js) no está disponible.');
             return false;
         }
 
         const apiDisponible = await window.apiService.verificarEstado();
         if (!apiDisponible) {
-            this.mostrarError('No se puede conectar con el servicio de padron.');
+            this.mostrarError('No se puede conectar con el servicio del padrón.');
             return false;
         }
 
@@ -65,8 +77,8 @@ class ResultadosComponent {
         this.container.innerHTML = `
             <div class="resultados-header">
                 <div class="resultados-title">
-                    <h2><i class="fas fa-chart-bar"></i> Estadisticas y Reportes</h2>
-                    <p class="resultados-subtitle">Panel de analisis del relevamiento electoral</p>
+                    <h1><i class="fas fa-chart-bar" aria-hidden="true"></i> Estadísticas y reportes</h1>
+                    <p class="resultados-subtitle">Panel de análisis del relevamiento electoral</p>
                     <p class="resultados-update-time" id="ultima-actualizacion"></p>
                 </div>
                 <div class="resultados-actions">
@@ -74,14 +86,14 @@ class ResultadosComponent {
                         <i class="fas fa-sync"></i> Actualizar
                     </button>
                     <div class="export-dropdown">
-                        <button id="btn-exportar-toggle" class="btn btn-secondary">
-                            <i class="fas fa-file-export"></i> Exportar <i class="fas fa-caret-down"></i>
+                        <button id="btn-exportar-toggle" type="button" class="btn btn-secondary" aria-expanded="false" aria-controls="export-menu">
+                            <i class="fas fa-file-export" aria-hidden="true"></i> Exportar <i class="fas fa-caret-down" aria-hidden="true"></i>
                         </button>
                         <div class="export-menu" id="export-menu">
-                            <button id="btn-exportar-json" class="export-option">
+                            <button id="btn-exportar-json" type="button" class="export-option">
                                 <i class="fas fa-file-code"></i> Exportar JSON
                             </button>
-                            <button id="btn-exportar-csv" class="export-option">
+                            <button id="btn-exportar-csv" type="button" class="export-option">
                                 <i class="fas fa-file-csv"></i> Exportar CSV
                             </button>
                         </div>
@@ -89,14 +101,9 @@ class ResultadosComponent {
                 </div>
             </div>
 
-            <div id="resultados-loading" class="loading-container">
-                <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Cargando resultados...</p>
-                </div>
-            </div>
+            <div id="resultados-loading">${estados.cargando('Cargando resultados…')}</div>
 
-            <div id="resultados-content" class="resultados-content" style="display: none;">
+            <div id="resultados-content" class="resultados-content" hidden>
                 <!-- Estadisticas Generales Cards -->
                 <section class="estadisticas-generales">
                     <div class="stats-grid" id="stats-generales"></div>
@@ -104,7 +111,7 @@ class ResultadosComponent {
 
                 <!-- Condiciones Especiales Cards -->
                 <section class="estadisticas-condiciones">
-                    <h3><i class="fas fa-clipboard-list"></i> Datos del Relevamiento</h3>
+                    <h2><i class="fas fa-clipboard-list"></i> Datos del Relevamiento</h2>
                     <div class="stats-grid condiciones-grid" id="stats-condiciones"></div>
                 </section>
 
@@ -118,7 +125,7 @@ class ResultadosComponent {
 
                 <!-- 1. Fuerzas: el reparto, que es la pregunta principal -->
                 <section class="bloque">
-                    <h3 class="bloque-titulo">Distribución de preferencia política</h3>
+                    <h2 class="bloque-titulo">Distribución de preferencia política</h2>
                     <div class="bloque-grid">
                         <div class="chart-card">
                             <div class="chart-container chart-medium">
@@ -136,74 +143,74 @@ class ResultadosComponent {
                      (/api/padron/resultados/por-circuito) y no se mostraba en ninguna
                      pantalla, siendo el único que dice adónde ir a relevar. -->
                 <section class="bloque" id="bloque-circuito">
-                    <h3 class="bloque-titulo">Por circuito</h3>
+                    <h2 class="bloque-titulo">Por circuito</h2>
                     <p class="bloque-ayuda">Dónde se relevó y dónde falta.</p>
-                    <div class="tabla-container" id="stats-circuito"></div>
+                    <div class="tabla-container" id="stats-circuito" role="region" aria-label="Resultados por circuito" tabindex="0"></div>
                 </section>
 
                 <!-- Apellidos repetidos (019): se carga a pedido, no con la pantalla. -->
                 <section class="bloque" id="bloque-familias">
-                    <h3 class="bloque-titulo">Apellidos repetidos</h3>
+                    <h2 class="bloque-titulo">Apellidos repetidos</h2>
                     <p class="bloque-ayuda">Apellidos que comparten varios votantes: sirve para relevar a más
                         de una persona por visita. Un apellido común (Gómez, Pérez) no implica parentesco.</p>
                     <button type="button" class="btn btn-secondary" id="btn-cargar-familias">
                         <i class="fas fa-users"></i> Ver apellidos repetidos
                     </button>
-                    <div class="tabla-container" id="stats-familias"></div>
+                    <div class="tabla-container" id="stats-familias" role="region" aria-label="Apellidos repetidos" tabindex="0"></div>
                 </section>
 
                 <!-- 3. Quién: los cortes demográficos, juntos porque se comparan -->
                 <section class="bloque">
-                    <h3 class="bloque-titulo">Por sexo y edad</h3>
+                    <h2 class="bloque-titulo">Por sexo y edad</h2>
                     <div class="bloque-grid">
                         <div class="chart-card">
-                            <h4>Sexo</h4>
+                            <h3>Sexo</h3>
                             <div class="chart-container chart-medium">
                                 <canvas id="chart-sexo"></canvas>
                             </div>
-                            <div class="tabla-container" id="stats-sexo"></div>
+                            <div class="tabla-container" id="stats-sexo" role="region" aria-label="Resultados por sexo" tabindex="0"></div>
                         </div>
                         <div class="chart-card">
-                            <h4>Rango etario</h4>
+                            <h3>Rango etario</h3>
                             <div class="chart-container chart-medium">
                                 <canvas id="chart-edad"></canvas>
                             </div>
-                            <div class="tabla-container" id="stats-edad"></div>
+                            <div class="tabla-container" id="stats-edad" role="region" aria-label="Resultados por rango etario" tabindex="0"></div>
                         </div>
                     </div>
                 </section>
 
                 <!-- 4. Condiciones: lo más específico va último -->
                 <section class="bloque">
-                    <h3 class="bloque-titulo">Condiciones especiales</h3>
+                    <h2 class="bloque-titulo">Condiciones especiales</h2>
                     <div class="bloque-grid">
                         <div class="chart-card">
-                            <h4>Vista general</h4>
+                            <h3>Vista general</h3>
                             <div class="chart-container chart-medium">
                                 <canvas id="chart-condiciones-general"></canvas>
                             </div>
                         </div>
                         <div class="chart-card">
-                            <h4>Empleados municipales por opción</h4>
+                            <h3>Empleados municipales por opción</h3>
                             <div class="chart-container chart-small">
                                 <canvas id="chart-empleados-politica"></canvas>
                             </div>
                         </div>
                         <div class="chart-card">
-                            <h4>Ayuda social por opción</h4>
+                            <h3>Ayuda social por opción</h3>
                             <div class="chart-container chart-small">
                                 <canvas id="chart-ayuda-politica"></canvas>
                             </div>
                         </div>
                         <div class="chart-card full-width">
-                            <h4>Detalle</h4>
-                            <div class="tabla-container" id="stats-condiciones-tabla"></div>
+                            <h3>Detalle</h3>
+                            <div class="tabla-container" id="stats-condiciones-tabla" role="region" aria-label="Detalle de condiciones especiales" tabindex="0"></div>
                         </div>
                     </div>
                 </section>
             </div>
 
-            <div id="resultados-error" class="error-container" style="display: none;"></div>
+            <div id="resultados-error" hidden></div>
         `;
 
         this.inicializarEventos();
@@ -220,35 +227,47 @@ class ResultadosComponent {
             btnActualizar.addEventListener('click', () => this.actualizarResultados());
         }
 
-        if (btnExportarToggle) {
+        const menu = document.getElementById('export-menu');
+        const cerrarMenu = ({ devolverFoco = false } = {}) => {
+            if (!menu || !menu.classList.contains('show')) return;
+            menu.classList.remove('show');
+            if (btnExportarToggle) {
+                btnExportarToggle.setAttribute('aria-expanded', 'false');
+                if (devolverFoco) btnExportarToggle.focus();
+            }
+        };
+
+        if (btnExportarToggle && menu) {
             btnExportarToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const menu = document.getElementById('export-menu');
-                menu.classList.toggle('show');
+                const abierto = menu.classList.toggle('show');
+                btnExportarToggle.setAttribute('aria-expanded', String(abierto));
+                if (abierto) menu.querySelector('.export-option')?.focus();
+            });
+            // Escape cierra y devuelve el foco al botón que lo abrió.
+            menu.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') { e.stopPropagation(); cerrarMenu({ devolverFoco: true }); }
             });
         }
 
         if (btnExportarJson) {
             btnExportarJson.addEventListener('click', () => {
                 this.exportarJSON();
-                document.getElementById('export-menu').classList.remove('show');
+                cerrarMenu({ devolverFoco: true });
             });
         }
 
         if (btnExportarCsv) {
             btnExportarCsv.addEventListener('click', () => {
                 this.exportarCSV();
-                document.getElementById('export-menu').classList.remove('show');
+                cerrarMenu({ devolverFoco: true });
             });
         }
 
         // Cerrar dropdown al hacer click fuera. Se guarda la referencia para no acumular
         // un listener nuevo en `document` por cada reinicializacion (FE-016).
         if (this.cerrarMenuExportar) document.removeEventListener('click', this.cerrarMenuExportar);
-        this.cerrarMenuExportar = () => {
-            const menu = document.getElementById('export-menu');
-            if (menu) menu.classList.remove('show');
-        };
+        this.cerrarMenuExportar = () => cerrarMenu();
         document.addEventListener('click', this.cerrarMenuExportar);
 
     }
@@ -294,7 +313,7 @@ class ResultadosComponent {
             this.mostrarResultados();
         } catch (error) {
             console.error('Error cargando datos:', error);
-            this.mostrarError('Error cargando datos: ' + error.message);
+            this.mostrarError('No se pudieron cargar los resultados. Revisá tu conexión y volvé a intentar.');
         } finally {
             this.mostrarCarga(false);
         }
@@ -312,7 +331,7 @@ class ResultadosComponent {
         this.mostrarTablaCondiciones();
         this.renderizarGraficos();
 
-        document.getElementById('resultados-content').style.display = 'block';
+        document.getElementById('resultados-content').hidden = false;
     }
 
     mostrarHoraActualizacion() {
@@ -322,7 +341,7 @@ class ResultadosComponent {
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            el.textContent = 'Ultima actualizacion: ' + hora;
+            el.textContent = 'Última actualización: ' + hora;
         }
     }
 
@@ -355,7 +374,7 @@ class ResultadosComponent {
                 <div class="stat-content">
                     <div class="stat-number">${this.formatNumber(data.total_relevados)}</div>
                     <div class="stat-label">Relevados</div>
-                    <div class="stat-percentage">${data.porcentaje_participacion}%</div>
+                    <div class="stat-percentage">${formatPct(data.porcentaje_participacion, 2)}%</div>
                 </div>
             </div>${tarjetasOpciones}
         `;
@@ -374,7 +393,7 @@ class ResultadosComponent {
         // hacia era tapar el dato faltante con un numero absurdo en vez de omitirlo.
         const totalRelevados = parseInt(this.datos.general?.total_relevados) || 0;
         const porcentaje = valor => (totalRelevados > 0
-            ? ((valor / totalRelevados) * 100).toFixed(1) + '% del relevamiento'
+            ? formatPct((valor / totalRelevados) * 100) + '% del relevamiento'
             : '');
         const empleados = parseInt(data.total_empleados_municipales) || 0;
         const ayuda = parseInt(data.total_ayuda_social) || 0;
@@ -441,7 +460,7 @@ class ResultadosComponent {
                 <div class="barra-item">
                     <div class="barra-label">
                         <span class="barra-nombre">${escaparHtml(nombre)}</span>
-                        <span class="barra-valor">${this.formatNumber(this.votosDe(data, opcion.codigo))} (${pct.toFixed(1)}%)</span>
+                        <span class="barra-valor">${this.formatNumber(this.votosDe(data, opcion.codigo))} (${formatPct(pct)}%)</span>
                     </div>
                     <div class="barra-track">
                         <div class="barra-fill opcion ${window.opcionesPoliticas.clase(opcion)}" style="width: ${pct}%"></div>
@@ -453,8 +472,8 @@ class ResultadosComponent {
         const resumen = orden.length < 2 ? '' : `
                 <div class="comparador-resumen">
                     <i class="fas fa-trophy"></i>
-                    <strong>${escaparHtml(orden[0].nombre)}</strong> lidera con ${orden[0].pct}%
-                    (${(orden[0].pct - orden[1].pct).toFixed(1)} puntos de ventaja sobre ${escaparHtml(orden[1].nombre)})
+                    <strong>${escaparHtml(orden[0].nombre)}</strong> lidera con ${formatPct(orden[0].pct)}%
+                    (${formatPct(orden[0].pct - orden[1].pct)} puntos de ventaja sobre ${escaparHtml(orden[1].nombre)})
                 </div>`;
 
         container.innerHTML = `
@@ -493,12 +512,12 @@ class ResultadosComponent {
                     <tr>
                         <td>Relevados</td>
                         <td>${this.formatNumber(data.total_relevados)}</td>
-                        <td>${data.porcentaje_participacion}%</td>
+                        <td>${formatPct(data.porcentaje_participacion, 2)}%</td>
                     </tr>
                     <tr>
                         <td>Sin Relevar</td>
                         <td>${this.formatNumber(noRelevados)}</td>
-                        <td>${(100 - (parseFloat(data.porcentaje_participacion) || 0)).toFixed(2)}%</td>
+                        <td>${formatPct(100 - (parseFloat(data.porcentaje_participacion) || 0), 2)}%</td>
                     </tr>${filasOpciones}
                 </tbody>
             </table>
@@ -538,7 +557,7 @@ class ResultadosComponent {
                             label: (context) => {
                                 const value = context.parsed;
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const pct = ((value / total) * 100).toFixed(1);
+                                const pct = formatPct((value / total) * 100);
                                 return context.label + ': ' + value + ' (' + pct + '%)';
                             }
                         }
@@ -700,7 +719,7 @@ class ResultadosComponent {
                             label: (context) => {
                                 const value = context.parsed;
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const pct = ((value / total) * 100).toFixed(1);
+                                const pct = formatPct((value / total) * 100);
                                 return context.label + ': ' + value + ' (' + pct + '%)';
                             }
                         }
@@ -860,7 +879,7 @@ class ResultadosComponent {
                 '<td>' + this.formatNumber(item.total_votantes) + '</td>' +
                 '<td>' + this.formatNumber(item.total_relevados) + '</td>' +
                 this.celdasOpciones(item, true) +
-                '<td>' + (item.porcentaje_participacion || 0) + '%</td>' +
+                '<td>' + formatPct(item.porcentaje_participacion || 0, 2) + '%</td>' +
                 '</tr>';
         }).join('');
 
@@ -961,7 +980,7 @@ class ResultadosComponent {
     /** Porcentaje sobre los relevados, con dos decimales como lo calcula el servidor. */
     pctTexto(fila, codigo) {
         const v = fila?.porcentajes?.[codigo];
-        return v === null || v === undefined ? '0' : Number(v).toFixed(2);
+        return v === null || v === undefined ? '0' : formatPct(v, 2);
     }
 
     /** Un <th> por opcion. La etiqueta es del cliente: se escapa. */
@@ -1032,7 +1051,7 @@ class ResultadosComponent {
             this.descargarBlob(blob, 'estadisticas_' + new Date().toISOString().split('T')[0] + '.json');
             this.mostrarNotificacion('JSON exportado exitosamente', 'success');
         } catch (error) {
-            this.mostrarError('Error exportando JSON: ' + error.message);
+            this.mostrarNotificacion('No se pudo exportar el JSON: ' + error.message, 'error');
         }
     }
 
@@ -1084,7 +1103,7 @@ class ResultadosComponent {
             this.descargarBlob(blob, 'estadisticas_' + new Date().toISOString().split('T')[0] + '.csv');
             this.mostrarNotificacion('CSV exportado exitosamente', 'success');
         } catch (error) {
-            this.mostrarError('Error exportando CSV: ' + error.message);
+            this.mostrarNotificacion('No se pudo exportar el CSV: ' + error.message, 'error');
         }
     }
 
@@ -1110,42 +1129,39 @@ class ResultadosComponent {
         const content = document.getElementById('resultados-content');
 
         if (mostrar) {
-            if (loading) loading.style.display = 'flex';
-            if (content) content.style.display = 'none';
-        } else {
-            if (loading) loading.style.display = 'none';
+            if (loading) loading.hidden = false;
+            if (content) content.hidden = true;
+        } else if (loading) {
+            loading.hidden = true;
         }
     }
 
+    /**
+     * Estado de error de la pantalla, con salida (reintentar).
+     *
+     * Antes init() lo llamaba ANTES de crear la interfaz: #resultados-error todavía no
+     * existía, el `if (errorContainer)` lo saltaba en silencio y la persona veía la
+     * página en blanco, sin saber si se estaba cargando o si algo se había roto. Sin
+     * ese contenedor, el error ocupa el lugar de la pantalla entera.
+     */
     mostrarError(mensaje) {
+        const html = estados.error({ texto: mensaje, reintentar: 'reintentar' });
         const errorContainer = document.getElementById('resultados-error');
-        if (errorContainer) {
-            errorContainer.innerHTML = '<div class="error-message">' +
-                '<i class="fas fa-exclamation-triangle"></i>' +
-                '<h3>Error</h3>' +
-                '<p>' + escaparHtml(mensaje) + '</p></div>';
-            errorContainer.style.display = 'block';
+        if (!errorContainer) {
+            this.container.innerHTML = html;
+            return;
         }
+        errorContainer.innerHTML = html;
+        errorContainer.hidden = false;
         const loading = document.getElementById('resultados-loading');
         const content = document.getElementById('resultados-content');
-        if (loading) loading.style.display = 'none';
-        if (content) content.style.display = 'none';
+        if (loading) loading.hidden = true;
+        if (content) content.hidden = true;
     }
 
+    /** Aviso transitorio: lib/avisos.js (el mensaje entra como texto, no como HTML). */
     mostrarNotificacion(mensaje, tipo) {
-        tipo = tipo || 'info';
-        const notificacion = document.createElement('div');
-        notificacion.className = 'notification ' + tipo;
-        var iconClass = tipo === 'success' ? 'check' : (tipo === 'error' ? 'times' : 'info');
-        notificacion.innerHTML = '<i class="fas fa-' + iconClass + '-circle"></i> <span>' + mensaje + '</span>';
-
-        document.body.appendChild(notificacion);
-
-        setTimeout(function() {
-            if (notificacion.parentNode) {
-                notificacion.parentNode.removeChild(notificacion);
-            }
-        }, 3000);
+        window.avisos.mostrar(mensaje, tipo || 'info');
     }
 }
 

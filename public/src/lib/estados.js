@@ -16,6 +16,8 @@
  *
  * `accion` y `reintentar` son nombres de `data-action`: el componente los atiende con la
  * misma delegación de eventos que ya usa para el resto (no hay `onclick` en el markup).
+ * `enlace` ({ texto, href }) es para navegar: un <a>, no un botón que cambia
+ * `location` por JavaScript (el botón no se abre en otra pestaña ni se copia).
  */
 (function (raiz) {
     function esc(valor) {
@@ -24,6 +26,10 @@
 
     function boton(texto, accion, clase) {
         return `<button type="button" class="btn ${clase}" data-action="${esc(accion)}">${esc(texto)}</button>`;
+    }
+
+    function enlace({ texto, href }) {
+        return `<a class="btn btn-secondary" href="${esc(href)}">${esc(texto)}</a>`;
     }
 
     /** Spinner con texto, anunciado con cortesía (`role="status"`). */
@@ -46,22 +52,24 @@
     }
 
     /** Sin resultados. Dice qué falta y, si se puede, cómo llenarlo. */
-    function vacio({ icono = 'fa-inbox', titulo, texto, accion } = {}) {
+    function vacio({ icono = 'fa-inbox', titulo, texto, accion, enlace: destino } = {}) {
         return `<div class="estado">` +
             `<i class="fas ${esc(icono)} estado-icono" aria-hidden="true"></i>` +
-            (titulo ? `<h3 class="estado-titulo">${esc(titulo)}</h3>` : '') +
+            (titulo ? `<p class="estado-titulo">${esc(titulo)}</p>` : '') +
             (texto ? `<p class="estado-texto">${esc(texto)}</p>` : '') +
             (accion ? boton(accion.texto, accion.accion, 'btn-primary') : '') +
+            (destino ? enlace(destino) : '') +
             `</div>`;
     }
 
     /** Falló la carga. `role="alert"` para que se anuncie, y con salida: reintentar. */
-    function error({ titulo = 'No se pudo cargar', texto, reintentar } = {}) {
+    function error({ titulo = 'No se pudo cargar', texto, reintentar, icono = 'fa-exclamation-triangle', enlace: destino } = {}) {
         return `<div class="estado estado--error" role="alert">` +
-            `<i class="fas fa-exclamation-triangle estado-icono" aria-hidden="true"></i>` +
-            `<h3 class="estado-titulo">${esc(titulo)}</h3>` +
+            `<i class="fas ${esc(icono)} estado-icono" aria-hidden="true"></i>` +
+            `<p class="estado-titulo">${esc(titulo)}</p>` +
             (texto ? `<p class="estado-texto">${esc(texto)}</p>` : '') +
             (reintentar ? boton('Reintentar', reintentar, 'btn-secondary') : '') +
+            (destino ? enlace(destino) : '') +
             `</div>`;
     }
 

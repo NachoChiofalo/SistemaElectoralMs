@@ -172,3 +172,12 @@ test('la barra de navegación expone nombre, página actual y salto al contenido
     assert.match(leer(`${pagina}.html`), /<main[^>]*id="contenido"[^>]*tabindex="-1"/, `${pagina}.html sin <main id="contenido">`);
   }
 });
+
+test('un estado puede ofrecer un enlace para navegar, que es un <a> y no un botón', () => {
+  const html = estados.error({ titulo: 'Acceso denegado', icono: 'fa-lock', enlace: { texto: 'Volver al inicio', href: 'dashboard.html' } });
+  assert.match(html, /<a class="btn btn-secondary" href="dashboard.html">Volver al inicio<\/a>/);
+  assert.match(html, /fa-lock/);
+  assert.doesNotMatch(html, /<button/);
+  // el destino también se escapa
+  assert.doesNotMatch(estados.vacio({ enlace: { texto: 'x', href: '"><script>' } }), /<script>/);
+});

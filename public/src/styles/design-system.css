@@ -363,6 +363,13 @@ body {
     padding: 0;
 }
 
+/* El atributo `hidden` tiene que ganarle a cualquier `display` de una clase: sin esto,
+   `.estado { display: flex }` o `.loading { display: flex }` lo dejan visible aunque el
+   markup diga `hidden`. */
+[hidden] {
+    display: none !important;
+}
+
 /* —— Base de interacción y lectura ——
    Reglas de elemento (especificidad mínima): cualquier hoja de pantalla las pisa. */
 

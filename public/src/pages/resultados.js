@@ -1,12 +1,7 @@
-// Botón "volver" y los que arma el propio HTML de error, delegados en vez de
-// onclick= inline (la CSP sin unsafe-inline ya no los ejecutaría).
+// "Reintentar" de los estados de error, delegado en vez de onclick= inline. "Volver" es un
+// enlace (<a href>), no un botón que cambia location.
 document.addEventListener('click', (event) => {
-    const accion = event.target.closest('[data-action]')?.dataset.action;
-    if (accion === 'volver-dashboard') {
-        window.location.href = 'dashboard.html';
-    } else if (accion === 'reintentar') {
-        location.reload();
-    }
+    if (event.target.closest('[data-action="reintentar"]')) location.reload();
 });
 
 // Inicializar componente cuando la página esté lista
@@ -42,18 +37,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Verificar si tiene permisos para ver resultados
         if (!userPermissions.includes('resultados.view')) {
             console.log('❌ Usuario sin permisos para ver resultados');
-            document.getElementById('resultados-container').innerHTML = `
-                <div class="error-container" style="display: block; max-width: 600px; margin: 50px auto; padding: 30px; background: var(--ds-bg-card); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
-                    <div class="error-message" style="color: var(--ds-danger-500);">
-                        <i class="fas fa-lock" style="font-size: 48px; margin-bottom: 20px;"></i>
-                        <h3 style="margin: 0 0 15px; font-size: 24px;">Acceso Denegado</h3>
-                        <p style="margin: 0 0 25px; font-size: 16px; color: var(--ds-text-secondary);">No tiene permisos para acceder a los resultados del relevamiento.</p>
-                        <button data-action="volver-dashboard" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--ds-gradient-primary); color: var(--ds-text-inverse); border: none; border-radius: var(--ds-radius-md); font-weight: 600; cursor: pointer; text-decoration: none;">
-                            <i class="fas fa-arrow-left"></i> Volver al Dashboard
-                        </button>
-                    </div>
-                </div>
-            `;
+            document.getElementById('resultados-container').innerHTML = estados.error({
+                titulo: 'Acceso denegado',
+                icono: 'fa-lock',
+                texto: 'No tiene permisos para acceder a los resultados del relevamiento.',
+                enlace: { texto: 'Volver al inicio', href: 'dashboard.html' }
+            });
             return;
         }
 
@@ -73,20 +62,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Mostrar error en la página
         const container = document.getElementById('resultados-container');
-        container.innerHTML = `
-            <div class="error-container" style="display: block;">
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error Fatal</h3>
-                    <p>No se pudo cargar la aplicación: ${error.message}</p>
-                    <p style="margin-top: 15px;">
-                        <button data-action="reintentar" class="btn btn-primary">
-                            <i class="fas fa-redo"></i> Reintentar
-                        </button>
-                    </p>
-                </div>
-            </div>
-        `;
+        container.innerHTML = estados.error({
+            titulo: 'No se pudo cargar la aplicación',
+            texto: error.message,
+            reintentar: 'reintentar'
+        });
     }
 });
 

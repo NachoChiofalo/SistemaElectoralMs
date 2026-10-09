@@ -13,189 +13,30 @@
     <script src="src/tema.js?v=2e51b412"></script>
     <script src="src/lib/escapar.js?v=e0153e84"></script>
     <script src="src/lib/dialogo.js?v=c3def367"></script>
+    <script src="src/lib/estados.js?v=6d130f61"></script>
     <script src="src/lib/avisos.js?v=69830cdb"></script>
     <link rel="stylesheet" href="src/styles/fonts.css?v=5bd875d5">
-    <link rel="stylesheet" href="src/styles/icons.css?v=0f13ba05">
+    <link rel="stylesheet" href="src/styles/icons.css?v=86b62347">
     
     <!-- Design System -->
-    <link rel="stylesheet" href="src/styles/design-system.css?v=e27193df">
+    <link rel="stylesheet" href="src/styles/design-system.css?v=cd89390b">
     
     <!-- Estilos -->
     <link rel="stylesheet" href="src/styles/navbar-styles.css?v=52f9cf38">
-    <link rel="stylesheet" href="src/styles/padron-styles.css?v=5ad5bc1f">
-    <link rel="stylesheet" href="src/styles/resultados-styles.css?v=f6aa0481">
+    <link rel="stylesheet" href="src/styles/resultados-styles.css?v=2b94ec82">
     <link rel="stylesheet" href="src/styles/microchart.css?v=aadaea89">
     
-    <style>
-        body {
-            font-family: var(--ds-font-family);
-            background-color: var(--ds-bg-page);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            background: var(--ds-gradient-primary);
-            color: var(--ds-text-inverse);
-            text-decoration: none;
-            border-radius: var(--ds-radius-md);
-            font-weight: 600;
-            font-family: var(--ds-font-family);
-            margin-bottom: 20px;
-            transition: color var(--ds-transition-smooth), background-color var(--ds-transition-smooth), border-color var(--ds-transition-smooth), box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), opacity var(--ds-transition-smooth);
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 2px 10px color-mix(in srgb, var(--ds-primary-600) 25%, transparent);
-        }
-        
-        .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px color-mix(in srgb, var(--ds-primary-600) 40%, transparent);
-        }
-        
-        .back-btn i {
-            font-size: 1rem;
-        }
-
-        .nav-link {
-            transition: background-color 0.3s ease;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-height: 44px;
-            touch-action: manipulation;
-        }
-    
-        
-        .nav-link:hover {
-            background-color: var(--ds-bg-subtle);
-        }
-        
-        .nav-link.active {
-            background-color: var(--ds-primary-500);
-            color: var(--ds-on-primary);
-        }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
-            min-height: 44px;
-            touch-action: manipulation;
-        }
-        
-        .btn-primary {
-            background-color: var(--ds-primary-500);
-            color: var(--ds-on-primary);
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--ds-primary-600);
-        }
-        
-        .btn-secondary {
-            background-color: var(--ds-secondary-600);
-            color: var(--ds-text-inverse);
-        }
-        
-        .btn-secondary:hover {
-            background-color: var(--ds-secondary-800);
-        }
-        
-        /* Mobile First Responsive Design */
-        @media (max-width: 768px) {
-            body {
-                padding: 5px;
-            }
-
-            .container {
-                padding: 0 10px;
-            }
-
-            .back-btn {
-                width: 100%;
-                justify-content: center;
-                padding: 12px 16px;
-                font-size: 14px;
-            }
-            
-            .navigation {
-                padding: 10px 15px;
-                margin-bottom: 10px;
-                border-radius: 8px;
-            }
-            
-            .nav-links {
-                gap: 8px;
-                justify-content: space-between;
-            }
-            
-            .nav-link {
-                padding: 8px 12px;
-                font-size: 12px;
-                min-height: 40px;
-            }
-            
-            .nav-link i {
-                font-size: 16px;
-            }
-            
-            .btn {
-                padding: 10px 16px;
-                font-size: 13px;
-                min-height: 40px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .nav-links {
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .nav-link {
-                width: 100%;
-                justify-content: center;
-                text-align: center;
-            }
-            
-            .btn {
-                width: 100%;
-            }
-        }
-    </style>
 </head>
 <body>
     <!-- Barra de navegación unificada -->
     <div id="navbar-container"></div>
 
     <main class="container" id="contenido" tabindex="-1">
-        <!-- Botón para regresar al Dashboard -->
-        <button class="back-btn" data-action="volver-dashboard">
-            <i class="fas fa-arrow-left"></i>
-            Volver al Dashboard
-        </button>
+        <!-- Volver al inicio -->
+        <a class="btn btn-secondary volver" href="dashboard.html">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+            Volver al inicio
+        </a>
         
         <!-- Contenedor de Resultados -->
         <div id="resultados-container" aria-live="polite">
@@ -211,7 +52,7 @@
     <script src="src/lib/opciones.js?v=c7d76c08"></script>
     <script src="src/services/ApiService.js?v=1ccf812f"></script>
     <script src="src/services/AuthService.js?v=a6ec8d65"></script>
-    <script src="src/components/ResultadosComponent.js?v=ef4c0826"></script>
-    <script src="src/pages/resultados.js?v=3883967a"></script>
+    <script src="src/components/ResultadosComponent.js?v=9c76b27e"></script>
+    <script src="src/pages/resultados.js?v=8f451315"></script>
 </body>
 </html>
