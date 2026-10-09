@@ -190,6 +190,8 @@ npm run build:assets     # iconos, fuentes, ?v= y precomprimidos de public/
 npm run territorio:cargar -- ALCIRA      # capas del mapa (018): muestra qué haría; con "si" al final, carga
 npm run medir:geocodificacion                          # solo lectura: cuánto del padrón se ubica en una manzana
 node scripts/verificar-frontend.js [etiqueta]          # capturas + axe + scroll horizontal de las 10 pantallas (ver abajo)
+node scripts/verificar-componentes.js --url=...   # teclado y foco: barra, diálogos, pestañas, gráficos, calendario
+node scripts/verificar-mapa.js --url=...          # mapa con capas sintéticas interceptadas: teclado, pestañas, lista, axe
 ```
 
 **`verificar-frontend.js` no se corre contra producción.** No hay staging, así que un login

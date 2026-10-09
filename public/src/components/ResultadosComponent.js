@@ -547,7 +547,7 @@ class ResultadosComponent {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
+                plugins: { title: { display: false, text: 'Distribución de preferencia política' },
                     legend: {
                         position: 'bottom',
                         labels: { padding: 20, font: { size: 14 } }
@@ -596,7 +596,7 @@ class ResultadosComponent {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: { y: { beginAtZero: true } },
-                plugins: { legend: { position: 'bottom' } }
+                plugins: { title: { display: false, text: 'Preferencia política por sexo' }, legend: { position: 'bottom' } }
             }
         });
     }
@@ -619,7 +619,7 @@ class ResultadosComponent {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: { y: { beginAtZero: true } },
-                plugins: { legend: { position: 'bottom' } }
+                plugins: { title: { display: false, text: 'Preferencia política por rango etario' }, legend: { position: 'bottom' } }
             }
         });
     }
@@ -658,7 +658,7 @@ class ResultadosComponent {
                 maintainAspectRatio: false,
                 indexAxis: 'y',
                 scales: { x: { beginAtZero: true } },
-                plugins: { legend: { display: false } }
+                plugins: { title: { display: false, text: 'Condiciones especiales, vista general' }, legend: { display: false } }
             }
         });
     }
@@ -712,7 +712,7 @@ class ResultadosComponent {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
+                plugins: { title: { display: false, text: 'Preferencia política dentro de la condición especial' },
                     legend: { position: 'bottom' },
                     tooltip: {
                         callbacks: {

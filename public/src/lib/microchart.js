@@ -159,15 +159,63 @@
         viewBox: `0 0 ${ancho} ${Math.max(alto - altoLeyenda, 1)}`,
         width: ancho,
         height: Math.max(alto - altoLeyenda, 1),
-        role: 'img',
-        // Sin nombre, un lector de pantalla anuncia solo "imagen" (FE-020).
-        'aria-label': this.config.options?.plugins?.title?.text || `Gráfico de ${this.config.type || 'datos'}`,
+        // Un grupo y no una imagen: las marcas de adentro son operables con el teclado, y los
+        // hijos de un role="img" son presentacionales (no se podrían leer ni enfocar).
+        role: 'group',
+        'aria-roledescription': 'gráfico',
+        'aria-label': this.nombreAccesible(),
       });
+      this.marcas = [];
+      this.svg.addEventListener('keydown', evento => this.teclado(evento));
       this.raiz.insertBefore(this.svg, this.pista);
 
       const area = { ancho, alto: Math.max(alto - altoLeyenda, 1) };
       if (this.config.type === 'doughnut') this.dibujarAnillo(area);
       else this.dibujarBarras(area);
+
+      // Un solo tope de tabulación para todo el gráfico (roving tabindex): con decenas de
+      // barras, tabular por cada una dejaría la pantalla impracticable.
+      if (this.marcas.length) this.marcas[0].setAttribute('tabindex', '0');
+    }
+
+    /**
+     * Nombre del gráfico para un lector de pantalla: el título y, en un anillo, sus valores
+     * (es poca información y es lo que el dibujo dice). En barras, cuántas categorías y
+     * series hay y cómo recorrerlas.
+     */
+    nombreAccesible() {
+      const titulo = this.config.options?.plugins?.title?.text
+        || (this.config.type === 'doughnut' ? 'Gráfico de anillo' : 'Gráfico de barras');
+      const { labels = [], datasets = [] } = this.config.data || {};
+
+      if (this.config.type === 'doughnut') {
+        const valores = (datasets[0]?.data || []).map(num);
+        const partes = labels.map((texto, i) => `${texto}: ${formatear(valores[i])}`);
+        return partes.length ? `${titulo}. ${partes.join('; ')}.` : titulo;
+      }
+
+      const series = datasets.filter(d => d.label).map(d => d.label);
+      const detalle = `${labels.length} categorías${series.length ? ` y ${series.length} series (${series.join(', ')})` : ''}`;
+      return `${titulo}. ${detalle}. Usá las flechas para recorrer las barras.`;
+    }
+
+    /** Flechas, Inicio y Fin recorren las marcas; el foco muestra la pista. */
+    teclado(evento) {
+      const marcas = this.marcas || [];
+      const actual = marcas.indexOf(document.activeElement);
+      if (actual < 0) return;
+
+      let destino = actual;
+      if (evento.key === 'ArrowRight' || evento.key === 'ArrowDown') destino = Math.min(actual + 1, marcas.length - 1);
+      else if (evento.key === 'ArrowLeft' || evento.key === 'ArrowUp') destino = Math.max(actual - 1, 0);
+      else if (evento.key === 'Home') destino = 0;
+      else if (evento.key === 'End') destino = marcas.length - 1;
+      else return;
+
+      evento.preventDefault();
+      marcas[actual].setAttribute('tabindex', '-1');
+      marcas[destino].setAttribute('tabindex', '0');
+      marcas[destino].focus();
     }
 
     construirLeyenda() {
@@ -265,9 +313,23 @@
       });
       elemento.addEventListener('mouseleave', () => { this.pista.hidden = true; });
 
-      // La pista es decoracion: el dato ya viaja en el <title>, que es lo que lee un
-      // lector de pantalla y lo que aparece sin mouse.
-      elemento.appendChild(crear('title')).textContent = texto;
+      // Teclado: la marca se enfoca y la pista aparece pegada a ella, como con el mouse.
+      elemento.addEventListener('focus', () => {
+        const caja = this.raiz.getBoundingClientRect();
+        const marca = elemento.getBoundingClientRect();
+        this.pista.textContent = texto;
+        this.pista.hidden = false;
+        this.pista.style.left = `${marca.left - caja.left + marca.width / 2}px`;
+        this.pista.style.top = `${marca.top - caja.top}px`;
+      });
+      elemento.addEventListener('blur', () => { this.pista.hidden = true; });
+
+      // El nombre accesible lleva el dato (antes era un <title>, que además duplicaba la
+      // pista flotante con un tooltip nativo).
+      elemento.setAttribute('role', 'img');
+      elemento.setAttribute('aria-label', texto);
+      elemento.setAttribute('tabindex', '-1');
+      this.marcas.push(elemento);
     }
 
     // ---- doughnut ---------------------------------------------------------

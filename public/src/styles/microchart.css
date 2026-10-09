@@ -113,6 +113,14 @@
     box-shadow: 0 4px 12px rgba(15, 25, 35, 0.25);
 }
 
+/* Foco de teclado en una marca: un trazo del color del texto, visible sobre cualquier relleno. */
+.microchart-arco:focus-visible,
+.microchart-barra:focus-visible {
+    outline: none;
+    stroke: var(--ds-text-primary);
+    stroke-width: 3px;
+}
+
 .microchart-pista[hidden] {
     display: none;
 }

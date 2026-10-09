@@ -22,6 +22,7 @@ class MapaComponent {
         this.seleccion = null;
         this.pestana = 'estadisticas';
         this.pedido = 0;
+        this.vista = 'mapa';
     }
 
     async init(idContenedor = 'mapa-container') {
@@ -60,6 +61,9 @@ class MapaComponent {
                     <button type="button" data-color="avance" aria-pressed="true">Avance</button>
                     <button type="button" data-color="lider" aria-pressed="false">Opción líder</button>
                 </div>
+                <button type="button" class="btn btn-secondary" id="btn-vista" aria-pressed="false">
+                    <i class="fas fa-list" aria-hidden="true"></i> <span>Ver como lista</span>
+                </button>
                 <button type="button" class="mapa-sin-ubicar" id="btn-sin-ubicar">
                     <i class="fas fa-exclamation-triangle"></i> <span id="texto-sin-ubicar">…</span>
                 </button>
@@ -74,26 +78,6 @@ class MapaComponent {
                     <p class="mapa-vacio">Tocá una manzana para ver sus datos y los de su radio censal.</p>
                 </aside>
             </div>
-
-            <div id="modal-recalcular" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-recalcular-titulo">
-                <div class="modal-content modal-sm">
-                    <div class="modal-header">
-                        <h3 id="modal-recalcular-titulo"><i class="fas fa-sync"></i> Recalcular ubicaciones</h3>
-                        <button class="modal-close" id="modal-recalcular-cerrar" aria-label="Cerrar">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <p class="modal-info">Vuelve a ubicar a todo el padrón en las manzanas. Se hace solo al importar el padrón;
-                            hace falta a mano si se cargaron votantes uno por uno.</p>
-                        <div id="recalcular-error" class="form-error" style="display: none;"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="btn-recalcular-cancelar">Cancelar</button>
-                            <button type="button" class="btn btn-primary" id="btn-recalcular-confirmar"><i class="fas fa-sync"></i> Recalcular</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="toast-container" class="toast-container"></div>
         `;
     }
 
@@ -127,18 +111,45 @@ class MapaComponent {
             const boton = e.target.closest('button[data-accion]');
             if (!boton) return;
             const { accion } = boton.dataset;
-            if (accion === 'pestana') { this.pestana = boton.dataset.pestana; this.mostrarPestana(); }
+            if (accion === 'pestana') { this.pestana = boton.dataset.pestana; this.enfocarTab = true; this.mostrarPestana(); }
             if (accion === 'pagina') this.mostrarLista(Number(boton.dataset.pagina));
         });
 
         $('btn-sin-ubicar').addEventListener('click', () => this.mostrarSinUbicar());
 
-        $('btn-recalcular').addEventListener('click', () => this.abrirRecalcular(true));
-        $('btn-recalcular-cancelar').addEventListener('click', () => this.abrirRecalcular(false));
-        $('modal-recalcular-cerrar').addEventListener('click', () => this.abrirRecalcular(false));
-        $('modal-recalcular').addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) this.abrirRecalcular(false); });
-        $('btn-recalcular-confirmar').addEventListener('click', () => this.recalcular());
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.abrirRecalcular(false); });
+        $('btn-recalcular').addEventListener('click', () => this.abrirRecalcular());
+
+        // Vista alternativa a la del dibujo: la misma información como lista operable.
+        $('btn-vista').addEventListener('click', () => {
+            this.vista = this.vista === 'lista' ? 'mapa' : 'lista';
+            this.actualizarBotonVista();
+            this.dibujar();
+        });
+
+        // Tabs del panel (manzana): flechas, Inicio y Fin; el foco se queda en la pestaña.
+        $('mapa-panel').addEventListener('keydown', (e) => {
+            const tab = e.target.closest('[role="tab"]');
+            if (!tab) return;
+            const tabs = [...tab.parentElement.querySelectorAll('[role="tab"]')];
+            const i = tabs.indexOf(tab);
+            let j = null;
+            if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+            else if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+            else if (e.key === 'Home') j = 0;
+            else if (e.key === 'End') j = tabs.length - 1;
+            if (j === null) return;
+            e.preventDefault();
+            this.enfocarTab = true;
+            this.pestana = tabs[j].dataset.pestana;
+            this.mostrarPestana();
+        });
+    }
+
+    actualizarBotonVista() {
+        const boton = document.getElementById('btn-vista');
+        const lista = this.vista === 'lista';
+        boton.setAttribute('aria-pressed', String(lista));
+        boton.querySelector('span').textContent = lista ? 'Ver el mapa' : 'Ver como lista';
     }
 
     marcarBotones(selector, valor, clave) {
@@ -274,7 +285,62 @@ class MapaComponent {
         }
 
         const lienzo = document.getElementById('mapa-lienzo');
+        if (this.vista === 'lista') {
+            lienzo.replaceChildren(this.construirLista(porManzana, porBarrio));
+            return;
+        }
         lienzo.replaceChildren(svg);
+
+        // Un solo tope de tabulación (roving): con cientos de manzanas, un Tab por cada una
+        // dejaría el mapa impracticable con teclado. Entre zonas se mueve con las flechas.
+        const zonas = [...svg.querySelectorAll('[data-interactiva]')];
+        zonas.forEach((p, i) => p.setAttribute('tabindex', i === 0 ? '0' : '-1'));
+        svg.addEventListener('keydown', (e) => {
+            const i = zonas.indexOf(document.activeElement);
+            if (i < 0) return;
+            let j = null;
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') j = Math.min(i + 1, zonas.length - 1);
+            else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') j = Math.max(i - 1, 0);
+            else if (e.key === 'Home') j = 0;
+            else if (e.key === 'End') j = zonas.length - 1;
+            if (j === null) return;
+            e.preventDefault();
+            zonas[i].setAttribute('tabindex', '-1');
+            zonas[j].setAttribute('tabindex', '0');
+            zonas[j].focus();
+        });
+    }
+
+    /**
+     * La misma información del dibujo como tabla: nombre, votantes y avance de cada zona del
+     * nivel elegido, con un botón por fila que abre su panel. Es la alternativa para quien no
+     * puede o no quiere recorrer un dibujo (teclado, lector de pantalla, pantallas chicas).
+     */
+    construirLista(porManzana, porBarrio) {
+        const filas = this.nivel === 'manzana'
+            ? this.geo.manzanas.map((m) => ({ tipo: 'manzana', id: m.id, nombre: `Manzana ${m.id}`, datos: porManzana.get(m.id) }))
+            : this.geo.barrios.map((b) => ({ tipo: 'barrio', id: b.id, nombre: b.nombre, datos: porBarrio.get(b.id) }));
+        filas.sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es', { numeric: true }));
+
+        const contenedor = document.createElement('div');
+        contenedor.className = 'tabla-contenedor mapa-lista';
+        contenedor.setAttribute('role', 'region');
+        contenedor.setAttribute('tabindex', '0');
+        contenedor.setAttribute('aria-label', 'Zonas del mapa en lista');
+        const n = (x) => Number(x || 0).toLocaleString('es-AR');
+        contenedor.innerHTML = `
+            <table class="tabla">
+                <thead><tr><th scope="col">Zona</th><th scope="col" class="num">Votantes</th><th scope="col" class="num">Relevado</th><th scope="col"><span class="sr-only">Acción</span></th></tr></thead>
+                <tbody>${filas.map((f) => `
+                    <tr${this.seleccion && this.seleccion.tipo === f.tipo && this.seleccion.id === Number(f.id) ? ' aria-selected="true"' : ''}>
+                        <th scope="row">${escaparHtml(f.nombre)}</th>
+                        <td class="num">${f.datos && f.datos.votantes ? n(f.datos.votantes) : '—'}</td>
+                        <td class="num">${f.datos && f.datos.votantes ? `${n(f.datos.avance)} %` : '—'}</td>
+                        <td><button type="button" class="btn btn-secondary btn-sm" data-interactiva="1" data-tipo="${f.tipo}" data-id="${escaparHtml(f.id)}" aria-label="Ver datos de ${escaparHtml(f.nombre)}">Ver</button></td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>`;
+        return contenedor;
     }
 
     dibujarLeyenda() {
@@ -324,18 +390,27 @@ class MapaComponent {
         const etiquetaBarrio = z.etiquetaBarrio || 'Radio censal';
 
         if (z.tipo === 'barrio') {
-            panel.innerHTML = `<h3 class="panel-titulo">${escaparHtml(z.nombre)}</h3>${this.bloqueZona(z)}${this.bloqueCenso(z)}`;
+            panel.innerHTML = `<h2 class="panel-titulo">${escaparHtml(z.nombre)}</h2>${this.bloqueZona(z)}${this.bloqueCenso(z)}`;
             return;
         }
 
+        const tab = (clave, texto) => `<button type="button" role="tab" id="mapa-tab-${clave}" aria-controls="mapa-tabpanel" data-accion="pestana" data-pestana="${clave}" aria-selected="${this.pestana === clave}" tabindex="${this.pestana === clave ? 0 : -1}">${texto}</button>`;
         const pestanas = `
-            <div class="panel-pestanas" role="tablist">
-                <button type="button" role="tab" data-accion="pestana" data-pestana="estadisticas" aria-selected="${this.pestana === 'estadisticas'}">Estadísticas</button>
-                <button type="button" role="tab" data-accion="pestana" data-pestana="votantes" aria-selected="${this.pestana === 'votantes'}">Votantes</button>
+            <div class="panel-pestanas" role="tablist" aria-label="Datos de la manzana">
+                ${tab('estadisticas', 'Estadísticas')}
+                ${tab('votantes', 'Votantes')}
             </div>`;
+        const abrirPanel = `<div id="mapa-tabpanel" role="tabpanel" aria-labelledby="mapa-tab-${this.pestana}" tabindex="0">`;
+        // Al cambiar de pestaña con el teclado el panel se redibuja entero: el foco vuelve a la pestaña activa.
+        const devolverFoco = () => {
+            if (!this.enfocarTab) return;
+            this.enfocarTab = false;
+            document.getElementById(`mapa-tab-${this.pestana}`)?.focus();
+        };
 
         if (this.pestana === 'votantes') {
-            panel.innerHTML = `<h3 class="panel-titulo">Manzana ${escaparHtml(z.id)}</h3>${pestanas}<div id="panel-lista"><p class="mapa-vacio">Cargando…</p></div>`;
+            panel.innerHTML = `<h2 class="panel-titulo">Manzana ${escaparHtml(z.id)}</h2>${pestanas}${abrirPanel}<div id="panel-lista"><p class="mapa-vacio">Cargando…</p></div></div>`;
+            devolverFoco();
             this.mostrarLista(1);
             return;
         }
@@ -344,9 +419,10 @@ class MapaComponent {
             ? `<h4 class="panel-subtitulo">${escaparHtml(etiquetaBarrio)}: ${escaparHtml(z.barrio.nombre)}</h4>${this.bloqueZona(z.barrio)}${this.bloqueCenso(z.barrio)}`
             : `<p class="mapa-vacio">Esta manzana no está dentro de ningún ${escaparHtml(etiquetaBarrio.toLowerCase())}.</p>`;
         panel.innerHTML = `
-            <h3 class="panel-titulo">Manzana ${escaparHtml(z.id)}</h3>${pestanas}
-            ${this.bloqueZona(z)}
-            <div class="panel-barrio">${barrio}</div>`;
+            <h2 class="panel-titulo">Manzana ${escaparHtml(z.id)}</h2>${pestanas}
+            ${abrirPanel}${this.bloqueZona(z)}
+            <div class="panel-barrio">${barrio}</div></div>`;
+        devolverFoco();
     }
 
     bloqueCenso(b) {
@@ -499,42 +575,30 @@ class MapaComponent {
 
     // ------------------------------------------------------------ recalcular
 
-    abrirRecalcular(abrir) {
-        const modal = document.getElementById('modal-recalcular');
-        if (!modal) return;
-        modal.style.display = abrir ? 'flex' : 'none';
-        const error = document.getElementById('recalcular-error');
-        error.style.display = 'none';
-        if (abrir) document.getElementById('btn-recalcular-confirmar').focus();
+    /** Confirmar con el diálogo del sistema (nativo: foco atrapado, Escape, fondo inerte). */
+    async abrirRecalcular() {
+        const acepto = await window.dialogo.confirmar({
+            titulo: 'Recalcular ubicaciones',
+            mensaje: 'Vuelve a ubicar a todo el padrón en las manzanas. Se hace solo al importar el padrón; hace falta a mano si se cargaron votantes uno por uno.',
+            confirmar: 'Recalcular',
+        });
+        if (acepto) await this.recalcular();
     }
 
     async recalcular() {
-        const boton = document.getElementById('btn-recalcular-confirmar');
-        boton.disabled = true;
+        const boton = document.getElementById('btn-recalcular');
+        boton.setAttribute('aria-busy', 'true');
         try {
             const r = await this.api('/reubicar', { method: 'POST' });
-            this.abrirRecalcular(false);
-            this.toast(`Listo: ${r.ubicados} de ${r.total} votantes ubicados en una manzana.`, 'success');
+            window.avisos.exito(`Listo: ${r.ubicados} de ${r.total} votantes ubicados en una manzana.`);
             this.seleccion = null;
             document.getElementById('mapa-panel').innerHTML = '<p class="mapa-vacio">Tocá una manzana para ver sus datos y los de su radio censal.</p>';
             await this.cargar();
         } catch (error) {
-            const caja = document.getElementById('recalcular-error');
-            caja.textContent = error.message;
-            caja.style.display = 'block';
+            window.avisos.error(error.message);
         } finally {
-            boton.disabled = false;
+            boton.removeAttribute('aria-busy');
         }
-    }
-
-    toast(mensaje, tipo = 'info') {
-        const contenedor = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${tipo}`;
-        toast.textContent = mensaje;
-        contenedor.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('toast-visible'));
-        setTimeout(() => { toast.classList.remove('toast-visible'); setTimeout(() => toast.remove(), 300); }, 3500);
     }
 }
 

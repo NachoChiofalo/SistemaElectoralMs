@@ -310,3 +310,14 @@
     .toast-visible { transform: none; }
     .btn-accion:hover, .fiscales-actions .btn-primary:hover { transform: none; }
 }
+
+/* Alternativa en tabla del calendario: el dibujo es visual, esto es lo que lee un lector de pantalla. */
+.calendario-tabla { margin-top: var(--ds-space-4); }
+.calendario-tabla > summary {
+    cursor: pointer;
+    font-size: var(--ds-font-sm);
+    font-weight: var(--ds-weight-medium);
+    color: var(--ds-text-secondary);
+}
+.calendario-tabla > summary:hover { color: var(--ds-text-primary); }
+.calendario-tabla .tabla-contenedor { margin-top: var(--ds-space-3); }

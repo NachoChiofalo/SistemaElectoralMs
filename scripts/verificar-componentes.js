@@ -81,6 +81,7 @@ async function main() {
     await p.keyboard.press('Tab');
     const enfocado = await p.evaluate(() => document.activeElement.className);
     chequear('el primer Tab cae en el skip-link', enfocado.includes('skip-link'), enfocado);
+    await p.waitForTimeout(400); // el skip-link entra con una transición
     const caja = await p.locator('.skip-link').boundingBox();
     chequear('el skip-link es visible al recibir foco', caja && caja.y >= 0 && caja.height > 0, JSON.stringify(caja));
     await p.keyboard.press('Enter');
@@ -219,6 +220,40 @@ async function main() {
     await p.keyboard.press('Escape');
     await p.waitForTimeout(200);
     chequear('Escape no cierra un aviso de sesión terminada', await p.locator('dialog[open]').count() === 1);
+    await ctx.close();
+  }
+
+  // ------------------------------------------------------------ gráficos (microchart)
+  {
+    const { p, ctx } = await pagina({ ruta: '/resultados.html' });
+    await p.waitForSelector('svg.microchart-svg');
+    chequear('cada gráfico es un grupo con nombre que lleva sus datos',
+      await p.evaluate(() => [...document.querySelectorAll('svg.microchart-svg')].every((g) => g.getAttribute('role') === 'group' && /\d/.test(g.getAttribute('aria-label') || ''))));
+    chequear('cada gráfico tiene un solo tope de tabulación (roving)',
+      await p.evaluate(() => [...document.querySelectorAll('svg.microchart-svg')].every((g) => g.querySelectorAll('[tabindex="0"]').length === 1)));
+    chequear('las marcas del gráfico no tienen <title> (el dato va en aria-label)',
+      await p.locator('svg.microchart-svg title').count() === 0);
+    await p.locator('svg.microchart-svg [tabindex="0"]').first().focus();
+    const antes = await p.evaluate(() => document.activeElement.getAttribute('aria-label'));
+    await p.keyboard.press('ArrowRight');
+    const despues = await p.evaluate(() => document.activeElement.getAttribute('aria-label'));
+    chequear('la flecha mueve el foco a la marca siguiente', antes && despues && antes !== despues, `${antes} -> ${despues}`);
+    chequear('con el foco en una marca aparece su pista', await p.locator('.microchart-pista:not([hidden])').count() >= 1);
+    await ctx.close();
+  }
+
+  // ------------------------------------------------------------ calendario de fiscales
+  {
+    const { p, ctx } = await pagina({ ruta: '/comicio.html' });
+    await p.locator('.btn-entrar').first().click();
+    await p.waitForSelector('#comicio-detalle-view:not([hidden])');
+    await p.locator('#tab-fiscales').click();
+    await p.waitForSelector('#calendario-comicio .calendario-tabla');
+    chequear('el dibujo del calendario se oculta a lectores de pantalla', await p.locator('#calendario-comicio .calendario-grid[aria-hidden="true"]').count() === 1);
+    chequear('el calendario se ofrece como tabla accesible', await p.locator('#calendario-comicio details table.tabla caption').count() === 1);
+    await p.locator('#calendario-comicio summary').click();
+    chequear('la tabla del calendario lista a los fiscales con su horario',
+      await p.evaluate(() => [...document.querySelectorAll('#calendario-comicio tbody tr')].some((tr) => /\d\d:\d\d/.test(tr.textContent))));
     await ctx.close();
   }
 

@@ -1707,14 +1707,40 @@ class ComicioComponent {
             `;
         }).join('');
 
+        // El dibujo es una ayuda visual: un lector de pantalla no puede recorrer franjas
+        // posicionadas en porcentajes, así que se lo oculta y se ofrece lo mismo como tabla.
+        const filasTabla = mesas.map((m) => {
+            const asignaciones = this.asignacionesPorMesa.get(m.id) || [];
+            if (!asignaciones.length) {
+                return `<tr><th scope="row">Mesa ${escaparHtml(String(m.numero))}</th><td colspan="3" class="fiscales-empty-linea">Sin fiscal asignado</td></tr>`;
+            }
+            return asignaciones.map((a, i) => `
+                <tr>
+                    ${i === 0 ? `<th scope="row" rowspan="${asignaciones.length}">Mesa ${escaparHtml(String(m.numero))}</th>` : ''}
+                    <td>${escaparHtml(a.fiscal_nombre)}</td>
+                    <td class="num">${this.formatearHora(a.desde)}</td>
+                    <td class="num">${this.formatearHora(a.hasta)}</td>
+                </tr>`).join('');
+        }).join('');
+
         cont.innerHTML = `
-            <div class="calendario-grid">
+            <div class="calendario-grid" aria-hidden="true">
                 <div class="calendario-fila calendario-fila-encabezado">
                     <div class="calendario-mesa-label"></div>
                     <div class="calendario-timeline calendario-timeline-encabezado">${encabezado}</div>
                 </div>
                 ${filas}
             </div>
+            <details class="calendario-tabla">
+                <summary>Ver el calendario como tabla</summary>
+                <div class="tabla-contenedor" role="region" tabindex="0" aria-label="Fiscales por mesa y horario">
+                    <table class="tabla">
+                        <caption class="sr-only">Fiscales asignados a cada mesa, con su horario</caption>
+                        <thead><tr><th scope="col">Mesa</th><th scope="col">Fiscal</th><th scope="col" class="num">Desde</th><th scope="col" class="num">Hasta</th></tr></thead>
+                        <tbody>${filasTabla}</tbody>
+                    </table>
+                </div>
+            </details>
         `;
         cont.querySelectorAll('.calendario-bloque').forEach((b) => {
             b.style.left = `${Number(b.dataset.izq) || 0}%`;
