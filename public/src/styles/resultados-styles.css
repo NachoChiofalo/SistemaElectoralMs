@@ -487,6 +487,7 @@ body {
 }
 
 .barra-fill {
+    width: 0;
     height: 100%;
     border-radius: 12px;
     transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -895,6 +896,17 @@ body {
 .stat-card.total .stat-icon,
 .stat-card.relevados .stat-icon,
 .stat-card.condicion .stat-icon { color: var(--ds-text-muted); }
+
+/* Tablas de sexo y de rango etario: viven en una tarjeta de media pantalla y tienen una columna por
+   opción política. Con el relleno de una tabla de ancho completo se salían de la tarjeta y la
+   última columna quedaba oculta; acá van compactas, las cifras en mono y el porcentaje debajo. */
+main#contenido .chart-card .stats-table th,
+main#contenido .chart-card .stats-table td { padding: 8px 4px; }
+/* Encabezados en minúscula y sin tracking: en mayúsculas anchas una tabla de siete columnas no entra. */
+main#contenido .chart-card .stats-table th { letter-spacing: 0; text-transform: none; font-size: var(--ds-font-xs); }
+.chart-card .stats-table td { font-size: var(--ds-font-sm); }
+.chart-card .stats-table td:not(:first-child) { font-family: var(--ds-font-mono); font-variant-numeric: tabular-nums; }
+.chart-card .stats-table td small { display: block; font-size: var(--ds-font-xs); }
 
 /* Mismo peso de especificidad que las reglas por condición de arriba, para que ganen. */
 .stat-card.condicion.empleados,

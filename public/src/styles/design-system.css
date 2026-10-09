@@ -938,7 +938,8 @@ textarea::placeholder {
 .tabla--compacta th,
 .tabla--compacta td { height: 36px; }
 
-.mono { font-family: var(--ds-font-mono); font-variant-numeric: tabular-nums; }
+.mono,
+.dato { font-family: var(--ds-font-mono); font-variant-numeric: tabular-nums; }
 
 /* —— Panel, KPI y cabecera de pantalla ——
    El panel es plano: un borde de 1 px sobre --ds-bg-card, sin sombra. La jerarquía sale de

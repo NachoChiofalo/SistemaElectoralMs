@@ -204,3 +204,12 @@ test('el shell de pantalla (contenedor, título, cabecera y encabezado de tabla)
     assert.match(leer('src', 'components', `${archivo}.js`), /<h1[ >]/, `${archivo} sin <h1>`);
   }
 });
+
+test('ningún componente deja style="" en su markup (los anchos van por CSSOM)', () => {
+  const dir = path.join(__dirname, '..', 'public', 'src', 'components');
+  const culpables = fs.readdirSync(dir).filter((f) => f.endsWith('.js')).filter((f) => {
+    const sinComentarios = fs.readFileSync(path.join(dir, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    return /style="/.test(sinComentarios);
+  });
+  assert.deepEqual(culpables, [], `style="" en: ${culpables.join(', ')}. Usá data-ancho y style.width por CSSOM (permite sacar 'unsafe-inline' de la CSP).`);
+});

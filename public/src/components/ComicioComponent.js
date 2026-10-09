@@ -439,7 +439,7 @@ class ComicioComponent {
         tbody.innerHTML = this.fiscales.map((f) => `
             <tr>
                 <td class="fiscal-nombre">${escaparHtml(f.nombre)}</td>
-                <td>${escaparHtml(f.dni || '-')}</td>
+                <td class="dato">${escaparHtml(f.dni || '-')}</td>
                 <td>${escaparHtml(f.telefono || '-')}</td>
                 <td>
                     <div class="acciones-cell">
@@ -908,8 +908,8 @@ class ComicioComponent {
             <tr>
                 <td><span class="color-dot ${this.claseFuerza(f.fuerza_color)}" aria-hidden="true"></span></td>
                 <td>${escaparHtml(f.fuerza_nombre)}</td>
-                <td>${escaparHtml(Number(f.votos).toLocaleString('es-AR'))}</td>
-                <td>${m.emitidos > 0 ? `${formatPct((f.votos / m.emitidos) * 100)}%` : '-'}</td>
+                <td class="dato">${escaparHtml(Number(f.votos).toLocaleString('es-AR'))}</td>
+                <td class="dato">${m.emitidos > 0 ? `${formatPct((f.votos / m.emitidos) * 100)}%` : '-'}</td>
             </tr>
         `).join('');
         $('resultados-tbody-fuerzas').innerHTML =
@@ -1250,8 +1250,8 @@ class ComicioComponent {
             <tr>
                 <td class="comicio-nombre">${escaparHtml(c.nombre)}</td>
                 <td><span class="tipo-badge tipo-${escaparHtml(c.tipo_eleccion)}">${escaparHtml(this.formatearTipo(c.tipo_eleccion))}</span></td>
-                <td>${escaparHtml(String(c.fuerzas_count ?? '-'))}</td>
-                <td>${escaparHtml(String(c.mesas_count ?? '-'))}</td>
+                <td class="dato">${escaparHtml(String(c.fuerzas_count ?? '-'))}</td>
+                <td class="dato">${escaparHtml(String(c.mesas_count ?? '-'))}</td>
                 <td>
                     <div class="acciones-cell">
                         <button type="button" class="btn-accion btn-entrar" title="Ver mesas" aria-label="Entrar al comicio ${escaparHtml(c.nombre)}" data-id="${c.id}">
@@ -1452,9 +1452,9 @@ class ComicioComponent {
             const num = escaparHtml(String(m.numero));
             return `
             <tr>
-                <td>${num}</td>
-                <td>${tieneRango ? `${escaparHtml(m.padron_desde_dni)} a ${escaparHtml(m.padron_hasta_dni)}` : '<span class="sin-cubrir">Sin rango</span>'}</td>
-                <td>${escaparHtml(m.cantidad_votantes === null || m.cantidad_votantes === undefined ? '-' : String(m.cantidad_votantes))}</td>
+                <td class="dato">${num}</td>
+                <td class="dato">${tieneRango ? `${escaparHtml(m.padron_desde_dni)} a ${escaparHtml(m.padron_hasta_dni)}` : '<span class="sin-cubrir">Sin rango</span>'}</td>
+                <td class="dato">${escaparHtml(m.cantidad_votantes === null || m.cantidad_votantes === undefined ? '-' : String(m.cantidad_votantes))}</td>
                 <td>
                     <span class="estado-badge ${cargados ? 'estado-activo' : 'estado-inactivo'}">
                         <i class="fas ${cargados ? 'fa-check-circle' : 'fa-times-circle'}" aria-hidden="true"></i>
@@ -1809,8 +1809,8 @@ class ComicioComponent {
             const franja = `${escaparHtml(a.fiscal_nombre)}, ${escaparHtml(this.formatearHora(a.desde))} a ${escaparHtml(this.formatearHora(a.hasta))}`;
             return `
             <tr>
-                <td>${escaparHtml(this.formatearHora(a.desde))}</td>
-                <td>${escaparHtml(this.formatearHora(a.hasta))}</td>
+                <td class="dato">${escaparHtml(this.formatearHora(a.desde))}</td>
+                <td class="dato">${escaparHtml(this.formatearHora(a.hasta))}</td>
                 <td>${escaparHtml(a.fiscal_nombre)}</td>
                 <td>
                     <div class="acciones-cell">

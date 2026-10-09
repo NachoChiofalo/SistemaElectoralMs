@@ -384,6 +384,14 @@ class MapaComponent {
     }
 
     mostrarPestana() {
+        this.dibujarPanel();
+        // Anchos por CSSOM: un `style=` en el markup impide quitar 'unsafe-inline' de la CSP.
+        document.querySelectorAll('#mapa-panel [data-ancho]').forEach((el) => {
+            el.style.width = `${Number(el.dataset.ancho) || 0}%`;
+        });
+    }
+
+    dibujarPanel() {
         const z = this.zonaActual;
         if (!z) return;
         const panel = document.getElementById('mapa-panel');
@@ -465,7 +473,7 @@ class MapaComponent {
             return `
                 <div class="barra-opcion ${window.opcionesPoliticas.clase(o)}">
                     <span class="barra-nombre">${escaparHtml(o.etiqueta)}</span>
-                    <span class="barra-pista"><span class="barra-relleno" style="width: ${Math.min(100, Number(pct))}%"></span></span>
+                    <span class="barra-pista"><span class="barra-relleno" data-ancho="${Math.min(100, Number(pct))}"></span></span>
                     <span class="barra-valor">${votos} (${pct} %)</span>
                 </div>`;
         }).join('');

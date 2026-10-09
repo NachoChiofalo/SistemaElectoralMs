@@ -293,7 +293,7 @@ class UsuariosComponent {
                         ${usuario.activo ? 'Activo' : 'Inactivo'}
                     </span>
                 </td>
-                <td>${this.formatearFecha(usuario.created_at)}</td>
+                <td class="dato">${this.formatearFecha(usuario.created_at)}</td>
                 <td>
                     <div class="acciones-cell">
                         <button type="button" class="btn-accion btn-editar" title="Editar usuario" aria-label="Editar a ${this.escapeHtml(usuario.username)}" data-id="${usuario.id}">

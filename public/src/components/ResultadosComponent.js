@@ -345,6 +345,13 @@ class ResultadosComponent {
         }
     }
 
+    /** M y F son los únicos valores conocidos: cualquier otro (o ninguno) es un dato faltante, no una mujer. */
+    nombreSexo(sexo) {
+        if (sexo === 'M') return 'Masculino';
+        if (sexo === 'F') return 'Femenino';
+        return 'Sin dato';
+    }
+
     mostrarEstadisticasGenerales() {
         const data = this.datos.general;
         const container = document.getElementById('stats-generales');
@@ -463,7 +470,7 @@ class ResultadosComponent {
                         <span class="barra-valor">${this.formatNumber(this.votosDe(data, opcion.codigo))} (${formatPct(pct)}%)</span>
                     </div>
                     <div class="barra-track">
-                        <div class="barra-fill opcion ${window.opcionesPoliticas.clase(opcion)}" style="width: ${pct}%"></div>
+                        <div class="barra-fill opcion ${window.opcionesPoliticas.clase(opcion)}" data-ancho="${pct}"></div>
                     </div>
                 </div>`).join('');
 
@@ -480,6 +487,10 @@ class ResultadosComponent {
             <div class="comparador">${barras}${resumen}
             </div>
         `;
+        // El ancho se aplica por CSSOM: un `style=` en el markup impide quitar 'unsafe-inline' de la CSP.
+        container.querySelectorAll('[data-ancho]').forEach((el) => {
+            el.style.width = `${Math.min(100, Number(el.dataset.ancho) || 0)}%`;
+        });
     }
 
     mostrarResumenGeneral() {
@@ -584,7 +595,7 @@ class ResultadosComponent {
 
         if (this.graficos.sexo) this.graficos.sexo.destroy();
 
-        const labels = data.map(item => item.sexo === 'M' ? 'Masculino' : 'Femenino');
+        const labels = data.map(item => this.nombreSexo(item.sexo));
 
         this.graficos.sexo = new Chart(ctx, {
             type: 'bar',
@@ -837,7 +848,7 @@ class ResultadosComponent {
 
         const tabla = data.map(item => {
             return '<tr>' +
-                '<td>' + (item.sexo === 'M' ? 'Masculino' : 'Femenino') + '</td>' +
+                '<td>' + this.nombreSexo(item.sexo) + '</td>' +
                 '<td>' + this.formatNumber(item.total_votantes) + '</td>' +
                 '<td>' + this.formatNumber(item.total_relevados) + '</td>' +
                 this.celdasOpciones(item, true) +
@@ -848,7 +859,7 @@ class ResultadosComponent {
         if (tendencia !== null) {
             tendenciaHTML = '<div class="tendencia-info">' +
                 '<i class="fas fa-chart-line"></i> ' +
-                '<strong>' + escaparHtml(lider.etiqueta) + '</strong> tiene mayor porcentaje en el sexo <strong>' + (tendencia === 'M' ? 'Masculino' : 'Femenino') + '</strong>' +
+                '<strong>' + escaparHtml(lider.etiqueta) + '</strong> tiene mayor porcentaje en el sexo <strong>' + this.nombreSexo(tendencia) + '</strong>' +
                 '</div>';
         }
 
@@ -894,7 +905,7 @@ class ResultadosComponent {
         container.innerHTML = tendenciaHTML +
             '<table class="stats-table">' +
             '<thead><tr>' +
-            '<th>Rango</th><th>Votantes</th><th>Relevados</th>' + this.encabezadosOpciones() + '<th>Participacion</th>' +
+            '<th>Rango</th><th>Votantes</th><th>Relevados</th>' + this.encabezadosOpciones() + '<th>Participación</th>' +
             '</tr></thead>' +
             '<tbody>' + tabla + '</tbody></table>';
     }
@@ -960,7 +971,7 @@ class ResultadosComponent {
         container.innerHTML =
             '<table class="stats-table">' +
             '<thead><tr>' +
-            '<th>Condicion</th><th>Total</th>' + this.encabezadosOpciones() + '<th>Masc.</th><th>Fem.</th><th>Mayor Tendencia</th>' +
+            '<th>Condición</th><th>Total</th>' + this.encabezadosOpciones() + '<th>Masc.</th><th>Fem.</th><th>Mayor Tendencia</th>' +
             '</tr></thead>' +
             '<tbody>' + tablaHTML + '</tbody></table>';
     }
@@ -1073,7 +1084,7 @@ class ResultadosComponent {
             csv += 'Sexo,Votantes,Relevados,' + cabeceraOpciones + ',Participacion\n';
             this.datos.porSexo.forEach(item => {
                 csv += fila([
-                    item.sexo === 'M' ? 'Masculino' : 'Femenino',
+                    this.nombreSexo(item.sexo),
                     item.total_votantes, item.total_relevados,
                     ...opciones.map(o => this.votosDe(item, o.codigo)),
                     item.porcentaje_participacion + '%',

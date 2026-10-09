@@ -239,6 +239,10 @@ async function main() {
     const despues = await p.evaluate(() => document.activeElement.getAttribute('aria-label'));
     chequear('la flecha mueve el foco a la marca siguiente', antes && despues && antes !== despues, `${antes} -> ${despues}`);
     chequear('con el foco en una marca aparece su pista', await p.locator('.microchart-pista:not([hidden])').count() >= 1);
+    chequear('Resultados: ninguna tabla de las tarjetas de gráficos se desplaza ni recorta columnas',
+      await p.evaluate(() => [...document.querySelectorAll('.chart-card .tabla-container, .chart-card .stats-table')].every((e) => e.scrollWidth <= e.clientWidth + 1)),
+      await p.evaluate(() => JSON.stringify([...document.querySelectorAll('.chart-card .tabla-container')].map((e) => e.scrollWidth - e.clientWidth))));
+    chequear('Resultados: las barras del comparador no llevan style en el markup', await p.evaluate(() => ![...document.querySelectorAll('.barra-fill')].some((e) => e.outerHTML.includes('style="width') && !e.style.width)));
     await ctx.close();
   }
 
