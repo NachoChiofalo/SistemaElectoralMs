@@ -1077,6 +1077,30 @@ main#contenido th {
     border-bottom: 1px solid var(--ds-border-default);
 }
 
+/* —— Densidad compacta ——
+   `data-densidad="compacta"` en el <html> (lo escribe tema.js antes del primer pintado, desde la
+   preferencia guardada). Baja la altura de filas y controles para ver más datos por pantalla; la
+   cómoda es la de siempre y no necesita atributo. Solo cambia alturas y relleno vertical: el color,
+   la tipografía y el orden no se tocan. Los selectores de tabla llevan `main#contenido` para ganarle
+   a las hojas de pantalla, igual que el resto del shell. */
+:root[data-densidad="compacta"] .btn { min-height: 28px; }
+:root[data-densidad="compacta"] .btn-lg { min-height: 32px; }
+:root[data-densidad="compacta"] .btn-icono { width: 28px; }
+:root[data-densidad="compacta"] .campo :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select) { min-height: 28px; }
+:root[data-densidad="compacta"] .nav-item { min-height: 30px; }
+:root[data-densidad="compacta"] .tabla th,
+:root[data-densidad="compacta"] .tabla td { height: 30px; }
+:root[data-densidad="compacta"] main#contenido :is(.tabla-padron, .usuarios-tabla, .comicio-tabla, .fiscales-tabla, .auditoria-tabla, .stats-table, .tabla-datos, .tabla) :is(td, th) {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+@media (max-width: 768px) {
+    /* En móvil el blanco táctil manda: la densidad compacta no baja de 40 px. */
+    :root[data-densidad="compacta"] .btn { min-height: 40px; }
+    :root[data-densidad="compacta"] .btn-icono { width: 40px; }
+    :root[data-densidad="compacta"] .nav-item { min-height: 44px; }
+}
+
 /* ==================== 6. ANIMACIONES ==================== */
 
 @keyframes ds-fadeIn {

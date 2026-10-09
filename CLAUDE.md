@@ -108,6 +108,7 @@ sostienen; una regla de estas no se discute con una captura, se rompe con un tes
 - *Una pantalla es igual a las demás*: contenedor `main#contenido` (1440 px), cabecera con
   `h1` + subtítulo + acciones, encabezado de tabla y botones salen de `design-system.css`
   (sección "Pantalla"). Una hoja de pantalla no define su ancho, su título ni su botón.
+- *Atajo y densidad*: Ctrl/Cmd+K abre la paleta de comandos (destinos con sus permisos y acciones) y la vista compacta se guarda como `data-densidad`. Ambos viven en la barra lateral y se verifican en `verificar-componentes.js`. Un destino nuevo se agrega solo en `NAV_ITEMS`: la paleta lo toma de ahí.
 - *El tema de entrada es el oscuro*; "Sistema" es una elección guardada, no la ausencia de
   elección (`tema.js`). El claro es el espejo del oscuro y se mide igual.
 - *Teclado en lo que dibuja*: gráficos (`microchart.js`) y mapa tienen un solo tope de

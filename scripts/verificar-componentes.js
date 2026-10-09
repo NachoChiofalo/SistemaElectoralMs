@@ -359,6 +359,57 @@ async function main() {
     await ctx.close();
   }
 
+  // ------------------------------------------------------------ paleta de comandos y densidad
+  {
+    const { p, ctx } = await pagina({ ruta: '/dashboard.html', tema: 'dark' });
+    chequear('el buscador de la barra anuncia su atajo y que abre un diálogo',
+      await p.evaluate(() => { const b = document.getElementById('nav-buscar'); return b.getAttribute('aria-haspopup') === 'dialog' && /Control\+K/.test(b.getAttribute('aria-keyshortcuts')); }));
+    await p.keyboard.press('Control+k');
+    await p.waitForSelector('dialog.paleta[open]');
+    chequear('Ctrl+K abre la paleta con el foco en el campo', await p.evaluate(() => document.activeElement.classList.contains('paleta-input')));
+    chequear('el campo es un combobox con su lista', await p.evaluate(() => { const i = document.querySelector('.paleta-input'); return i.getAttribute('role') === 'combobox' && i.getAttribute('aria-controls') === 'paleta-lista' && document.getElementById('paleta-lista').getAttribute('role') === 'listbox'; }));
+    const total = await p.locator('.paleta-opcion').count();
+    chequear('sin texto lista destinos y acciones', total >= 9, String(total));
+    await p.keyboard.type('auditoria');
+    chequear('buscar sin tildes encuentra "Auditoría"', await p.locator('.paleta-opcion').count() === 1 && /Auditoría/.test(await p.locator('.paleta-opcion').first().textContent()));
+    chequear('la opción activa se anuncia con aria-activedescendant',
+      await p.evaluate(() => { const i = document.querySelector('.paleta-input'); const id = i.getAttribute('aria-activedescendant'); return !!id && document.getElementById(id).getAttribute('aria-selected') === 'true'; }));
+    await p.keyboard.press('Control+a');
+    await p.keyboard.type('zzzz');
+    chequear('sin coincidencias lo dice', await p.locator('.paleta-vacio:not([hidden])').count() === 1);
+    await p.keyboard.press('Escape');
+    await p.waitForTimeout(150);
+    chequear('Escape cierra la paleta y el foco vuelve a donde estaba', await p.locator('dialog.paleta').count() === 0);
+    await p.keyboard.press('Control+k');
+    await p.waitForSelector('dialog.paleta[open]');
+    await p.keyboard.type('resultados');
+    await p.keyboard.press('Enter');
+    await p.waitForURL('**/resultados.html');
+    chequear('Enter en un destino navega a esa pantalla', p.url().endsWith('/resultados.html'));
+
+    // densidad
+    await p.goto(url + '/usuarios.html', { waitUntil: 'networkidle' });
+    await p.waitForSelector('#usuarios-tbody tr');
+    const alto = () => p.evaluate(() => document.querySelector('#usuarios-tbody tr').getBoundingClientRect().height);
+    const comoda = await alto();
+    chequear('el botón de densidad parte en "cómoda"', await p.evaluate(() => document.getElementById('nav-densidad').getAttribute('aria-pressed') === 'false' && !document.documentElement.dataset.densidad));
+    await p.locator('#nav-densidad').click();
+    await p.waitForTimeout(400); // las filas de algunas pantallas animan su relleno
+    const compacta = await alto();
+    chequear('la vista compacta baja el alto de las filas', compacta < comoda, `${comoda} -> ${compacta}`);
+    chequear('el botón comunica el estado', await p.evaluate(() => document.getElementById('nav-densidad').getAttribute('aria-pressed') === 'true' && /cómoda/.test(document.getElementById('nav-densidad').getAttribute('aria-label'))));
+    await p.reload({ waitUntil: 'networkidle' });
+    await p.waitForSelector('#usuarios-tbody tr');
+    chequear('la densidad sobrevive a recargar y se aplica antes de dibujar', await p.evaluate(() => document.documentElement.dataset.densidad === 'compacta'));
+    await p.keyboard.press('Control+k');
+    await p.waitForSelector('dialog.paleta[open]');
+    await p.keyboard.type('vista');
+    await p.keyboard.press('Enter');
+    await p.waitForTimeout(200);
+    chequear('la paleta también alterna la densidad', await p.evaluate(() => !document.documentElement.dataset.densidad));
+    await ctx.close();
+  }
+
   await navegador.close();
 
   const fallas = resultados.filter((r) => !r.ok);

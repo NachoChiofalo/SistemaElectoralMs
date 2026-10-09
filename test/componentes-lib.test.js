@@ -213,3 +213,15 @@ test('ningún componente deja style="" en su markup (los anchos van por CSSOM)',
   });
   assert.deepEqual(culpables, [], `style="" en: ${culpables.join(', ')}. Usá data-ancho y style.width por CSSOM (permite sacar 'unsafe-inline' de la CSP).`);
 });
+
+test('la barra lateral trae buscador/paleta (Ctrl+K) y botón de densidad con estado accesible', () => {
+  const fuente = leer('src', 'components', 'NavbarComponent.js');
+  assert.match(fuente, /aria-keyshortcuts="Control\+K Meta\+K"/);
+  assert.match(fuente, /role="combobox"/);
+  assert.match(fuente, /aria-activedescendant/);
+  assert.match(fuente, /id="nav-densidad" aria-pressed=/);
+  const tema = leer('src', 'tema.js');
+  assert.match(tema, /sistema-electoral:densidad/);
+  // La densidad se aplica en tema.js (antes del primer pintado), no cuando se dibuja la barra.
+  assert.match(tema, /aplicarDensidad\(densidadGuardada\(\)\)/);
+});

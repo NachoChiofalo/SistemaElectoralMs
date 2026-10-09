@@ -64,6 +64,9 @@ espacio de respeto = alto del tilde, solo sobre superficies neutras. En la barra
 **máscara** (`mask-image` sobre el PNG con canal alfa) con `background: var(--ds-text-primary)`:
 la tinta sigue al tema sin filtros. Lockup expandida, ícono colapsada.
 
+## Paleta de comandos y densidad
+Ctrl/Cmd + K abre una paleta (`<dialog>` con patrón combobox: foco en el campo, `aria-activedescendant`, flechas, Enter y Escape) con los destinos de la barra —con sus permisos— y las acciones del pie: tema, menú lateral, densidad y cerrar sesión. La densidad es **cómoda** (por defecto) o **compacta** (`data-densidad` en el `<html>`, guardada en `localStorage` y aplicada por `tema.js` antes del primer pintado): baja la altura de filas, botones y campos, nada más. En móvil la compacta no baja de 40 px de blanco táctil.
+
 ## Pantalla (igual en todas)
 Contenedor `main#contenido`: 1440 px máx., relleno 24 px (16 en móvil). Cabecera: `h1` de 24 px / 600 con el ícono de su destino de la barra, subtítulo de 13 px en tono atenuado debajo, acciones a la derecha, 20 px de aire hasta el contenido. Encabezado de tabla: 12 px, 600, mayúsculas, `--ds-bg-subtle`. Todo esto vive **una sola vez** en `design-system.css` (sección "Pantalla"), con `main#contenido` para ganarle a las hojas de pantalla sin `!important`. Una pantalla nueva usa esas clases de cabecera y no define su ancho, su título ni su botón.
 

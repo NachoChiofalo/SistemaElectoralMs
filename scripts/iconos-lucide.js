@@ -104,6 +104,9 @@ module.exports = {
   'pen': 'pen-line',
   'trash': 'trash-2',
   'search': 'search',
+  // Densidad de la interfaz: plegar = vista compacta, desplegar = vista cómoda.
+  'compress-alt': 'fold-vertical',
+  'expand-alt': 'unfold-vertical',
   'filter': 'filter',
   'plus-circle': 'circle-plus',
   'times': 'x',

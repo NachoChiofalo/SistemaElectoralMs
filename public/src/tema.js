@@ -101,6 +101,36 @@
         if (localStorage.getItem('sistema-electoral:nav') === 'colapsada') document.documentElement.dataset.nav = 'colapsada';
     } catch (e) { /* sin persistencia: queda expandida */ }
 
+    /**
+     * Densidad de la interfaz: "comoda" (por defecto) o "compacta" (filas y controles más bajos, para
+     * ver más datos por pantalla). Se aplica acá, antes del primer pintado, por lo mismo que el tema:
+     * si se aplicara cuando se dibuja la barra, las tablas cambiarían de alto a la vista.
+     */
+    const CLAVE_DENSIDAD = 'sistema-electoral:densidad';
+
+    function densidadGuardada() {
+        try {
+            return localStorage.getItem(CLAVE_DENSIDAD) === 'compacta' ? 'compacta' : 'comoda';
+        } catch (e) {
+            return 'comoda';
+        }
+    }
+
+    function aplicarDensidad(densidad) {
+        if (densidad === 'compacta') document.documentElement.dataset.densidad = 'compacta';
+        else delete document.documentElement.dataset.densidad;
+    }
+
+    function establecerDensidad(densidad) {
+        const valor = densidad === 'compacta' ? 'compacta' : 'comoda';
+        try { localStorage.setItem(CLAVE_DENSIDAD, valor); } catch (e) { /* vale para esta página */ }
+        aplicarDensidad(valor);
+        global.dispatchEvent(new CustomEvent('densidad:cambiada', { detail: { densidad: valor } }));
+        return valor;
+    }
+
+    aplicarDensidad(densidadGuardada());
+
     global.addEventListener('load', sincronizarBarra);
     global.addEventListener('tema:cambiado', sincronizarBarra);
     if (global.matchMedia) {
@@ -110,4 +140,5 @@
     }
 
     global.tema = { elegido: leerGuardado, efectivo, cambiar, establecer, aplicar };
+    global.densidad = { elegida: densidadGuardada, establecer: establecerDensidad };
 })(window);

@@ -19,6 +19,9 @@
      * palabra que distingue es la primera, y la segunda sólo gasta ancho. Ese ancho es
      * el que va a necesitar la barra cuando entren los módulos nuevos.
      */
+    // En Mac el atajo es Cmd; en el resto, Ctrl. Solo cambia lo que se muestra: los dos funcionan.
+    const TECLA_PALETA = /Mac|iPhone|iPad/.test(navigator.platform || '') ? '\u2318K' : 'Ctrl K';
+
     const GRUPOS = [
         { id: 'operacion', titulo: 'Operación' },
         { id: 'eleccion', titulo: 'Elección' },
@@ -64,7 +67,7 @@
         const username = user.nombre_completo || user.username || 'Usuario';
         const userRole = user.rol || '';
         const userPermisos = user.permisos || [];
-        const visibleItems = NAV_ITEMS.filter(item =>
+        const visibleItems = visiblesParaPaleta = NAV_ITEMS.filter(item =>
             (!item.adminOnly || userRole === 'administrador') &&
             (!item.permission || userPermisos.includes(item.permission)) &&
             (!item.permissionAny || item.permissionAny.some(p => userPermisos.includes(p)))
@@ -103,6 +106,11 @@
                 </div>
 
                 <div class="navbar-collapse" id="navbar-collapse">
+                    <button type="button" class="nav-buscar" id="nav-buscar" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <span class="nav-text">Ir a…</span>
+                        <kbd class="nav-kbd" aria-hidden="true">${TECLA_PALETA}</kbd>
+                    </button>
                     <div class="navbar-nav">${grupos}</div>
 
                     <div class="navbar-user">
@@ -118,6 +126,9 @@
                             </button>
                             <button class="logout-btn" id="logout-btn" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">
                                 <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="nav-densidad" id="nav-densidad" aria-pressed="false" aria-label="Usar vista compacta" title="Usar vista compacta">
+                                <i class="fas fa-compress-alt" aria-hidden="true"></i>
                             </button>
                             <button class="nav-colapsar" id="nav-colapsar" type="button" aria-controls="navbar-collapse" aria-expanded="true" aria-label="Contraer menú lateral" title="Contraer menú lateral">
                                 <i class="fas fa-chevron-left" aria-hidden="true"></i>
@@ -202,6 +213,9 @@
         }
     }
 
+    // Destinos visibles para quien está logueado: los comparten la barra y la paleta de comandos.
+    let visiblesParaPaleta = [];
+
     function initNavbar(containerId, activeKey) {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -212,6 +226,8 @@
         }
         initTema();
         initColapso();
+        initDensidad();
+        initPaleta(visiblesParaPaleta);
         initCajon();
     }
 
@@ -244,10 +260,184 @@
         try { guardada = localStorage.getItem(CLAVE_NAV) === 'colapsada'; } catch (e) { /* sin persistencia */ }
         fijar(guardada);
 
-        boton.addEventListener('click', () => {
+        alternarColapso = () => {
             const colapsar = document.documentElement.dataset.nav !== 'colapsada';
             fijar(colapsar);
             try { localStorage.setItem(CLAVE_NAV, colapsar ? 'colapsada' : 'expandida'); } catch (e) { /* idem */ }
+        };
+        boton.addEventListener('click', () => alternarColapso());
+    }
+
+    /** Vista cómoda / compacta. El estado vive en tema.js (se aplica antes del primer pintado). */
+    function initDensidad() {
+        const boton = document.getElementById('nav-densidad');
+        if (!boton || !global.densidad) { boton?.remove(); return; }
+
+        const pintar = () => {
+            const compacta = global.densidad.elegida() === 'compacta';
+            boton.setAttribute('aria-pressed', String(compacta));
+            const texto = compacta ? 'Usar vista cómoda' : 'Usar vista compacta';
+            boton.setAttribute('aria-label', texto);
+            boton.title = texto;
+            // El ícono muestra lo que pasará: desplegar si hoy es compacta, plegar si hoy es cómoda.
+            boton.querySelector('i').className = `fas ${compacta ? 'fa-expand-alt' : 'fa-compress-alt'}`;
+        };
+        alternarDensidad = () => {
+            global.densidad.establecer(global.densidad.elegida() === 'compacta' ? 'comoda' : 'compacta');
+            pintar();
+        };
+        pintar();
+        boton.addEventListener('click', () => alternarDensidad());
+    }
+
+    // ------------------------------------------------------------ paleta de comandos (Ctrl/Cmd + K)
+
+    let alternarColapso = () => {};
+    let alternarDensidad = () => {};
+
+    /** Sin tildes y en minúscula: "auditoria" encuentra "Auditoría". */
+    const normalizar = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    /**
+     * Paleta de comandos: un <dialog> modal con un campo de búsqueda y una lista de destinos y
+     * acciones. Patrón combobox: el foco queda en el campo, la opción activa se anuncia con
+     * aria-activedescendant y las flechas la mueven; Enter la ejecuta y Escape cierra. Los
+     * destinos son los mismos que la barra (con sus permisos); las acciones, las del pie de la barra.
+     */
+    function initPaleta(destinos) {
+        const abrirBtn = document.getElementById('nav-buscar');
+        let dlg = null;
+
+        function comandos() {
+            const oscuro = global.tema && global.tema.efectivo() === 'dark';
+            const colapsada = document.documentElement.dataset.nav === 'colapsada';
+            const compacta = global.densidad && global.densidad.elegida() === 'compacta';
+            const lista = destinos.map(d => ({
+                texto: d.label, grupo: 'Ir a', icono: d.icon, claves: `${d.label} ${d.key}`,
+                ejecutar: () => { window.location.href = d.href; },
+            }));
+            if (global.tema) {
+                lista.push({
+                    texto: oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro', grupo: 'Acciones', icono: oscuro ? 'fa-sun' : 'fa-moon',
+                    claves: 'tema modo claro oscuro apariencia',
+                    ejecutar: () => { global.tema.establecer(oscuro ? 'light' : 'dark'); pintarBotonTema(); },
+                });
+            }
+            lista.push({
+                texto: colapsada ? 'Expandir el menú lateral' : 'Contraer el menú lateral', grupo: 'Acciones', icono: 'fa-chevron-left',
+                claves: 'menu lateral barra colapsar contraer expandir', ejecutar: () => alternarColapso(),
+            });
+            if (global.densidad) {
+                lista.push({
+                    texto: compacta ? 'Usar vista cómoda' : 'Usar vista compacta', grupo: 'Acciones', icono: compacta ? 'fa-expand-alt' : 'fa-compress-alt',
+                    claves: 'densidad vista compacta comoda filas', ejecutar: () => alternarDensidad(),
+                });
+            }
+            lista.push({ texto: 'Cerrar sesión', grupo: 'Acciones', icono: 'fa-sign-out-alt', claves: 'salir logout sesion', ejecutar: () => handleLogout() });
+            return lista;
+        }
+
+        function construir() {
+            dlg = document.createElement('dialog');
+            dlg.className = 'paleta';
+            dlg.setAttribute('aria-label', 'Paleta de comandos');
+            dlg.innerHTML = `
+                <div class="paleta-campo">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="text" class="paleta-input" role="combobox" aria-expanded="true" aria-controls="paleta-lista"
+                           aria-autocomplete="list" aria-label="Buscar una pantalla o una acción" placeholder="Buscar una pantalla o una acción…"
+                           autocomplete="off" spellcheck="false">
+                </div>
+                <ul class="paleta-lista" id="paleta-lista" role="listbox" aria-label="Resultados"></ul>
+                <p class="paleta-vacio" hidden>No hay resultados.</p>
+                <p class="paleta-estado sr-only" role="status" aria-live="polite"></p>
+                <p class="paleta-ayuda" aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> moverse <kbd>Enter</kbd> elegir <kbd>Esc</kbd> cerrar</p>`;
+            document.body.appendChild(dlg);
+
+            const input = dlg.querySelector('.paleta-input');
+            const lista = dlg.querySelector('.paleta-lista');
+            const vacio = dlg.querySelector('.paleta-vacio');
+            const estado = dlg.querySelector('.paleta-estado');
+            let visibles = [];
+            let activo = 0;
+
+            function marcar(i) {
+                activo = visibles.length ? (i + visibles.length) % visibles.length : 0;
+                [...lista.children].forEach((li, n) => li.setAttribute('aria-selected', String(n === activo)));
+                const li = lista.children[activo];
+                if (li) {
+                    input.setAttribute('aria-activedescendant', li.id);
+                    li.scrollIntoView({ block: 'nearest' });
+                } else {
+                    input.removeAttribute('aria-activedescendant');
+                }
+            }
+
+            function filtrar() {
+                const q = normalizar(input.value.trim());
+                visibles = comandos().filter(c => !q || normalizar(`${c.texto} ${c.claves}`).includes(q));
+                lista.replaceChildren(...visibles.map((c, n) => {
+                    const li = document.createElement('li');
+                    li.id = `paleta-op-${n}`;
+                    li.setAttribute('role', 'option');
+                    li.className = 'paleta-opcion';
+                    const i = document.createElement('i');
+                    i.className = `fas ${c.icono}`;
+                    i.setAttribute('aria-hidden', 'true');
+                    const t = document.createElement('span');
+                    t.className = 'paleta-texto';
+                    t.textContent = c.texto;
+                    const g = document.createElement('span');
+                    g.className = 'paleta-grupo';
+                    g.textContent = c.grupo;
+                    li.append(i, t, g);
+                    li.addEventListener('click', () => ejecutar(c));
+                    li.addEventListener('mousemove', () => { if (activo !== n) marcar(n); });
+                    return li;
+                }));
+                vacio.hidden = visibles.length > 0;
+                estado.textContent = visibles.length ? `${visibles.length} resultado${visibles.length === 1 ? '' : 's'}` : 'No hay resultados';
+                marcar(0);
+            }
+
+            function ejecutar(c) {
+                dlg.close();
+                c.ejecutar();
+            }
+
+            input.addEventListener('input', filtrar);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown') { e.preventDefault(); marcar(activo + 1); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); marcar(activo - 1); }
+                else if (e.key === 'Home') { e.preventDefault(); marcar(0); }
+                else if (e.key === 'End') { e.preventDefault(); marcar(visibles.length - 1); }
+                else if (e.key === 'Enter') { e.preventDefault(); if (visibles[activo]) ejecutar(visibles[activo]); }
+            });
+            // Un clic en el fondo cierra (acá no hay nada que perder).
+            dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+            dlg.addEventListener('close', () => { dlg.remove(); dlg = null; });
+            dlg.refrescar = () => { input.value = ''; filtrar(); };
+        }
+
+        function abrir() {
+            if (dlg) return;
+            const disparador = document.activeElement;
+            construir();
+            dlg.refrescar();
+            dlg.addEventListener('close', () => {
+                if (disparador && disparador.isConnected && typeof disparador.focus === 'function') disparador.focus();
+            }, { once: true });
+            dlg.showModal();
+            dlg.querySelector('.paleta-input').focus();
+        }
+
+        if (abrirBtn) abrirBtn.addEventListener('click', abrir);
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                if (dlg) dlg.close();
+                else abrir();
+            }
         });
     }
 
