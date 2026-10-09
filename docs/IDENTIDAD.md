@@ -13,6 +13,12 @@ archivo de `public/` — la regla completa está en [CLAUDE.md](../CLAUDE.md).
 
 ---
 
+> **Vigente desde el rediseño R0 (v2).** La paleta y la tipografía que siguen describen la
+> identidad anterior (grafito cálido e Inter). La vigente es monocroma fría y oscura, con Geist
+> Sans y Geist Mono: los valores exactos están en [DESIGN.md](DESIGN.md) y en
+> `design-system.css`, que es donde viven. El logo y el ícono no cambian. Lo que sigue se
+> conserva como historia y para el razonamiento sobre el logo.
+
 ## Paleta
 
 Cinco colores. No hay un sexto.
@@ -53,6 +59,8 @@ invisibles sobre un fondo oscuro — ese es un ajuste de legibilidad, no de iden
 ---
 
 ## Tipografía
+
+> Hoy la interfaz usa **Geist Sans** y **Geist Mono** (ver DESIGN.md); lo que sigue es de Inter.
 
 **Inter**, servida desde el mismo origen (`public/src/styles/fonts.css`, generado por
 `scripts/build-assets.js`) — nunca desde Google Fonts ni ningún otro CDN. Ver
@@ -100,7 +108,7 @@ que no vienen del set de Lucide, así que vive como imagen. El costo es que no s
 
 ### Modo oscuro
 
-Como es tinta fija (`#1C1C1C`) sobre transparencia, en modo oscuro se invierte con
+Como es tinta fija (`#1C1C1C`) sobre transparencia, en modo oscuro se invertía con
 `filter: invert(1)` (ver `.navbar-logo` en `navbar-styles.css` y `.login-logo img` en
 `login-styles.css`) en vez de cambiar el archivo. Es la única parte de la interfaz
 donde el modo oscuro se resuelve con un filtro CSS y no con un token — porque es la

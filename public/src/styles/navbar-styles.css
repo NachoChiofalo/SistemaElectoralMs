@@ -1,82 +1,126 @@
-/* ==================== NAVBAR UNIFICADA ==================== */
+/* ==================== BARRA LATERAL (app shell) ====================
+   En escritorio es una columna fija a la izquierda: 240 px expandida, 68 px colapsada a
+   íconos. El ancho vive en --nav-ancho, que cambia con `data-nav` en el <html> (lo escribe
+   NavbarComponent.js desde la preferencia guardada) y del que cuelga también el margen del
+   contenido: un solo número, dos usos, nunca desfasados.
+
+   En móvil (<= 768px) es una barra superior mínima y la columna pasa a ser un cajón. Todo
+   lo del colapso vive dentro del media query de escritorio: en el cajón siempre hay texto.
+
+   Elevación por borde y luminancia, sin sombra. El único color es el de los tokens. */
+
+:root {
+    --nav-ancho: 240px;
+}
+
+:root[data-nav="colapsada"] {
+    --nav-ancho: 68px;
+}
+
+/* ---------- Piezas comunes ---------- */
 
 .navbar-unified {
     background: var(--ds-bg-card);
     border-bottom: 1px solid var(--ds-border-light);
-    margin-bottom: 20px;
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: var(--ds-z-nav);
 }
 
 .navbar-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 24px;
-    max-width: 1400px;
-    margin: 0 auto;
-    gap: 20px;
+    padding: 10px 16px;
+    gap: 16px;
 }
 
-/* Brand */
+/* Logo: máscara sobre el PNG con canal alfa. La tinta es --ds-text-primary, así que sigue
+   al tema sin filtros ni reglas por modo, y el archivo original no se toca. 904 x 249 el
+   lockup, 307 x 307 el ícono. */
 .navbar-brand {
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    padding-right: 20px;
-    margin-right: 4px;
-    border-right: 1px solid var(--ds-border-light);
+}
+
+.navbar-logo,
+.navbar-logo-icono {
+    display: block;
+    background: var(--ds-text-primary);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-position: left center;
+    mask-position: left center;
 }
 
 .navbar-logo {
-    display: block;
     height: 26px;
-    width: auto;
+    aspect-ratio: 904 / 249;
+    -webkit-mask-image: url('/assets/images/agora-logo.png');
+    mask-image: url('/assets/images/agora-logo.png');
 }
 
-/* El logo es un PNG con tinta oscura fija sobre transparencia: en modo oscuro se
-   invierte para que siga leyéndose sobre la barra oscura. */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .navbar-logo {
-        filter: invert(1);
-    }
+.navbar-logo-icono {
+    display: none;
+    width: 28px;
+    height: 28px;
+    -webkit-mask-image: url('/assets/images/agora-icon.png');
+    mask-image: url('/assets/images/agora-icon.png');
 }
 
-:root[data-theme="dark"] .navbar-logo {
-    filter: invert(1);
-}
-
-/* Collapse container - flex on desktop */
 .navbar-collapse {
     display: flex;
     align-items: center;
     flex: 1;
-    gap: 20px;
+    min-width: 0;
 }
 
-/* Navigation Items */
 .navbar-nav {
     display: flex;
-    align-items: center;
-    gap: 2px;
     flex: 1;
-    justify-content: flex-start;
+    gap: 2px;
+}
+
+.nav-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nav-grupo-titulo {
+    padding: 0 10px 6px;
+    color: var(--ds-text-muted);
+    font-size: var(--ds-font-xs);
+    font-weight: var(--ds-weight-medium);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .nav-item {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 7px 12px;
+    gap: 10px;
+    min-height: 36px;
+    padding: 0 10px;
     color: var(--ds-text-secondary);
     text-decoration: none;
-    border-radius: var(--ds-radius-sm);
+    border-radius: var(--ds-radius-md);
     font-weight: var(--ds-weight-medium);
-    font-size: var(--ds-font-chrome);
-    transition: color var(--ds-transition-smooth), background-color var(--ds-transition-smooth), border-color var(--ds-transition-smooth), box-shadow var(--ds-transition-smooth), transform var(--ds-transition-smooth), opacity var(--ds-transition-smooth);
-    position: relative;
+    font-size: var(--ds-font-sm);
     white-space: nowrap;
+    transition: color var(--ds-dur-fast) var(--ds-ease-out), background-color var(--ds-dur-fast) var(--ds-ease-out);
+}
+
+.nav-item i {
+    flex: none;
+    width: 18px;
+    font-size: 1rem;
+    text-align: center;
 }
 
 .nav-item:hover {
@@ -84,42 +128,49 @@
     background-color: var(--ds-bg-subtle);
 }
 
+/* Activo: superficie más clara y una barra de 2 px. Sin color: lo señala la luminancia. */
 .nav-item.active {
-    color: var(--ds-primary-700);
-    background-color: var(--ds-primary-50);
+    color: var(--ds-text-primary);
+    background-color: var(--ds-bg-muted);
 }
 
-/* El indicador colgante bajo la barra se eliminó: con la barra clara, el fondo del
-   ítem activo ya lo señala sin agregar un elemento flotando fuera del contenedor. */
-
-.nav-item i {
-    font-size: 1rem;
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--ds-text-primary);
 }
 
-/* User Area */
+/* ---------- Pie: usuario, tema, salir, colapsar ---------- */
+
 .navbar-user {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-    padding-left: 16px;
-    border-left: 1px solid var(--ds-border-light);
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--ds-border-light);
 }
 
 .user-info {
     display: flex;
-    align-items: center;
     flex-direction: column;
-    align-items: flex-end;
     gap: 0;
-    line-height: 1.25;
-    margin-right: 4px;
+    min-width: 0;
+    padding: 0 4px;
+    line-height: 1.3;
 }
 
 .user-info .username {
+    overflow: hidden;
     color: var(--ds-text-primary);
     font-size: var(--ds-font-sm);
     font-weight: var(--ds-weight-medium);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-info .user-role {
@@ -127,28 +178,41 @@
     font-size: var(--ds-font-xs);
 }
 
-.user-info i {
-    font-size: 1rem;
-    color: var(--ds-text-muted);
+.navbar-acciones {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-/* Tema y salir son cuadrados del mismo tamaño y sin texto: dicen lo mismo en un tercio
-   del ancho, y ese ancho es el que la barra va a necesitar cuando entren los módulos
-   nuevos. El texto sobrevive en `title` y en `aria-label`, así que no se pierde para
-   quien navega con teclado o lector de pantalla. */
-.logout-btn {
+.logout-btn,
+.tema-btn,
+.nav-colapsar {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     background: transparent;
-    color: var(--ds-text-muted);
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-sm);
+    color: var(--ds-text-secondary);
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-md);
     cursor: pointer;
-    transition: color var(--ds-transition-fast), background-color var(--ds-transition-fast), border-color var(--ds-transition-fast);
+    font-family: var(--ds-font-family);
+    transition: color var(--ds-dur-fast) var(--ds-ease-out), background-color var(--ds-dur-fast) var(--ds-ease-out), border-color var(--ds-dur-fast) var(--ds-ease-out);
+}
+
+.logout-btn i,
+.tema-btn i,
+.nav-colapsar i {
+    font-size: 1rem;
+}
+
+.tema-btn:hover,
+.nav-colapsar:hover {
+    background: var(--ds-bg-subtle);
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text-primary);
 }
 
 .logout-btn:hover {
@@ -157,94 +221,52 @@
     color: var(--ds-danger-600);
 }
 
-.logout-btn:active {
-    transform: translateY(0);
+.logout-btn:active,
+.tema-btn:active,
+.nav-colapsar:active {
+    transform: translateY(1px);
 }
 
-.logout-btn i {
-    font-size: 1rem;
+.nav-colapsar {
+    margin-left: auto;
 }
 
-/* ==================== SELECTOR DE TEMA ====================
-   Neutro y translúcido: comparte fila con "Salir", que es rojo y destructivo, y no
-   tiene que competirle la atención. La barra es oscura en los dos temas, así que
-   estos valores son fijos a propósito y no siguen a los tokens de superficie. */
-.tema-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    background: transparent;
-    color: var(--ds-text-muted);
-    border: 1px solid var(--ds-border-light);
-    border-radius: var(--ds-radius-sm);
-    cursor: pointer;
-    font-family: var(--ds-font-family);
-    transition: color var(--ds-transition-fast), background-color var(--ds-transition-fast), border-color var(--ds-transition-fast);
+.nav-colapsar i {
+    transition: transform var(--ds-dur-base) var(--ds-ease-out);
 }
 
-.tema-btn:hover {
-    background: var(--ds-bg-subtle);
-    border-color: var(--ds-border-strong);
-    color: var(--ds-text-primary);
-}
+/* ---------- Móvil: barra superior + cajón ---------- */
 
-.tema-btn:active {
-    transform: translateY(0);
-}
-
-.tema-btn i {
-    font-size: 1rem;
-}
-
-/* En pantallas chicas el menú se abre en vertical y el ancho sobra; el texto se queda.
-   Lo que se achica es el padding, para que la fila entre sin apretarse. */
-@media (max-width: 1024px) {
-    .tema-btn {
-        padding: 8px 10px;
-    }
-}
-
-/* Mobile actions container - hidden on desktop */
 .navbar-mobile-actions {
     display: none;
-    align-items: center;
-    gap: 8px;
 }
 
-.logout-btn-mobile {
-    display: none;
-}
-
-/* Hamburger Toggle Button - hidden on desktop */
 .navbar-toggle {
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 5px;
+    min-width: 40px;
+    min-height: 40px;
     background: none;
     border: none;
     cursor: pointer;
     padding: 8px;
-    z-index: 1001;
 }
 
 .hamburger-line {
     display: block;
-    width: 24px;
+    width: 22px;
     height: 2px;
-    /* Tinta sobre la barra oscura, no una superficie: con --ds-bg-card las tres rayas
-       desaparecerían en modo oscuro, porque ahí esa superficie es casi negra. */
+    /* Tinta, no una superficie: con --ds-bg-card las rayas desaparecerían en oscuro. */
     background: var(--ds-text-primary);
     border-radius: 2px;
-    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+    transition: transform var(--ds-dur-base) var(--ds-ease-out), opacity var(--ds-dur-base) var(--ds-ease-out);
 }
 
 .navbar-toggle.open .hamburger-line:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
+    transform: translateY(7px) rotate(45deg);
 }
 
 .navbar-toggle.open .hamburger-line:nth-child(2) {
@@ -252,281 +274,218 @@
 }
 
 .navbar-toggle.open .hamburger-line:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
+    transform: translateY(-7px) rotate(-45deg);
 }
 
-/* Overlay for mobile menu */
 .navbar-overlay {
     display: none;
 }
 
-/* Responsive Design
-   La barra tiene que entrar en UNA fila en cualquier ancho de escritorio. Antes la regla
-   de 1200px agrandaba los ítems (padding 16px, 0,85rem) y entre 769 y ~1340px la barra se
-   desbordaba: el selector de tema y el botón de salir quedaban fuera de pantalla y la
-   página ganaba scroll horizontal (336px de más a 1100px). Dos escalones:
-   - hasta 1360px: padding compacto;
-   - hasta 1260px: solo el ícono. El texto sigue en el DOM, visualmente oculto, para que el
-     lector de pantalla siga leyendo el nombre de cada destino. */
-@media (min-width: 769px) and (max-width: 1360px) {
+@media (max-width: 768px) {
     .navbar-content {
-        padding: 10px 16px;
-        gap: 12px;
-    }
-
-    .navbar-collapse {
-        gap: 12px;
-    }
-
-    .nav-item {
-        padding: 7px 8px;
+        padding: 8px 16px;
     }
 
     .navbar-logo {
-        height: 24px;
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1260px) {
-    .nav-item .nav-text {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-    }
-
-    .nav-item {
-        padding: 8px 10px;
-    }
-}
-
-@media (max-width: 768px) {
-    .navbar-unified {
-        border-radius: 0;
-        margin-bottom: 0;
-    }
-
-    .navbar-content {
-        flex-direction: row;
-        flex-wrap: nowrap;
-        justify-content: space-between;
-        padding: 12px 16px;
-        gap: 10px;
+        height: 22px;
     }
 
     .navbar-mobile-actions {
         display: flex;
-    }
-
-    .logout-btn-mobile {
-        display: flex;
         align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        border-radius: 8px;
-        font-size: 1.1rem;
-    }
-
-    .logout-btn-desktop {
-        display: none;
     }
 
     .navbar-toggle {
         display: flex;
     }
 
+    .nav-colapsar {
+        display: none;
+    }
+
     .navbar-collapse {
         display: none;
         position: fixed;
         top: 0;
-        right: 0;
+        left: 0;
         width: 280px;
+        max-width: 85vw;
         height: 100vh;
         height: 100dvh;
         overscroll-behavior: contain;
         background: var(--ds-bg-card);
-        border-left: 1px solid var(--ds-border-light);
+        border-right: 1px solid var(--ds-border-light);
         flex-direction: column;
-        padding: 70px 20px 20px;
-        gap: 8px;
-        z-index: 1000;
-        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+        align-items: stretch;
+        padding: 16px 12px;
+        gap: 12px;
+        z-index: var(--ds-z-nav);
         overflow-y: auto;
     }
 
     .navbar-collapse.open {
         display: flex;
-        animation: slideInRight 0.3s ease;
+        animation: navDeslizar var(--ds-dur-base) var(--ds-ease-out);
     }
 
-    @keyframes slideInRight {
-        from { transform: translateX(100%); }
+    @keyframes navDeslizar {
+        from { transform: translateX(-100%); }
         to { transform: translateX(0); }
     }
 
     .navbar-nav {
         flex-direction: column;
-        width: 100%;
-        gap: 4px;
+        gap: 16px;
+        padding-top: 48px;
     }
 
     .nav-item {
-        width: 100%;
-        justify-content: flex-start;
-        padding: 14px 16px;
-        font-size: 0.95rem;
-        border-radius: 10px;
-    }
-
-    .nav-item.active::before {
-        bottom: auto;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 3px;
-        height: 20px;
-        border-radius: 0 2px 2px 0;
-    }
-
-    .nav-text {
-        display: inline;
-    }
-
-    .nav-item i {
-        font-size: 1.1rem;
-        width: 24px;
-        text-align: center;
-    }
-
-    .navbar-user {
-        flex-direction: column;
-        width: 100%;
-        gap: 10px;
-        margin-top: auto;
-        padding-top: 16px;
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .user-info {
-        font-size: 0.9rem;
-        justify-content: center;
-    }
-
-    .logout-btn {
-        width: 100%;
-        justify-content: center;
-        font-size: 0.9rem;
-        padding: 12px 16px;
-    }
-
-    .logout-text {
-        display: inline;
-    }
-
-    .navbar-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
+        min-height: 44px;
+        padding: 0 12px;
+        font-size: var(--ds-font-base);
     }
 
     .navbar-overlay.open {
         display: block;
-    }
-
-    .navbar-unified::before {
-        border-radius: 0;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: calc(var(--ds-z-nav) - 1);
     }
 }
 
-@media (max-width: 480px) {
-    .navbar-content {
-        padding: 10px 12px;
+/* ---------- Escritorio: columna fija ---------- */
+
+@media (min-width: 769px) {
+    .navbar-unified {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: var(--nav-ancho);
+        border-bottom: none;
+        border-right: 1px solid var(--ds-border-light);
+        transition: width var(--ds-dur-base) var(--ds-ease-out);
     }
 
-    .navbar-logo {
-        height: 20px;
+    .navbar-content {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        height: 100%;
+        padding: 16px 12px;
+        gap: 20px;
+    }
+
+    .navbar-brand {
+        height: 32px;
+        padding: 0 10px;
     }
 
     .navbar-collapse {
-        width: 260px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        min-height: 0;
+    }
+
+    .navbar-nav {
+        flex-direction: column;
+        gap: 18px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    /* El contenido se corre lo que mide la columna. `:has()` limita esto a las páginas que
+       sí tienen barra (el login no la dibuja). */
+    body:has(.navbar-unified) {
+        padding-left: var(--nav-ancho);
+        padding-top: var(--ds-space-6);
+        transition: padding-left var(--ds-dur-base) var(--ds-ease-out);
+    }
+
+    /* --- Colapsada: solo íconos --- */
+    :root[data-nav="colapsada"] .navbar-logo {
+        display: none;
+    }
+
+    :root[data-nav="colapsada"] .navbar-logo-icono {
+        display: block;
+        -webkit-mask-position: center;
+        mask-position: center;
+    }
+
+    :root[data-nav="colapsada"] .navbar-brand {
+        justify-content: center;
+        padding: 0;
+    }
+
+    /* El texto sale de pantalla pero sigue en el DOM: el lector de pantalla lee el nombre
+       de cada destino y de cada grupo. */
+    :root[data-nav="colapsada"] .nav-text,
+    :root[data-nav="colapsada"] .nav-grupo-titulo,
+    :root[data-nav="colapsada"] .user-info {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    :root[data-nav="colapsada"] .nav-grupo + .nav-grupo {
+        padding-top: 12px;
+        border-top: 1px solid var(--ds-border-light);
+    }
+
+    :root[data-nav="colapsada"] .nav-item {
+        justify-content: center;
+        padding: 0;
+    }
+
+    :root[data-nav="colapsada"] .navbar-acciones {
+        flex-direction: column;
+    }
+
+    :root[data-nav="colapsada"] .nav-colapsar {
+        margin-left: 0;
+    }
+
+    :root[data-nav="colapsada"] .nav-colapsar i {
+        transform: rotate(180deg);
     }
 }
 
-/* Animaciones mejoradas */
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+/* Barra de tema/salir en el cajón: ocupan el ancho con el pie. */
+@media (max-width: 768px) {
+    .navbar-acciones {
+        padding-bottom: 4px;
     }
 }
 
-.navbar-unified {
-    animation: fadeInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Estados de hover mejorados */
-.nav-item:hover i,
-.logout-btn:hover i,
-.user-info i:hover {
-    transform: scale(1.1);
-    transition: transform var(--ds-transition-base);
-}
-
-/* Efectos de glassmorphism sutil */
-.navbar-unified::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    border-radius: 0 0 var(--ds-radius-xl) var(--ds-radius-xl);
-    z-index: -1;
-}
-
-/* Mejoras de accesibilidad */
 @media (prefers-reduced-motion: reduce) {
+    .navbar-unified,
+    body:has(.navbar-unified),
     .nav-item,
-    .logout-btn,
-    .navbar-unified {
+    .nav-colapsar i,
+    .hamburger-line {
         transition: none;
+    }
+
+    .navbar-collapse.open {
         animation: none;
-        transform: none;
     }
 }
 
-/* Modo de alto contraste */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
     .navbar-unified {
-        background: var(--ds-contrast-bg);
-        border: 2px solid var(--ds-text-inverse);
+        border-color: var(--ds-text-primary);
     }
-    
-    .nav-item,
-    .logout-btn {
-        border: 1px solid var(--ds-text-inverse);
-    }
-    
-    /* Ítem activo invertido contra la barra oscura. Va con text-inverse y no con una
-       superficie, por lo mismo que las rayas del menú. */
+
     .nav-item.active {
-        background: var(--ds-text-inverse);
-        color: var(--ds-primary-900);
+        outline: 1px solid var(--ds-text-primary);
     }
 }

@@ -606,6 +606,7 @@ body {
    clave de búsqueda, no el título de la fila. */
 
 .dni {
+    font-family: var(--ds-font-mono);
     font-weight: 500;
     color: var(--ds-text-secondary);
     /* Cifras de ancho fijo: los DNI se comparan en vertical y con ancho variable las

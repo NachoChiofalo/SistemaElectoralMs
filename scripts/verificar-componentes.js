@@ -61,6 +61,23 @@ async function main() {
     chequear('los íconos decorativos están ocultos a lectores de pantalla',
       await p.locator('.navbar-unified i.fas:not([aria-hidden="true"])').count() === 0);
 
+    chequear('los destinos van agrupados con nombre accesible', await p.locator('.nav-grupo[role="group"][aria-labelledby]').count() >= 2);
+    await p.locator('#nav-colapsar').click();
+    chequear('colapsar marca data-nav y aria-expanded=false',
+      await p.evaluate(() => document.documentElement.dataset.nav === 'colapsada' && document.getElementById('nav-colapsar').getAttribute('aria-expanded') === 'false'));
+    chequear('colapsada, cada destino conserva su nombre (title) y el contenido se corre al ancho de 68 px',
+      await p.evaluate(() => !!document.querySelector('.nav-item').title && parseFloat(getComputedStyle(document.body).paddingLeft) === 68));
+    await p.reload({ waitUntil: 'networkidle' });
+    await p.waitForSelector('.navbar-unified');
+    chequear('la preferencia de colapso sobrevive a recargar', await p.evaluate(() => document.documentElement.dataset.nav === 'colapsada'));
+    await p.locator('#nav-colapsar').click();
+    chequear('expandir devuelve el ancho de 240 px',
+      await p.evaluate(() => parseFloat(getComputedStyle(document.body).paddingLeft) === 240));
+    // Foco limpio para lo que sigue: el primer Tab tiene que partir del inicio de la página.
+    await p.reload({ waitUntil: 'networkidle' });
+    await p.waitForSelector('.navbar-unified');
+    await p.waitForTimeout(300);
+
     await p.keyboard.press('Tab');
     const enfocado = await p.evaluate(() => document.activeElement.className);
     chequear('el primer Tab cae en el skip-link', enfocado.includes('skip-link'), enfocado);

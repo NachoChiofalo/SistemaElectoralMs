@@ -166,6 +166,9 @@ test('la barra de navegación expone nombre, página actual y salto al contenido
   assert.match(fuente, /aria-label="Principal"/);
   assert.match(fuente, /aria-current="page"/);
   assert.match(fuente, /aria-controls="navbar-collapse"/);
+  // Barra lateral: destinos agrupados y colapso persistente con estado accesible.
+  assert.match(fuente, /role="group" aria-labelledby/);
+  assert.match(fuente, /aria-controls="navbar-collapse" aria-expanded/);
 
   // El salto apunta a #contenido: cada página tiene que tener ese destino.
   for (const pagina of PAGINAS) {
