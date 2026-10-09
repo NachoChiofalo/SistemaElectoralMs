@@ -184,3 +184,12 @@ test('un estado puede ofrecer un enlace para navegar, que es un <a> y no un bot�
   // el destino también se escapa
   assert.doesNotMatch(estados.vacio({ enlace: { texto: 'x', href: '"><script>' } }), /<script>/);
 });
+
+test('el design system define los componentes base del rediseño (panel, KPI, cabecera, segmentadas, punto)', () => {
+  const css = leer('src', 'styles', 'design-system.css');
+  for (const clase of ['.panel', '.kpi-valor', '.pagina-cabecera', '.pestanas--segmentadas', '.punto', '.btn-lg', '.tabla--compacta']) {
+    assert.ok(css.includes(clase), `design-system.css no define ${clase}`);
+  }
+  // La cifra de un KPI va en la mono: se compara en columna.
+  assert.match(css, /\.kpi-valor\s*\{[^}]*font-family:\s*var\(--ds-font-mono\)/);
+});

@@ -494,10 +494,10 @@ textarea::placeholder {
     align-items: center;
     justify-content: center;
     gap: var(--ds-space-2);
-    min-height: 36px;
-    padding: 0 var(--ds-space-4);
+    min-height: 32px;
+    padding: 0 var(--ds-space-3);
     font-family: inherit;
-    font-size: var(--ds-font-base);
+    font-size: var(--ds-font-sm);
     font-weight: var(--ds-weight-medium);
     line-height: 1.25;
     color: var(--ds-text-primary);
@@ -547,29 +547,43 @@ textarea::placeholder {
 .btn-danger    { background: var(--ds-danger-600); color: var(--ds-text-inverse); border-color: var(--ds-danger-600); }
 .btn-danger:hover { background: var(--ds-danger-700); border-color: var(--ds-danger-700); }
 
-.btn-sm   { min-height: 28px; padding: 0 var(--ds-space-3); font-size: var(--ds-font-sm); }
+/* Tres alturas: 28 (sm), 32 (base) y 36 (lg). En móvil el blanco táctil sube a 40. */
+.btn-sm   { min-height: 28px; padding: 0 var(--ds-space-2); font-size: var(--ds-font-xs); }
+.btn-lg   { min-height: 36px; padding: 0 var(--ds-space-4); font-size: var(--ds-font-base); }
 /* Botón de solo ícono: cuadrado, y SIEMPRE con aria-label (no tiene texto que lo nombre). */
-.btn-icono { width: 36px; padding: 0; }
+.btn-icono { width: 32px; padding: 0; }
 .btn-icono.btn-sm { width: 28px; }
+.btn-icono.btn-lg { width: 36px; }
+@media (max-width: 768px) {
+    .btn { min-height: 40px; }
+    .btn-icono { width: 40px; }
+}
 
 /* —— Campos de formulario ——
    Etiqueta arriba, ayuda opcional, error abajo. El error se asocia con `aria-describedby`
    y el control con `aria-invalid="true"`; el contenedor del error lleva `role="alert"`
    para que se anuncie cuando aparece. */
 .campo { display: grid; gap: var(--ds-space-1); }
-.campo-etiqueta { font-size: var(--ds-font-sm); font-weight: var(--ds-weight-medium); color: var(--ds-text-secondary); }
+.campo-etiqueta { font-size: var(--ds-font-xs); font-weight: var(--ds-weight-medium); letter-spacing: var(--ds-tracking-wide); text-transform: uppercase; color: var(--ds-text-secondary); }
 .campo-ayuda    { font-size: var(--ds-font-sm); color: var(--ds-text-muted); }
 .campo-error    { font-size: var(--ds-font-sm); color: var(--ds-danger-on-tint); }
 
 .campo :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
     width: 100%;
-    min-height: 36px;
-    padding: var(--ds-space-2) var(--ds-space-3);
+    min-height: 32px;
+    padding: var(--ds-space-1) var(--ds-space-3);
     font-family: inherit;
     font-size: var(--ds-font-base);
     line-height: 1.4;
+    /* Hundido: la superficie del campo es más tenue que la del panel que lo contiene. */
+    background-color: var(--ds-bg-subtle);
     border: 1px solid var(--ds-border-strong);
     border-radius: var(--ds-radius-md);
+}
+
+.campo textarea { min-height: 72px; padding-block: var(--ds-space-2); }
+@media (max-width: 768px) {
+    .campo :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select) { min-height: 40px; }
 }
 
 .campo :is(input, select, textarea):hover { border-color: var(--ds-text-muted); }
@@ -597,11 +611,11 @@ textarea::placeholder {
     display: inline-flex;
     align-items: center;
     gap: var(--ds-space-1);
-    padding: 1px var(--ds-space-2);
+    padding: 1px 6px;
     font-size: var(--ds-font-xs);
     font-weight: var(--ds-weight-semibold);
     line-height: 1.5;
-    border-radius: var(--ds-radius-full);
+    border-radius: var(--ds-radius-sm);
     background: var(--ds-bg-muted);
     color: var(--ds-text-secondary);
 }
@@ -609,6 +623,20 @@ textarea::placeholder {
 .insignia--aviso  { background: var(--ds-warning-100); color: var(--ds-warning-on-tint); }
 .insignia--error  { background: var(--ds-danger-100);  color: var(--ds-danger-on-tint); }
 .insignia--info   { background: var(--ds-info-100);    color: var(--ds-info-on-tint); }
+
+/* Punto de estado: solo cuando significa algo (éxito, aviso, error). Va siempre junto a un
+   texto que dice lo mismo: el color solo no alcanza. */
+.punto {
+    display: inline-block;
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--ds-radius-full);
+    background: var(--ds-text-muted);
+}
+.punto--exito { background: var(--ds-success-500); }
+.punto--aviso { background: var(--ds-warning-500); }
+.punto--error { background: var(--ds-danger-500); }
 
 /* —— Diálogo ——
    Sobre el elemento nativo <dialog>: showModal() ya da capa superior, foco atrapado,
@@ -619,7 +647,7 @@ textarea::placeholder {
     max-height: min(90dvh, 760px);
     padding: 0;
     color: var(--ds-text-primary);
-    background: var(--ds-bg-card);
+    background: var(--ds-bg-elevated);
     border: 1px solid var(--ds-border-default);
     border-radius: var(--ds-radius-xl);
     box-shadow: var(--ds-shadow-xl);
@@ -658,7 +686,7 @@ textarea::placeholder {
     width: 36px;
     height: 36px;
     border-radius: var(--ds-radius-lg);
-    background: var(--ds-bg-card);
+    background: var(--ds-bg-muted);
 }
 .dialogo-titulo { margin: 0; font-size: var(--ds-font-lg); }
 .dialogo-cerrar { margin-left: auto; }
@@ -683,7 +711,7 @@ textarea::placeholder {
    pantallas que definen su propio .btn-secondary (el padrón lo pintaba de gris sólido) la
    dejaban tan pesada como la primaria, y "Cancelar" competía con "Guardar". */
 .dialogo-pie .btn-secondary {
-    background: var(--ds-bg-card);
+    background: var(--ds-bg-elevated);
     color: var(--ds-text-primary);
     border-color: var(--ds-border-strong);
 }
@@ -706,8 +734,7 @@ textarea::placeholder {
    mensaje, o varios lectores de pantalla no lo anuncian. Las crea lib/avisos.js. */
 .avisos {
     position: fixed;
-    /* Debajo de la barra de navegación (que lleva tema y "salir" a la derecha). */
-    top: calc(var(--ds-space-16) + var(--ds-space-2));
+    top: var(--ds-space-4);
     right: var(--ds-space-4);
     z-index: var(--ds-z-toast);
     width: min(380px, calc(100vw - var(--ds-space-8)));
@@ -724,9 +751,9 @@ textarea::placeholder {
     gap: var(--ds-space-3);
     padding: var(--ds-space-3) var(--ds-space-4);
     color: var(--ds-text-primary);
-    background: var(--ds-bg-card);
+    background: var(--ds-bg-elevated);
     border: 1px solid var(--ds-border-default);
-    border-left-width: 4px;
+    border-left-width: 3px;
     border-radius: var(--ds-radius-lg);
     box-shadow: var(--ds-shadow-lg);
     pointer-events: auto;
@@ -739,6 +766,10 @@ textarea::placeholder {
 
 @media (prefers-reduced-motion: no-preference) {
     .aviso { animation: ds-fadeInUp var(--ds-dur-base) var(--ds-ease-out); }
+}
+/* En móvil hay una barra superior de ~56 px: los avisos bajan de ella. */
+@media (max-width: 768px) {
+    .avisos { top: calc(var(--ds-space-16) + var(--ds-space-2)); }
 }
 @media (max-width: 480px) {
     .avisos { top: auto; bottom: var(--ds-space-4); }
@@ -796,19 +827,41 @@ textarea::placeholder {
 .pestana {
     flex: none;
     margin-bottom: -1px;
-    padding: var(--ds-space-2) var(--ds-space-4);
+    padding: var(--ds-space-2) var(--ds-space-3);
     font: inherit;
+    font-size: var(--ds-font-sm);
     font-weight: var(--ds-weight-medium);
     color: var(--ds-text-secondary);
     background: none;
     border: 0;
     border-bottom: 2px solid transparent;
     cursor: pointer;
+    transition: color var(--ds-dur-fast) var(--ds-ease-out), border-color var(--ds-dur-fast) var(--ds-ease-out);
 }
 .pestana:hover { color: var(--ds-text-primary); }
 .pestana[aria-selected="true"] {
     color: var(--ds-text-primary);
-    border-bottom-color: var(--ds-primary-700);
+    border-bottom-color: var(--ds-text-primary);
+}
+
+/* Variante segmentada: filtros rápidos (rango, vista). Una pastilla con la opción activa
+   levantada; sigue siendo un tablist, con las mismas flechas y los mismos roles. */
+.pestanas--segmentadas {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--ds-border-default);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-bg-subtle);
+}
+.pestanas--segmentadas .pestana {
+    margin-bottom: 0;
+    padding: var(--ds-space-1) var(--ds-space-3);
+    border: 0;
+    border-radius: var(--ds-radius-sm);
+}
+.pestanas--segmentadas .pestana[aria-selected="true"] {
+    background: var(--ds-bg-muted);
 }
 
 /* —— Paginación —— (<nav aria-label>; la página actual lleva aria-current="page") */
@@ -819,10 +872,12 @@ textarea::placeholder {
     gap: var(--ds-space-1);
 }
 .paginacion-pagina {
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 32px;
+    min-height: 32px;
     padding: 0 var(--ds-space-2);
     font: inherit;
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-font-sm);
     color: var(--ds-text-primary);
     background: var(--ds-bg-card);
     border: 1px solid var(--ds-border-default);
@@ -848,18 +903,21 @@ textarea::placeholder {
    dentro del <th>, y `aria-sort` va en el <th>. */
 .tabla-contenedor {
     overflow-x: auto;
+    background: var(--ds-bg-card);
     border: 1px solid var(--ds-border-light);
     border-radius: var(--ds-radius-lg);
 }
 .tabla {
     width: 100%;
     border-collapse: collapse;
+    font-size: var(--ds-font-sm);
     font-variant-numeric: tabular-nums;
 }
 .tabla caption { padding: var(--ds-space-3) var(--ds-space-4); text-align: left; color: var(--ds-text-secondary); }
 .tabla th,
 .tabla td {
-    padding: var(--ds-space-2) var(--ds-space-3);
+    height: 40px;
+    padding: var(--ds-space-1) var(--ds-space-3);
     text-align: left;
     border-bottom: 1px solid var(--ds-border-light);
 }
@@ -871,8 +929,72 @@ textarea::placeholder {
     color: var(--ds-text-secondary);
     background: var(--ds-bg-subtle);
 }
-.tabla .num { text-align: right; }
+/* Toda cifra de datos va en mono: se comparan en columna. */
+.tabla .num { text-align: right; font-family: var(--ds-font-mono); }
 .tabla tbody tr:last-child td { border-bottom: 0; }
+.tabla tbody tr:hover td { background: var(--ds-bg-subtle); }
+.tabla tbody tr[aria-selected="true"] td,
+.tabla tbody tr.seleccionada td { background: var(--ds-bg-muted); }
+.tabla--compacta th,
+.tabla--compacta td { height: 36px; }
+
+.mono { font-family: var(--ds-font-mono); font-variant-numeric: tabular-nums; }
+
+/* —— Panel, KPI y cabecera de pantalla ——
+   El panel es plano: un borde de 1 px sobre --ds-bg-card, sin sombra. La jerarquía sale de
+   la luminancia. El KPI es etiqueta + cifra en mono + detalle: la cifra es lo único grande. */
+.panel {
+    background: var(--ds-bg-card);
+    border: 1px solid var(--ds-border-light);
+    border-radius: var(--ds-radius-lg);
+}
+.panel-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-space-3);
+    padding: var(--ds-space-3) var(--ds-space-4);
+    border-bottom: 1px solid var(--ds-border-light);
+}
+.panel-cabecera > :is(h2, h3) { margin: 0; font-size: var(--ds-font-base); }
+.panel-cuerpo { padding: var(--ds-space-4); }
+
+.kpi {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-1);
+    min-width: 0;
+}
+.kpi-etiqueta {
+    font-size: var(--ds-font-xs);
+    font-weight: var(--ds-weight-medium);
+    letter-spacing: var(--ds-tracking-wide);
+    text-transform: uppercase;
+    color: var(--ds-text-secondary);
+}
+.kpi-valor {
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-font-2xl);
+    font-weight: var(--ds-weight-medium);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    color: var(--ds-text-primary);
+}
+.kpi--grande .kpi-valor { font-size: var(--ds-font-4xl); letter-spacing: -0.02em; }
+.kpi-detalle { font-size: var(--ds-font-sm); color: var(--ds-text-muted); }
+
+.pagina-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--ds-space-3) var(--ds-space-4);
+    margin-bottom: var(--ds-space-5);
+}
+.pagina-cabecera h1 { margin: 0; font-size: var(--ds-font-2xl); letter-spacing: var(--ds-tracking-tight); }
+.pagina-cabecera-texto { display: grid; gap: var(--ds-space-1); min-width: 0; }
+.pagina-cabecera-descripcion { margin: 0; color: var(--ds-text-muted); font-size: var(--ds-font-sm); }
+.pagina-cabecera-acciones { display: flex; flex-wrap: wrap; gap: var(--ds-space-2); }
 
 .th-orden {
     display: inline-flex;
