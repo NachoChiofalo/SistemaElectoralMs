@@ -80,7 +80,7 @@
 
 .mapa-cuerpo {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 520px);
     gap: 16px;
     align-items: start;
 }

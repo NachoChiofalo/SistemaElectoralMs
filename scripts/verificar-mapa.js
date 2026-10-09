@@ -44,7 +44,7 @@ const zona = (tipo, id) => ({
   const r = await fetch(base + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: process.env.VERIFICAR_USUARIO, password: process.env.VERIFICAR_CLAVE }) });
   const s = (await r.json()).data;
   const b = await chromium.launch();
-  const c = await b.newContext({ viewport: { width: 1280, height: 800 } });
+  const c = await b.newContext({ viewport: { width: 1366, height: 768 } });
   await c.addInitScript((s) => { localStorage.setItem('authToken', s.accessToken); localStorage.setItem('userData', JSON.stringify(s.user)); localStorage.setItem('sistema-electoral:tema', 'dark'); }, s);
   await c.route('**/api/territorio/geometria', (rt) => rt.fulfill({ json: { success: true, data: { manzanas, barrios } } }));
   await c.route('**/api/territorio/estadisticas', (rt) => rt.fulfill({ json: { success: true, data: stats } }));
@@ -76,11 +76,15 @@ const zona = (tipo, id) => ({
       const th = tr.lastElementChild.getBoundingClientRect(); const pa = document.getElementById('mapa-panel').getBoundingClientRect();
       return th.right <= pa.right + 1;
     })));
+  chequear('las estadísticas de la manzana entran sin scroll en 1366x768',
+    await p.evaluate(() => { const pa = document.getElementById('mapa-panel'); return pa.scrollHeight <= pa.clientHeight + 1; }),
+    await p.evaluate(() => { const pa = document.getElementById('mapa-panel'); return pa.scrollHeight + ' > ' + pa.clientHeight; }));
+  chequear('el radio censal tiene su propia pestaña', await p.locator('#mapa-tab-barrio').count() === 1);
   chequear('las pestañas tienen tabpanel enlazado', await p.evaluate(() => { const t = document.querySelector('[role="tab"][aria-selected="true"]'); const pan = document.getElementById(t.getAttribute('aria-controls')); return pan && pan.getAttribute('role') === 'tabpanel' && pan.getAttribute('aria-labelledby') === t.id; }));
   await p.locator('[role="tab"][aria-selected="true"]').focus();
   await p.keyboard.press('ArrowRight');
   await p.waitForTimeout(300);
-  chequear('la flecha cambia de pestaña y deja el foco en la pestaña activa', await p.evaluate(() => document.activeElement.id === 'mapa-tab-votantes' && document.activeElement.getAttribute('aria-selected') === 'true'), await p.evaluate(() => document.activeElement.id));
+  chequear('la flecha cambia de pestaña y deja el foco en la pestaña activa', await p.evaluate(() => document.activeElement.id === 'mapa-tab-barrio' && document.activeElement.getAttribute('aria-selected') === 'true'), await p.evaluate(() => document.activeElement.id));
   await p.locator('#btn-vista').click();
   chequear('la vista de lista muestra una tabla con un botón por zona', await p.locator('.mapa-lista table tbody tr').count() === 12);
   chequear('el botón de vista expone su estado', await p.locator('#btn-vista[aria-pressed="true"]').count() === 1);

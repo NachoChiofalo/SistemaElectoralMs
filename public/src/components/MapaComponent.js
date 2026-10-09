@@ -398,6 +398,7 @@ class MapaComponent {
         const pestanas = `
             <div class="panel-pestanas" role="tablist" aria-label="Datos de la manzana">
                 ${tab('estadisticas', 'Estadísticas')}
+                ${z.barrio ? tab('barrio', escaparHtml(etiquetaBarrio)) : ''}
                 ${tab('votantes', 'Votantes')}
             </div>`;
         const abrirPanel = `<div id="mapa-tabpanel" role="tabpanel" aria-labelledby="mapa-tab-${this.pestana}" tabindex="0">`;
@@ -408,6 +409,15 @@ class MapaComponent {
             document.getElementById(`mapa-tab-${this.pestana}`)?.focus();
         };
 
+        // Un radio censal que ya no corresponde (otra manzana sin radio) vuelve a las estadísticas.
+        if (this.pestana === 'barrio' && !z.barrio) this.pestana = 'estadisticas';
+
+        if (this.pestana === 'barrio') {
+            panel.innerHTML = `<h2 class="panel-titulo">Manzana ${escaparHtml(z.id)}</h2>${pestanas}${abrirPanel}<h3 class="panel-subtitulo">${escaparHtml(etiquetaBarrio)}: ${escaparHtml(z.barrio.nombre)}</h3>${this.bloqueZona(z.barrio)}${this.bloqueCenso(z.barrio)}</div>`;
+            devolverFoco();
+            return;
+        }
+
         if (this.pestana === 'votantes') {
             panel.innerHTML = `<h2 class="panel-titulo">Manzana ${escaparHtml(z.id)}</h2>${pestanas}${abrirPanel}<div id="panel-lista"><p class="mapa-vacio">Cargando…</p></div></div>`;
             devolverFoco();
@@ -415,13 +425,12 @@ class MapaComponent {
             return;
         }
 
-        const barrio = z.barrio
-            ? `<h4 class="panel-subtitulo">${escaparHtml(etiquetaBarrio)}: ${escaparHtml(z.barrio.nombre)}</h4>${this.bloqueZona(z.barrio)}${this.bloqueCenso(z.barrio)}`
-            : `<p class="mapa-vacio">Esta manzana no está dentro de ningún ${escaparHtml(etiquetaBarrio.toLowerCase())}.</p>`;
+        const sinBarrio = z.barrio
+            ? ''
+            : `<p class="mapa-vacio panel-barrio">Esta manzana no está dentro de ningún ${escaparHtml(etiquetaBarrio.toLowerCase())}.</p>`;
         panel.innerHTML = `
             <h2 class="panel-titulo">Manzana ${escaparHtml(z.id)}</h2>${pestanas}
-            ${abrirPanel}${this.bloqueZona(z)}
-            <div class="panel-barrio">${barrio}</div></div>`;
+            ${abrirPanel}${this.bloqueZona(z)}${sinBarrio}</div>`;
         devolverFoco();
     }
 
