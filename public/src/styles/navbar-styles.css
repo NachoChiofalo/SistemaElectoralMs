@@ -348,6 +348,8 @@
         right: 0;
         width: 280px;
         height: 100vh;
+        height: 100dvh;
+        overscroll-behavior: contain;
         background: var(--ds-bg-card);
         border-left: 1px solid var(--ds-border-light);
         flex-direction: column;

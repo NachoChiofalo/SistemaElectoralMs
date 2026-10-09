@@ -149,3 +149,26 @@ test('ni los avisos ni los diálogos interpolan texto como HTML', () => {
     assert.doesNotMatch(fuente, /innerHTML|insertAdjacentHTML|outerHTML/, `${archivo} usa innerHTML`);
   }
 });
+
+test('la barra y los avisos de sesión no vuelven a confirm() / alert() del navegador', () => {
+  // confirm() y alert() bloquean el hilo, no siguen el tema y no son un diálogo para el
+  // lector de pantalla. La barra y AuthService ya migraron a dialogo.js; el resto de las
+  // pantallas migra en las fases siguientes y se suma a esta lista a medida que lo hace.
+  for (const archivo of [['src', 'components', 'NavbarComponent.js'], ['src', 'services', 'AuthService.js']]) {
+    const fuente = leer(...archivo).replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+    assert.doesNotMatch(fuente, /(^|[^.\w])(confirm|alert)\s*\(/m, `${archivo.at(-1)} usa confirm()/alert()`);
+  }
+});
+
+test('la barra de navegación expone nombre, página actual y salto al contenido', () => {
+  const fuente = leer('src', 'components', 'NavbarComponent.js');
+  assert.match(fuente, /class="skip-link" href="#contenido"/);
+  assert.match(fuente, /aria-label="Principal"/);
+  assert.match(fuente, /aria-current="page"/);
+  assert.match(fuente, /aria-controls="navbar-collapse"/);
+
+  // El salto apunta a #contenido: cada página tiene que tener ese destino.
+  for (const pagina of PAGINAS) {
+    assert.match(leer(`${pagina}.html`), /<main[^>]*id="contenido"[^>]*tabindex="-1"/, `${pagina}.html sin <main id="contenido">`);
+  }
+});

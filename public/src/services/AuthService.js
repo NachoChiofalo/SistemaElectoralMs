@@ -44,11 +44,11 @@ class AuthService {
      */
     showSessionExpiredMessage() {
         this._showModal({
-            tinte: 'danger',
+            tono: 'peligro',
             icon: 'fa-clock',
-            title: 'Sesion Expirada',
-            body: 'Su sesion ha expirado por inactividad.',
-            sub: 'Sera redirigido al inicio de sesion...'
+            title: 'Sesión expirada',
+            body: 'Su sesión expiró por inactividad.',
+            sub: 'Será redirigido al inicio de sesión…'
         });
     }
 
@@ -57,53 +57,40 @@ class AuthService {
      */
     showSessionKickedMessage() {
         this._showModal({
-            tinte: 'info',
+            tono: 'info',
             icon: 'fa-desktop',
-            title: 'Sesion Cerrada',
-            body: 'Su cuenta fue accedida desde otro dispositivo.',
-            sub: 'Sera redirigido al inicio de sesion...'
+            title: 'Sesión cerrada',
+            body: 'Su cuenta se abrió desde otro dispositivo.',
+            sub: 'Será redirigido al inicio de sesión…'
         });
     }
 
-    _showModal({ tinte, icon, title, body, sub }) {
-        const existing = document.getElementById('session-expired-modal');
-        if (existing) existing.remove();
+    /**
+     * Aviso de sesión terminada. Usa lib/dialogo.js: antes era un div armado a mano con
+     * colores fijos (blanco en pleno modo oscuro), sin role="dialog", sin foco y sin
+     * forma de que un lector de pantalla se enterara. No se puede cerrar: la sesión ya
+     * terminó y la única salida es volver al inicio.
+     */
+    _showModal({ tono, icon, title, body, sub }) {
+        const irAlInicio = () => { window.location.href = '/'; };
+        if (!window.dialogo) { irAlInicio(); return; }
 
-        const overlay = document.createElement('div');
-        overlay.id = 'session-expired-modal';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:var(--ds-scrim);display:flex;align-items:center;justify-content:center;z-index:9999;';
-        overlay.innerHTML = `
-            <div style="background:var(--ds-bg-card);border:1px solid var(--ds-border-default);border-radius:var(--ds-radius-xl);box-shadow:var(--ds-shadow-xl);max-width:440px;width:90%;overflow:hidden;">
-                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:var(--ds-${tinte}-100);">
-                    <div style="width:44px;height:44px;border-radius:var(--ds-radius-lg);background:var(--ds-bg-card);color:var(--ds-${tinte}-on-tint);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
-                        <i class="fas ${icon}"></i>
-                    </div>
-                    <h3 style="color:var(--ds-text-primary);margin:0;font-size:1.1rem;">${title}</h3>
-                </div>
-                <div style="text-align:center;padding:2rem 1.5rem;">
-                    <p style="font-size:1rem;color:var(--ds-text-primary);margin:0 0 8px;">${body}</p>
-                    <p style="font-size:0.9rem;color:var(--ds-text-secondary);margin:0;">${sub}</p>
-                </div>
-                <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid var(--ds-border-default);">
-                    <button type="button" id="session-expired-login-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--ds-primary-600);color:var(--ds-on-primary);border:none;border-radius:var(--ds-radius-md);font-size:0.95rem;font-weight:600;cursor:pointer;">
-                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesion
-                    </button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
+        if (this._dialogoSesion) this._dialogoSesion.cerrar();
 
-        const loginBtn = document.getElementById('session-expired-login-btn');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', function() {
-                window.location.href = '/';
-            });
-        }
+        const parrafo = (texto) => { const p = document.createElement('p'); p.textContent = texto; return p; };
+        this._dialogoSesion = window.dialogo.abrir({
+            titulo: title,
+            tono,
+            icono: icon,
+            rol: 'alertdialog',
+            cerrable: false,
+            cuerpo: [parrafo(body), parrafo(sub)],
+            acciones: [{ id: 'login', texto: 'Iniciar sesión', tipo: 'primario', foco: true }]
+        });
+        this._dialogoSesion.resultado.then(irAlInicio);
 
         // Auto-redirigir después de 5 segundos
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 5000);
+        setTimeout(irAlInicio, 5000);
     }
 
     /**
@@ -285,7 +272,7 @@ class InactivityService {
         this.timer = null;
         this.warningTimer = null;
         this.countdownInterval = null;
-        this.warningModalEl = null;
+        this.warningDialog = null;
         this.events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
 
         // Guardar referencia bound para poder remover los listeners
@@ -327,57 +314,46 @@ class InactivityService {
             clearInterval(this.countdownInterval);
             this.countdownInterval = null;
         }
-        if (this.warningModalEl && this.warningModalEl.parentNode) {
-            this.warningModalEl.remove();
-            this.warningModalEl = null;
+        if (this.warningDialog) {
+            const dialogo = this.warningDialog;
+            this.warningDialog = null;
+            dialogo.cerrar();
         }
     }
 
     showInactivityWarning() {
         // Evitar duplicados
         this.dismissWarning();
+        if (!window.dialogo) return;
 
-        const overlay = document.createElement('div');
-        overlay.id = 'inactivity-warning-modal';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:var(--ds-scrim);display:flex;align-items:center;justify-content:center;z-index:9999;';
-        overlay.innerHTML = `
-            <div style="background:var(--ds-bg-card);border:1px solid var(--ds-border-default);border-radius:var(--ds-radius-xl);box-shadow:var(--ds-shadow-xl);max-width:440px;width:90%;overflow:hidden;">
-                <div style="display:flex;align-items:center;gap:10px;padding:1.25rem 1.5rem;background:var(--ds-warning-100);">
-                    <div style="width:44px;height:44px;border-radius:var(--ds-radius-lg);background:var(--ds-bg-card);color:var(--ds-warning-on-tint);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <h3 style="color:var(--ds-text-primary);margin:0;font-size:1.1rem;">Inactividad Detectada</h3>
-                </div>
-                <div style="text-align:center;padding:2rem 1.5rem;">
-                    <p style="font-size:1rem;color:var(--ds-text-primary);margin:0 0 12px;">
-                        Su sesion se cerrara en <strong id="inactivity-countdown" style="font-size:1.3rem;color:var(--ds-danger-on-tint);">120</strong> segundos por inactividad.
-                    </p>
-                    <p style="font-size:0.9rem;color:var(--ds-text-secondary);margin:0;">Haga clic en el boton para continuar trabajando.</p>
-                </div>
-                <div style="display:flex;justify-content:center;padding:1rem 1.5rem;border-top:1px solid var(--ds-border-default);">
-                    <button type="button" id="inactivity-continue-btn" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--ds-primary-600);color:var(--ds-on-primary);border:none;border-radius:var(--ds-radius-md);font-size:0.95rem;font-weight:600;cursor:pointer;">
-                        <i class="fas fa-hand-pointer"></i> Continuar Trabajando
-                    </button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        this.warningModalEl = overlay;
+        const cuenta = document.createElement('strong');
+        cuenta.className = 'dialogo-cuenta';
+        cuenta.id = 'inactivity-countdown';
+        cuenta.textContent = '120';
 
-        // Boton "Continuar Trabajando"
-        const continueBtn = document.getElementById('inactivity-continue-btn');
-        if (continueBtn) {
-            continueBtn.addEventListener('click', () => {
-                this.resetTimer();
-            });
-        }
+        const aviso = document.createElement('p');
+        aviso.append('Su sesión se cerrará en ', cuenta, ' segundos por inactividad.');
+        const ayuda = document.createElement('p');
+        ayuda.textContent = 'Pulse el botón para continuar trabajando.';
 
-        // Countdown
+        this.warningDialog = window.dialogo.abrir({
+            titulo: 'Inactividad detectada',
+            tono: 'aviso',
+            icono: 'fa-clock',
+            rol: 'alertdialog',
+            cerrable: false,
+            cuerpo: [aviso, ayuda],
+            acciones: [{ id: 'continuar', texto: 'Continuar trabajando', tipo: 'primario', foco: true }]
+        });
+        // resetTimer() cierra este mismo diálogo por dismissWarning(); el resultado solo
+        // llega con 'continuar' cuando fue la persona quien lo pulsó.
+        this.warningDialog.resultado.then((id) => { if (id === 'continuar') this.resetTimer(); });
+
+        // Cuenta regresiva (no es una región viva: anunciar cada segundo no ayuda a nadie)
         let seconds = 120;
-        const countdownEl = overlay.querySelector('#inactivity-countdown');
         this.countdownInterval = setInterval(() => {
             seconds--;
-            if (countdownEl) countdownEl.textContent = seconds;
+            cuenta.textContent = seconds;
             if (seconds <= 0) {
                 clearInterval(this.countdownInterval);
                 this.countdownInterval = null;

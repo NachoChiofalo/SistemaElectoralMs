@@ -411,8 +411,16 @@ p { text-wrap: pretty; }
     transform: translateY(-200%);
 }
 
-.skip-link:focus-visible {
+/* :focus y no :focus-visible: es un enlace invisible hasta recibir foco, y la heurística de
+   :focus-visible podía dejarlo fuera de pantalla con el foco encima (intermitente). */
+.skip-link:focus {
     transform: translateY(0);
+}
+
+/* Destino del salto (o de cualquier foco programático): recibe el foco pero no es un
+   control, así que no se le dibuja el anillo. */
+[tabindex="-1"]:focus {
+    outline: none;
 }
 
 /* ==================== 4. ESCALA TIPOGRÁFICA ==================== */
@@ -640,6 +648,12 @@ textarea::placeholder {
     gap: var(--ds-space-2);
     padding: var(--ds-space-4) var(--ds-space-5);
     border-top: 1px solid var(--ds-border-light);
+}
+
+.dialogo-cuenta {
+    font-size: var(--ds-font-xl);
+    font-variant-numeric: tabular-nums;
+    color: var(--ds-danger-on-tint);
 }
 
 /* Tinte de la cabecera según el tono del mensaje. */

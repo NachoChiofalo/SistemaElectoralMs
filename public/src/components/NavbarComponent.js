@@ -47,17 +47,18 @@
             (!item.permissionAny || item.permissionAny.some(p => userPermisos.includes(p)))
         );
         return `
-        <nav class="navbar-unified">
+        <a class="skip-link" href="#contenido">Saltar al contenido</a>
+        <nav class="navbar-unified" aria-label="Principal">
             <div class="navbar-content">
                 <div class="navbar-brand">
                     <img src="/assets/images/agora-logo.png" alt="ÁGORA" class="navbar-logo">
                 </div>
 
                 <div class="navbar-mobile-actions">
-                    <button class="logout-btn logout-btn-mobile" id="logout-btn-mobile" title="Cerrar Sesión">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button class="logout-btn logout-btn-mobile" id="logout-btn-mobile" type="button" aria-label="Cerrar sesión">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     </button>
-                    <button class="navbar-toggle" id="navbar-toggle" aria-label="Abrir menú de navegación" aria-expanded="false">
+                    <button class="navbar-toggle" id="navbar-toggle" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="navbar-collapse">
                         <span class="hamburger-line"></span>
                         <span class="hamburger-line"></span>
                         <span class="hamburger-line"></span>
@@ -67,8 +68,8 @@
                 <div class="navbar-collapse" id="navbar-collapse">
                     <div class="navbar-nav">
                         ${visibleItems.map(item => `
-                            <a href="${item.href}" class="nav-item${activeKey === item.key ? ' active' : ''}">
-                                <i class="fas ${item.icon}"></i>
+                            <a href="${item.href}" class="nav-item${activeKey === item.key ? ' active' : ''}"${activeKey === item.key ? ' aria-current="page"' : ''}>
+                                <i class="fas ${item.icon}" aria-hidden="true"></i>
                                 <span class="nav-text">${item.label}</span>
                             </a>
                         `).join('')}
@@ -85,10 +86,10 @@
                              y ese ancho es el que la barra va a necesitar al crecer. El texto
                              sobrevive en el title y en aria-label. -->
                         <button class="tema-btn" id="tema-btn" type="button" aria-label="Cambiar tema">
-                            <i class="fas" id="tema-icono"></i>
+                            <i class="fas" id="tema-icono" aria-hidden="true"></i>
                         </button>
                         <button class="logout-btn logout-btn-desktop" id="logout-btn" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">
-                            <i class="fas fa-sign-out-alt"></i>
+                            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
@@ -122,7 +123,12 @@
         // En "Automático" el icono muestra el tema que se está viendo, no un monitor:
         // lo que importa saber de un vistazo es si estás en claro o en oscuro.
         if (icono) icono.className = `fas ${elegido === 'sistema' ? TEMAS[global.tema.efectivo()].icono : estado.icono}`;
-        if (boton) boton.title = `Tema: ${estado.texto}. Clic para cambiar.`;
+        if (boton) {
+            // El nombre accesible incluye el estado: con solo "Cambiar tema" un lector de
+            // pantalla no sabe en qué tema está ni cuál viene después.
+            boton.title = `Tema: ${estado.texto}. Clic para cambiar.`;
+            boton.setAttribute('aria-label', `Cambiar tema. Actual: ${estado.texto}`);
+        }
     }
 
     function initTema() {
@@ -143,8 +149,16 @@
         }
     }
 
-    function handleLogout() {
-        const confirmed = confirm('¿Está seguro que desea cerrar sesión?');
+    async function handleLogout() {
+        // dialogo.confirmar() reemplaza a confirm(): no bloquea el hilo, sigue el tema y
+        // es un diálogo de verdad para el lector de pantalla.
+        const confirmed = global.dialogo
+            ? await global.dialogo.confirmar({
+                titulo: 'Cerrar sesión',
+                mensaje: '¿Está seguro que desea cerrar sesión?',
+                confirmar: 'Cerrar sesión'
+            })
+            : true;
         if (confirmed) {
             if (window.authService && window.authService.logout) {
                 window.authService.logout().finally(() => {
@@ -170,27 +184,48 @@
             logoutBtnMobile.addEventListener('click', handleLogout);
         }
         initTema();
-        // Mobile hamburger toggle
+        initCajon();
+    }
+
+    /**
+     * Cajón de navegación en móvil (<= 768px). Abrir mueve el foco al primer destino,
+     * Escape lo cierra y devuelve el foco al botón, y al ensanchar la ventana se cierra
+     * solo (en escritorio la barra es horizontal y el cajón no existe).
+     */
+    function initCajon() {
         const toggleBtn = document.getElementById('navbar-toggle');
         const collapseEl = document.getElementById('navbar-collapse');
         const overlayEl = document.getElementById('navbar-overlay');
-        if (toggleBtn && collapseEl) {
-            toggleBtn.addEventListener('click', function() {
-                const isOpen = collapseEl.classList.toggle('open');
-                toggleBtn.classList.toggle('open', isOpen);
-                toggleBtn.setAttribute('aria-expanded', isOpen);
-                if (overlayEl) overlayEl.classList.toggle('open', isOpen);
-                document.body.style.overflow = isOpen ? 'hidden' : '';
-            });
-            if (overlayEl) {
-                overlayEl.addEventListener('click', function() {
-                    collapseEl.classList.remove('open');
-                    toggleBtn.classList.remove('open');
-                    toggleBtn.setAttribute('aria-expanded', 'false');
-                    overlayEl.classList.remove('open');
-                    document.body.style.overflow = '';
-                });
+        if (!toggleBtn || !collapseEl) return;
+
+        function fijar(abierto, { devolverFoco = false } = {}) {
+            collapseEl.classList.toggle('open', abierto);
+            toggleBtn.classList.toggle('open', abierto);
+            toggleBtn.setAttribute('aria-expanded', String(abierto));
+            toggleBtn.setAttribute('aria-label', abierto ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+            if (overlayEl) overlayEl.classList.toggle('open', abierto);
+            document.body.style.overflow = abierto ? 'hidden' : '';
+            if (abierto) {
+                const primero = collapseEl.querySelector('.nav-item');
+                if (primero) primero.focus();
+            } else if (devolverFoco) {
+                toggleBtn.focus();
             }
+        }
+
+        const estaAbierto = () => collapseEl.classList.contains('open');
+
+        toggleBtn.addEventListener('click', () => fijar(!estaAbierto()));
+        if (overlayEl) overlayEl.addEventListener('click', () => fijar(false));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && estaAbierto()) fijar(false, { devolverFoco: true });
+        });
+
+        if (global.matchMedia) {
+            global.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
+                if (e.matches && estaAbierto()) fijar(false);
+            });
         }
     }
 
