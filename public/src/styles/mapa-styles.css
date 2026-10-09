@@ -417,3 +417,30 @@
         max-height: none;
     }
 }
+
+/* ==================== PANEL DE ZONA (corrección) ====================
+   La regla de encabezados de tabla del shell (`main#contenido th`: 10 px de relleno, mayúsculas,
+   tracking) ensanchaba las tablas del panel de 358 a 466 px y el panel, que recorta, dejaba
+   columnas fuera de vista (se perdía "Indeciso"). El panel es angosto a propósito: sus tablas son
+   compactas, y si aun así una instancia con muchas opciones políticas no entra, la tabla se
+   desplaza dentro de su bloque en vez de quedar cortada. */
+main#contenido .panel-tabla th {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: nowrap;
+    background: none;
+    border-bottom: 1px solid var(--ds-border-default);
+}
+
+.panel-corte { overflow-x: auto; }
+
+/* El panel acompaña al mapa al bajar la página, y su alto sigue al de la ventana. */
+@media (min-width: 901px) {
+    .mapa-panel {
+        position: sticky;
+        top: var(--ds-space-4);
+        max-height: calc(100dvh - var(--ds-space-8));
+    }
+}

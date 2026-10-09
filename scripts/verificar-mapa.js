@@ -23,7 +23,21 @@ const stats = {
   manzanas: manzanas.map((m) => ({ id: m.id, votantes: 30, avance: (m.id * 8) % 100, lider: null, desglose_oculto: true })),
   barrios: barrios.map((b) => ({ id: b.id, votantes: 200, avance: 60, lider: null, desglose_oculto: true })),
 };
-const zona = (tipo, id) => ({ tipo, id, nombre: tipo === 'barrio' ? 'Radio ' + id : undefined, votantes: 30, relevados: 20, avance: 66, umbral: 10, desglose_oculto: true, barrio: tipo === 'manzana' ? { tipo: 'barrio', id: 1, nombre: 'Radio 1', votantes: 200, relevados: 120, avance: 60, desglose_oculto: true } : undefined, etiquetaBarrio: 'Radio censal' });
+const votos = { PJ: 2, UCR: 14, Indeciso: 19 };
+const porcentajes = { PJ: 5.71, UCR: 40, Indeciso: 54.29 };
+const corte = (clave, valor, extra) => ({ [clave]: valor, votantes: 23, relevados: 15, desglose_oculto: false, votos, ...extra });
+const completo = (extra) => ({
+  votantes: 49, relevados: 35, avance: 71.4, desglose_oculto: false, votos, porcentajes,
+  porSexo: [corte('sexo', 'F'), corte('sexo', 'M')],
+  porEdad: [corte('rango_etario', '18-30'), corte('rango_etario', '31-45'), corte('rango_etario', '46-60'), corte('rango_etario', '60+')],
+  condiciones: Object.fromEntries(['empleados_municipales', 'ayuda_social', 'nuevos_votantes', 'fallecidos'].map((k) => [k, { total: 3, desglose_oculto: false, por_opcion: votos }])),
+  ...extra,
+});
+const zona = (tipo, id) => ({
+  tipo, id, nombre: tipo === 'barrio' ? 'Radio ' + id : undefined, umbral: 10, etiquetaBarrio: 'Radio censal',
+  ...completo(),
+  barrio: tipo === 'manzana' ? { tipo: 'barrio', id: 1, nombre: 'Radio 1', ...completo({ votantes: 200, relevados: 120, avance: 60 }) } : undefined,
+});
 
 (async () => {
   const base = (process.argv.find((a) => a.startsWith('--url=')) || '--url=http://localhost:8080').slice(6).replace(/\/$/, '');
@@ -48,6 +62,20 @@ const zona = (tipo, id) => ({ tipo, id, nombre: tipo === 'barrio' ? 'Radio ' + i
   chequear('la flecha mueve el foco a la zona siguiente', await p.evaluate(() => document.activeElement.dataset.id === '2'), await p.evaluate(() => document.activeElement.dataset.id));
   await p.keyboard.press('Enter');
   await p.waitForSelector('[role="tab"]');
+  // Regresión: el relleno de los encabezados del shell ensanchó estas tablas y el panel recortaba columnas.
+  const desborde = await p.evaluate(() => {
+    const panel = document.getElementById('mapa-panel');
+    return {
+      panel: panel.scrollWidth - panel.clientWidth,
+      tablas: [...panel.querySelectorAll('.panel-corte')].map((d) => d.scrollWidth - d.clientWidth).filter((x) => x > 1),
+    };
+  });
+  chequear('el panel de la zona no recorta columnas ni desplaza en horizontal', desborde.panel <= 1 && desborde.tablas.length === 0, JSON.stringify(desborde));
+  chequear('se ve la última columna (Indeciso) de cada tabla',
+    await p.evaluate(() => [...document.querySelectorAll('#mapa-panel .panel-tabla thead tr')].every((tr) => {
+      const th = tr.lastElementChild.getBoundingClientRect(); const pa = document.getElementById('mapa-panel').getBoundingClientRect();
+      return th.right <= pa.right + 1;
+    })));
   chequear('las pestañas tienen tabpanel enlazado', await p.evaluate(() => { const t = document.querySelector('[role="tab"][aria-selected="true"]'); const pan = document.getElementById(t.getAttribute('aria-controls')); return pan && pan.getAttribute('role') === 'tabpanel' && pan.getAttribute('aria-labelledby') === t.id; }));
   await p.locator('[role="tab"][aria-selected="true"]').focus();
   await p.keyboard.press('ArrowRight');
