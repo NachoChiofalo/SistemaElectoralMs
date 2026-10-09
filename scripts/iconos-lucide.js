@@ -117,6 +117,7 @@ module.exports = {
   // —— Estado y avisos ——
   'info-circle': 'info',
   'question-circle': 'circle-help',
+  'inbox': 'inbox',
   'exclamation-circle': 'circle-alert',
   'exclamation-triangle': 'triangle-alert',
   'circle': 'circle',
