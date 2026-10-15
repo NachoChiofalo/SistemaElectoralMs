@@ -163,6 +163,42 @@ así que no hay nada que liberar a mano.
 
 ---
 
+### 🔴 026 — La pantalla no contradice al servidor · **M**
+
+La noche del 2026-10-14 una relevadora chocó nueve veces con un 409 **contra sí misma**
+(`versionEnviada: 0`, `ultimaEdicionDe` = ella) y lo atribuyó a su internet: el servidor
+respondió todo en ~160 ms. La causa es que la versión de cada fila vive copiada en más de
+un lugar del cliente y no todo camino de escritura la actualiza. Los dos agujeros que se
+vieron ya están tapados (arreglo inmediato); falta cerrar la forma: una sola fuente por
+DNI, escrituras en fila por DNI, timeout sin falsa alarma y un 409 propio que se explique
+como tal.
+
+Ahora porque viene la carga del padrón nuevo, y porque estos 409 falsos **ensucian el
+número que 012 (paso 3.6) usa para decidir 014**: hasta que esto cierre, los 409 con
+`ultimaEdicionDe` igual a `usuario` se descuentan de esa cuenta.
+
+Spec: [specs/026-pantalla-coherente-con-servidor/](../specs/026-pantalla-coherente-con-servidor/spec.md).
+
+---
+
+### 🔴 027 — Diagnosticar un reporte sin depender del relato · **S**
+
+Lo que una persona ve en pantalla no queda en ningún log: el reporte de 026 llegó como
+audio transcripto ("me decía que reintentara") y se resolvió sólo porque el patrón en los
+logs de Render era claro. El próximo puede no serlo.
+
+Ahora porque hay tres cuentas cargando a la vez y el padrón nuevo multiplica la carga:
+los reportes van a llegar por WhatsApp, de segunda mano.
+
+Criterios candidatos: el log de conflicto marca `propio: true` cuando la última edición
+es del mismo usuario (un 409 propio siempre es un bug nuestro); cada respuesta lleva un
+`X-Request-Id` que el error en pantalla muestra en chico, para buscarlo en los logs;
+`docs/DIAGNOSTICO.md` con qué pedir (usuario, franja horaria) y cómo leer cada patrón
+(409 propio, 409 ajeno, 429, 503, request ausente = red o navegador). Aparte y opcional:
+un endpoint que reciba los errores del cliente, sin datos del votante y con rate limit.
+
+---
+
 ## P0 — Seguridad. Nada nuevo antes de esto.
 
 ### ⬛ 001 — Escapar los datos del votante en el padrón · **S**
