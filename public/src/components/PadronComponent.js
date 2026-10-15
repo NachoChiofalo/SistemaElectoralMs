@@ -1323,6 +1323,18 @@ class PadronComponent {
                 return;
             }
 
+            // La fila en pantalla pasa a tener la versión que devolvió el servidor. Sin
+            // esto, corregir la misma fila antes de recargar la tabla mandaba la versión
+            // vieja y la persona chocaba con un 409 contra su propio cambio.
+            const guardado = respuesta?.relevamiento;
+            if (item && guardado?.version !== undefined) {
+                item.relevamiento = {
+                    ...(item.relevamiento || {}),
+                    opcionPolitica: guardado.opcion_politica ?? opcionPolitica,
+                    version: guardado.version,
+                };
+            }
+
             this.mostrarNotificacion('Relevamiento actualizado', 'success');
             await this.actualizarEstadisticasRapidas();
         } catch (error) {

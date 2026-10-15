@@ -202,3 +202,14 @@ test('una edicion de franja rechazada no deja el boton "Guardando…" para siemp
   assert.match(cuerpo, /removeAttribute\('aria-busy'\)/);
   assert.doesNotMatch(cuerpo, /Guardando/);
 });
+
+test('marcar la opcion desde la tabla actualiza la version de la fila en pantalla', () => {
+  // Sin esto, corregir la misma fila antes de recargar la tabla manda la version vieja y la
+  // persona choca con un 409 contra su propio cambio (visto en produccion, 2026-10-14).
+  const fuente = leer('src', 'components', 'PadronComponent.js');
+  const inicio = fuente.indexOf('async cambiarOpcionPolitica(');
+  const fin = fuente.indexOf('irAPagina(', inicio);
+  const metodo = fuente.slice(inicio, fin);
+  assert.ok(inicio > 0 && fin > inicio, 'no se encontro cambiarOpcionPolitica');
+  assert.match(metodo, /item\.relevamiento\s*=\s*\{[\s\S]*?version:\s*guardado\.version/);
+});

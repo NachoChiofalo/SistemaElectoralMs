@@ -354,9 +354,12 @@ function construirRutas(padron, db) {
 
 /** Forma de cada votante en el listado, tal como la espera PadronComponent. */
 function formatearFila(fila, incluirDetalles) {
-  const relevamiento = fila.opcion_politica
+  // Se arma si existe la fila de relevamiento, no si tiene opcion politica: una ficha
+  // guardada desde el panel solo con telefono u observacion ya tiene version 1, y sin
+  // esto la tabla mandaba 0 al marcar la opcion y la persona chocaba con su propio 409.
+  const relevamiento = fila.relevamiento_dni
     ? {
-      opcionPolitica: fila.opcion_politica,
+      opcionPolitica: fila.opcion_politica || null,
       observacion: fila.observacion || '',
       telefono: fila.telefono || '',
       fechaRelevamiento: fila.fecha_relevamiento,
@@ -400,3 +403,4 @@ function formatearFila(fila, incluirDetalles) {
 }
 
 module.exports = construirRutas;
+module.exports.formatearFila = formatearFila;

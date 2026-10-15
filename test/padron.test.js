@@ -831,3 +831,20 @@ test('GET /resultados/por-familia exige resultados.view (019)', async () => {
     } finally { server.close(); }
   }
 });
+
+// ------------------------------------------------------------- listado
+
+test('el listado trae la version de toda ficha relevada, tenga o no opcion politica', () => {
+  const { formatearFila } = require('../src/modules/padron/routes');
+  const base = { dni: '1', apellido: 'A', nombre: 'B' };
+
+  // Guardada desde el panel solo con telefono: ya tiene version 1. Si el listado no la
+  // manda, marcar la opcion desde la tabla envia 0 y la persona choca con su propio 409.
+  const soloTelefono = formatearFila({ ...base, relevamiento_dni: '1', opcion_politica: null, telefono: '351', version: 1 }, true);
+  assert.equal(soloTelefono.relevamiento.version, 1);
+  assert.equal(soloTelefono.relevamiento.opcionPolitica, null);
+  assert.equal(soloTelefono.relevamiento.telefono, '351');
+
+  const sinFicha = formatearFila({ ...base, relevamiento_dni: null }, true);
+  assert.equal(sinFicha.relevamiento, null);
+});
