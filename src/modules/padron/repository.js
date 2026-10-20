@@ -36,16 +36,25 @@ function porOpcion(codigos, desde, valor) {
 }
 
 /**
+ * Un fallecido sigue en el padron (se lista, se busca, se exporta) pero no cuenta en ningun
+ * calculo: ni en totales, ni en votos, ni en porcentajes, ni en el mapa. Todo agregado que cruce
+ * `padron.votantes` con `r` (relevamientos) filtra con esto; la unica excepcion es la tarjeta
+ * "Fallecidos" misma, que cuenta justamente a los excluidos.
+ */
+const VIVO = 'NOT COALESCE(r.esta_fallecido, FALSE)';
+
+/**
  * Bloque de agregados de voto, identico en las cinco consultas de resultados.
  * `votos` y `porcentajes` son objetos { codigo: n }; el porcentaje es sobre los relevados.
  */
 function agregadosVoto(codigos, desde) {
   return `
-  COUNT(*)                                              AS total_votantes,
-  COUNT(r.dni)                                          AS total_relevados,
-  ROUND(COUNT(r.dni) * 100.0 / NULLIF(COUNT(*), 0), 2)  AS porcentaje_participacion,
-  ${porOpcion(codigos, desde, (f) => `COUNT(*) FILTER (WHERE ${f})`)} AS votos,
-  ${porOpcion(codigos, desde, (f) => `ROUND(COUNT(*) FILTER (WHERE ${f}) * 100.0 / NULLIF(COUNT(r.dni), 0), 2)`)} AS porcentajes
+  COUNT(*) FILTER (WHERE ${VIVO})                       AS total_votantes,
+  COUNT(r.dni) FILTER (WHERE ${VIVO})                   AS total_relevados,
+  ROUND(COUNT(r.dni) FILTER (WHERE ${VIVO}) * 100.0
+        / NULLIF(COUNT(*) FILTER (WHERE ${VIVO}), 0), 2) AS porcentaje_participacion,
+  ${porOpcion(codigos, desde, (f) => `COUNT(*) FILTER (WHERE ${VIVO} AND ${f})`)} AS votos,
+  ${porOpcion(codigos, desde, (f) => `ROUND(COUNT(*) FILTER (WHERE ${VIVO} AND ${f}) * 100.0 / NULLIF(COUNT(r.dni) FILTER (WHERE ${VIVO}), 0), 2)`)} AS porcentajes
 `;
 }
 
@@ -392,9 +401,9 @@ class PadronRepository {
   estadisticasBasicas(codigos) {
     return this.db.unaFila(
       `SELECT
-         COUNT(*)     AS total_votantes,
-         COUNT(r.dni) AS total_relevados,
-         ${porOpcion(codigos, 1, (f) => `COUNT(*) FILTER (WHERE ${f})`)} AS votos
+         COUNT(*) FILTER (WHERE ${VIVO})     AS total_votantes,
+         COUNT(r.dni) FILTER (WHERE ${VIVO}) AS total_relevados,
+         ${porOpcion(codigos, 1, (f) => `COUNT(*) FILTER (WHERE ${VIVO} AND ${f})`)} AS votos
        FROM padron.votantes v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni`,
       codigos,
@@ -469,14 +478,21 @@ class PadronRepository {
          FROM padron.votantes v
          LEFT JOIN padron.relevamientos r ON v.dni = r.dni
          GROUP BY v.apellido
-         HAVING COUNT(*) >= $1
-         ORDER BY COUNT(*) DESC, v.apellido
+         HAVING COUNT(*) FILTER (WHERE ${VIVO}) >= $1
+         ORDER BY COUNT(*) FILTER (WHERE ${VIVO}) DESC, v.apellido
          LIMIT $2`,
         [minimo, limite, ...codigos],
       ),
       this.db.unaFila(
         `SELECT COUNT(*)::int AS apellidos, COALESCE(SUM(n), 0)::int AS personas
-         FROM (SELECT COUNT(*) AS n FROM padron.votantes GROUP BY apellido HAVING COUNT(*) >= $1) t`,
+         FROM (
+           SELECT COUNT(*) AS n
+           FROM padron.votantes v
+           LEFT JOIN padron.relevamientos r ON v.dni = r.dni
+           WHERE ${VIVO}
+           GROUP BY v.apellido
+           HAVING COUNT(*) >= $1
+         ) t`,
         [minimo],
       ),
     ]);
@@ -488,27 +504,29 @@ class PadronRepository {
    * son configurables (021), asi que el cruce sale como un objeto { codigo: n } por condicion.
    */
   estadisticasCondicionesDetalladas(codigos) {
+    // "Fallecidos" es la unica condicion que cuenta a los excluidos (es cuantos son); el resto los deja afuera.
     const cruce = (condicion) => porOpcion(
-      codigos, 1, (f) => `COUNT(*) FILTER (WHERE r.${condicion} AND ${f})`,
+      codigos, 1,
+      (f) => `COUNT(*) FILTER (WHERE ${condicion === 'esta_fallecido' ? '' : `${VIVO} AND `}r.${condicion} AND ${f})`,
     );
 
     return this.db.unaFila(
       `SELECT
-         COUNT(r.dni) AS total_relevados,
-         COUNT(*) FILTER (WHERE r.es_empleado_municipal) AS total_empleados_municipales,
-         COUNT(*) FILTER (WHERE r.recibe_ayuda_social)   AS total_ayuda_social,
-         COUNT(*) FILTER (WHERE r.esta_fallecido)        AS total_fallecidos,
-         COUNT(*) FILTER (WHERE r.es_nuevo_votante)      AS total_nuevos_votantes,
+         COUNT(r.dni) FILTER (WHERE ${VIVO}) AS total_relevados,
+         COUNT(*) FILTER (WHERE ${VIVO} AND r.es_empleado_municipal) AS total_empleados_municipales,
+         COUNT(*) FILTER (WHERE ${VIVO} AND r.recibe_ayuda_social)   AS total_ayuda_social,
+         COUNT(*) FILTER (WHERE r.esta_fallecido)                    AS total_fallecidos,
+         COUNT(*) FILTER (WHERE ${VIVO} AND r.es_nuevo_votante)      AS total_nuevos_votantes,
 
          ${cruce('es_empleado_municipal')} AS empleados_por_opcion,
          ${cruce('recibe_ayuda_social')}   AS ayuda_social_por_opcion,
          ${cruce('es_nuevo_votante')}      AS nuevos_por_opcion,
          ${cruce('esta_fallecido')}        AS fallecidos_por_opcion,
 
-         COUNT(*) FILTER (WHERE r.es_empleado_municipal AND v.sexo = 'M') AS empleados_masculino,
-         COUNT(*) FILTER (WHERE r.es_empleado_municipal AND v.sexo = 'F') AS empleados_femenino,
-         COUNT(*) FILTER (WHERE r.recibe_ayuda_social AND v.sexo = 'M')   AS ayuda_social_masculino,
-         COUNT(*) FILTER (WHERE r.recibe_ayuda_social AND v.sexo = 'F')   AS ayuda_social_femenino
+         COUNT(*) FILTER (WHERE ${VIVO} AND r.es_empleado_municipal AND v.sexo = 'M') AS empleados_masculino,
+         COUNT(*) FILTER (WHERE ${VIVO} AND r.es_empleado_municipal AND v.sexo = 'F') AS empleados_femenino,
+         COUNT(*) FILTER (WHERE ${VIVO} AND r.recibe_ayuda_social AND v.sexo = 'M')   AS ayuda_social_masculino,
+         COUNT(*) FILTER (WHERE ${VIVO} AND r.recibe_ayuda_social AND v.sexo = 'F')   AS ayuda_social_femenino
        FROM padron.votantes v
        LEFT JOIN padron.relevamientos r ON v.dni = r.dni`,
       codigos,
@@ -586,5 +604,5 @@ class PadronRepository {
 
 // Los fragmentos se exportan para el mapa (018), que agrega por manzana con las mismas reglas.
 module.exports = {
-  PadronRepository, CAMPOS_ORDEN, porOpcion, agregadosVoto, EDAD_VIGENTE, RANGO_ETARIO, ORDEN_RANGO_ETARIO,
+  PadronRepository, CAMPOS_ORDEN, porOpcion, agregadosVoto, VIVO, EDAD_VIGENTE, RANGO_ETARIO, ORDEN_RANGO_ETARIO,
 };

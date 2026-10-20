@@ -6,7 +6,7 @@
  * no una por fila.
  */
 
-const { agregadosVoto, porOpcion, EDAD_VIGENTE, RANGO_ETARIO, ORDEN_RANGO_ETARIO } = require('../padron/repository');
+const { agregadosVoto, porOpcion, VIVO, EDAD_VIGENTE, RANGO_ETARIO, ORDEN_RANGO_ETARIO } = require('../padron/repository');
 
 const TAMANO_LOTE = 1000;
 
@@ -209,7 +209,11 @@ class TerritorioRepository {
     const n = codigos.length;
     const { join, where } = filtroZona(tipo, n + 1);
     const params = [...codigos, id];
-    const cruce = (condicion) => porOpcion(codigos, 1, (f) => `COUNT(*) FILTER (WHERE r.${condicion} AND ${f})`);
+    // "Fallecidos" cuenta a los excluidos del resto (ver VIVO en padron/repository).
+    const cruce = (condicion) => porOpcion(
+      codigos, 1,
+      (f) => `COUNT(*) FILTER (WHERE ${condicion === 'esta_fallecido' ? '' : `${VIVO} AND `}r.${condicion} AND ${f})`,
+    );
 
     const [total, porSexo, porEdad, condiciones] = await Promise.all([
       this.db.unaFila(
@@ -240,9 +244,9 @@ class TerritorioRepository {
       ),
       this.db.unaFila(
         `SELECT
-           COUNT(*) FILTER (WHERE r.es_empleado_municipal) AS empleados_municipales,
-           COUNT(*) FILTER (WHERE r.recibe_ayuda_social)   AS ayuda_social,
-           COUNT(*) FILTER (WHERE r.es_nuevo_votante)      AS nuevos_votantes,
+           COUNT(*) FILTER (WHERE ${VIVO} AND r.es_empleado_municipal) AS empleados_municipales,
+           COUNT(*) FILTER (WHERE ${VIVO} AND r.recibe_ayuda_social)   AS ayuda_social,
+           COUNT(*) FILTER (WHERE ${VIVO} AND r.es_nuevo_votante)      AS nuevos_votantes,
            COUNT(*) FILTER (WHERE r.esta_fallecido)        AS fallecidos,
            ${cruce('es_empleado_municipal')} AS empleados_municipales_por_opcion,
            ${cruce('recibe_ayuda_social')}   AS ayuda_social_por_opcion,
@@ -269,7 +273,7 @@ class TerritorioRepository {
        FROM territorio.ubicaciones u
        JOIN padron.votantes v ON v.dni = u.dni
        LEFT JOIN padron.relevamientos r ON r.dni = u.dni
-       WHERE u.manzana_id = $1
+       WHERE u.manzana_id = $1 AND ${VIVO}
        ORDER BY u.calle, u.numero, v.apellido, v.nombre, v.dni
        LIMIT $2 OFFSET $3`,
       [id, limite, desde],
