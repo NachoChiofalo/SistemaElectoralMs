@@ -119,6 +119,32 @@ test('una página fuera de rango se acota en vez de dibujar un paginador roto', 
   assert.match(html, /aria-label="Página 4" aria-current="page"/);
 });
 
+test('primera y última página son botones con nombre y se deshabilitan en su extremo', () => {
+  const primera = paginacion.render({ pagina: 1, totalPaginas: 9 });
+  assert.match(primera, /data-pagina="1" aria-label="Primera página" disabled/);
+  assert.match(primera, /data-pagina="9" aria-label="Última página"><i/);
+
+  const ultima = paginacion.render({ pagina: 9, totalPaginas: 9 });
+  assert.match(ultima, /data-pagina="9" aria-label="Última página" disabled/);
+});
+
+test('el paginador trae un campo "Ir a" con nombre, rango y total', () => {
+  const html = paginacion.render({ pagina: 3, totalPaginas: 112 });
+  assert.match(html, /<form class="paginacion-ir" data-total="112">/);
+  assert.match(html, /type="number"[^>]*min="1" max="112"/);
+  assert.match(html, /aria-label="Ir a la página \(1 a 112\)"/);
+});
+
+test('destino: acota al rango y descarta lo que no es un número', () => {
+  assert.equal(paginacion.destino('37', 112), 37);
+  assert.equal(paginacion.destino(' 8 ', 112), 8);
+  assert.equal(paginacion.destino('0', 112), 1);
+  assert.equal(paginacion.destino('-5', 112), 1);
+  assert.equal(paginacion.destino('999', 112), 112);
+  assert.equal(paginacion.destino('', 112), null);
+  assert.equal(paginacion.destino('abc', 112), null);
+});
+
 test('la etiqueta del paginador se escapa', () => {
   const html = paginacion.render({ pagina: 1, totalPaginas: 3, etiqueta: '"><script>' });
   assert.doesNotMatch(html, /<script>/);

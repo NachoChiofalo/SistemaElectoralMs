@@ -203,13 +203,25 @@ test('una edicion de franja rechazada no deja el boton "Guardando…" para siemp
   assert.doesNotMatch(cuerpo, /Guardando/);
 });
 
-test('marcar la opcion desde la tabla actualiza la version de la fila en pantalla', () => {
-  // Sin esto, corregir la misma fila antes de recargar la tabla manda la version vieja y la
-  // persona choca con un 409 contra su propio cambio (visto en produccion, 2026-10-14).
-  const fuente = leer('src', 'components', 'PadronComponent.js');
+test('toda escritura de relevamiento del padron pasa por escribirRelevamiento y su version sale de this.fichas', () => {
+  // Sin esto, cada camino de escritura tiene que acordarse de actualizar su copia de la version, y
+  // el que se olvida choca con un 409 contra su propio cambio (produccion, 2026-10-14; spec 026).
+  const fuente = leer('src', 'components', 'PadronComponent.js')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  const llamadas = fuente.match(/apiService\.actualizarRelevamiento\(/g) || [];
+  assert.equal(llamadas.length, 1, 'solo escribirRelevamiento llama a la API de escritura');
+  assert.match(fuente, /enCola\(dni,[\s\S]*?actualizarRelevamiento\(dni,[\s\S]*?version:\s*this\.fichas\.version\(dni\)/);
+  assert.doesNotMatch(fuente, /dataset\.version/, 'el panel no guarda su propia copia de la version');
+  assert.doesNotMatch(fuente, /relevamiento\?\.version\s*\?\?\s*0,?\s*\}\)/, 'la version no sale de la fila en pantalla');
+
   const inicio = fuente.indexOf('async cambiarOpcionPolitica(');
-  const fin = fuente.indexOf('irAPagina(', inicio);
-  const metodo = fuente.slice(inicio, fin);
-  assert.ok(inicio > 0 && fin > inicio, 'no se encontro cambiarOpcionPolitica');
-  assert.match(metodo, /item\.relevamiento\s*=\s*\{[\s\S]*?version:\s*guardado\.version/);
+  const metodo = fuente.slice(inicio, fuente.indexOf('irAPagina(', inicio));
+  assert.match(metodo, /this\.fichas\.recordar\(dni,\s*guardado\.version\)/);
+  assert.match(metodo, /this\.escribirRelevamiento\(/);
+});
+
+test('un timeout de escritura se distingue de un rechazo para poder releer la ficha', () => {
+  assert.match(leer('src', 'services', 'ApiService.js'), /\.timeout\s*=\s*true/);
+  assert.match(leer('src', 'components', 'PadronComponent.js'), /if \(!error\.timeout\) throw error;/);
 });

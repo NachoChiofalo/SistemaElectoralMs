@@ -19,6 +19,9 @@ class PadronComponent {
         // Numero de la ultima peticion de tabla: una respuesta vieja que llega tarde no
         // pisa a una mas nueva (FE-008), mismo criterio que fichaPedida.
         this.peticionTabla = 0;
+        // Lo que se sabe de cada ficha: la versión que manda toda escritura sale de acá y
+        // nada más (spec 026). También ordena las escrituras: una por DNI a la vez.
+        this.fichas = window.fichas.crear();
         this.rateLimit = {
             retries: 0,
             timerId: null,
@@ -468,6 +471,9 @@ class PadronComponent {
             else this[accion]();
         });
 
+        // Campo "Ir a" de la paginación: delegado sobre el contenedor, que render() repinta.
+        window.paginacion.enlazar(this.elementos.paginacion, (pagina) => this.irAPagina(pagina));
+
         // Igual, pero para el 'change' del radio de opción política.
         document.addEventListener('change', (e) => {
             const el = e.target.closest('[data-action]');
@@ -627,6 +633,13 @@ class PadronComponent {
         // relee del servidor, porque este snapshot envejece sin avisar.
         this.estado.votantesEnPantalla = votantes;
 
+        // El listado es lo último que dijo el servidor: de acá sale la versión de cada fila.
+        // Una fila con una escritura en vuelo se salta, porque su respuesta va a traer una
+        // versión más nueva que la de este listado.
+        for (const { votante, relevamiento } of votantes) {
+            if (!this.fichas.ocupado(votante.dni)) this.fichas.recordar(votante.dni, relevamiento?.version ?? 0);
+        }
+
         // Desde acá se cuentan los cambios ajenos: lo que se acaba de dibujar está al
         // día por definición, así que las marcas viejas dejan de tener sentido.
         this.estado.tablaCargadaEn = new Date().toISOString();
@@ -756,6 +769,7 @@ class PadronComponent {
             if (respuestaRelevamiento?.data) {
                 relevamiento = respuestaRelevamiento.data;
                 firma = respuestaRelevamiento.data.actualizadoPor || null;
+                this.fichas.recordar(dni, relevamiento.version);
             }
             if (respuestaDetalle?.data) detalle = respuestaDetalle.data;
         } catch (error) {
@@ -779,12 +793,9 @@ class PadronComponent {
         panel.setAttribute('aria-modal', 'false');
         panel.setAttribute('aria-labelledby', 'panel-titulo');
         panel.dataset.dni = votante.dni;
-        // La versión que esta persona realmente vio. Es lo que el servidor compara al
-        // guardar: si otra escribió en el medio, no coincide y la escritura no se aplica.
-        // Sale de la relectura de arriba y no del listado — mandar la versión de una
-        // página cargada hace veinte minutos haría saltar el conflicto siempre, y un
-        // aviso que salta siempre se aprende a ignorar.
-        panel.dataset.version = relevamiento?.version ?? 0;
+        // La versión que esta persona realmente vio vive en `this.fichas` (spec 026), no en
+        // el panel: se registró arriba con la relectura. El servidor la compara al guardar
+        // y, si otra escribió en el medio, no coincide y la escritura no se aplica.
 
         panel.innerHTML = `
             <header class="panel-header">
@@ -858,19 +869,6 @@ class PadronComponent {
     }
 
     /**
-     * La versión que el panel leyó, como entero.
-     *
-     * Ante cualquier cosa rara cae en 0, que significa "leí que esto no existía". No es
-     * un default cómodo: es el valor que **no coincide** con ninguna fila existente, así
-     * que en la duda el servidor responde 409 y la persona ve lo que hay. Un default
-     * optimista guardaría encima.
-     */
-    versionDelPanel(panel) {
-        const version = Number.parseInt(panel.dataset.version, 10);
-        return Number.isInteger(version) && version >= 0 ? version : 0;
-    }
-
-    /**
      * Muestra un conflicto de edición dentro del panel, sin cerrarlo.
      *
      * La regla de acá: **lo que la persona escribió no se pierde por ningún camino.** Se
@@ -920,7 +918,7 @@ class PadronComponent {
         // La versión se actualiza a la del servidor: si la persona decide pisar, el
         // próximo Guardar tiene que poder aplicarse. Lo que no puede es aplicarse sin
         // que lo haya visto — y para este punto ya lo vio.
-        if (actual?.version !== undefined) panel.dataset.version = actual.version;
+        if (actual?.version !== undefined) this.fichas.recordar(panel.dataset.dni, actual.version);
 
         panel.querySelector('.panel-acciones').before(aviso);
         this.mostrarNotificacion('La ficha cambió mientras la editabas', 'warning');
@@ -1130,11 +1128,11 @@ class PadronComponent {
             // sólo toca lo que le mandan—, pero dos escrituras simultáneas contra una
             // fila es exactamente la forma del bug que este cambio saca, y basta con que
             // alguien agregue una columna compartida para que vuelva. Cuesta un viaje.
-            const respuesta = await window.apiService.actualizarRelevamiento(dni, {
-                telefono: panel.querySelector('#panel-telefono').value,
-                observacion: panel.querySelector('#panel-observacion').value,
-                version: this.versionDelPanel(panel),
-            });
+            const telefono = panel.querySelector('#panel-telefono').value;
+            const observacion = panel.querySelector('#panel-observacion').value;
+            // En la cola del DNI: si hay un clic de la tabla en vuelo sobre esta ficha,
+            // esto espera y sale con la versión que ése devuelva.
+            const respuesta = await this.escribirRelevamiento(dni, { telefono, observacion });
 
             // Otra persona escribió entre que se abrió la ficha y este Guardar. El panel
             // NO se cierra: lo que esta persona escribió sigue en pantalla y decide ella.
@@ -1144,7 +1142,7 @@ class PadronComponent {
             }
 
             if (respuesta?.relevamiento?.version !== undefined) {
-                panel.dataset.version = respuesta.relevamiento.version;
+                this.fichas.recordar(dni, respuesta.relevamiento.version);
             }
 
             await window.apiService.request('/api/padron/detalle-votante', {
@@ -1279,6 +1277,38 @@ class PadronComponent {
     // ==================== EVENTOS Y ACCIONES ====================
 
     /**
+     * Única puerta de escritura de un relevamiento desde el padrón (spec 026).
+     *
+     * Hace dos cosas que ningún llamador debe hacer a mano: espera su turno en la cola del
+     * DNI —nunca dos escrituras en vuelo sobre la misma fila— y lee la versión recién
+     * cuando le toca, de `this.fichas`. `campos` lleva sólo lo que la persona editó.
+     *
+     * Un timeout es ambiguo: el servidor pudo haber escrito igual. Antes de decir "no se
+     * guardó" se relee la ficha; si ya tiene lo pedido, se devuelve como guardado. Si la
+     * relectura también falla, se dice que no se pudo confirmar, nunca que se guardó.
+     */
+    async escribirRelevamiento(dni, campos) {
+        try {
+            return await this.fichas.enCola(dni, () =>
+                window.apiService.actualizarRelevamiento(dni, { ...campos, version: this.fichas.version(dni) }));
+        } catch (error) {
+            if (!error.timeout) throw error;
+
+            let actual;
+            try {
+                actual = (await window.apiService.obtenerRelevamiento(dni))?.data;
+            } catch {
+                throw new Error('No se pudo confirmar si se guardó. Revisá la ficha antes de reintentar.');
+            }
+            if (actual) this.fichas.recordar(dni, actual.version);
+
+            const yaGuardado = actual && Object.entries(campos).every(([campo, valor]) => (actual[campo] ?? '') === valor);
+            if (!yaGuardado) throw error;
+            return { success: true, relevamiento: { version: actual.version, opcion_politica: actual.opcionPolitica } };
+        }
+    }
+
+    /**
      * Cambiar opción política de un votante
      */
     async cambiarOpcionPolitica(dni, opcionPolitica) {
@@ -1302,20 +1332,25 @@ class PadronComponent {
             // Sólo la opción política. No hace falta leer la observación ni el teléfono
             // para "preservarlos": lo que no se manda, el servidor no lo toca.
             //
-            // La versión sale del listado, que es lo que esta persona tiene delante. Si
-            // otra cambió la opción mientras tanto, esto no la pisa en silencio.
+            // La versión sale de `this.fichas`. Si otra persona cambió la opción mientras
+            // tanto, esto no la pisa en silencio: el servidor responde 409.
             const item = (this.estado.votantesEnPantalla || [])
                 .find(v => String(v.votante.dni) === String(dni));
 
-            const respuesta = await window.apiService.actualizarRelevamiento(dni, {
-                opcionPolitica,
-                version: item?.relevamiento?.version ?? 0,
-            });
+            const respuesta = await this.escribirRelevamiento(dni, { opcionPolitica });
 
             if (respuesta?.conflicto) {
-                const quien = respuesta.actual?.actualizadoPor || 'Otra persona';
+                const actual = respuesta.actual;
+                if (actual?.version !== undefined) this.fichas.recordar(dni, actual.version);
+
+                // Si la última edición es de la propia persona, no hay "otra persona": es
+                // otra pestaña suya, y decirlo con su nombre como si fuera ajeno no sirve.
+                const propio = window.authService?.getCurrentUser()?.username || null;
+                const etiqueta = window.opcionesPoliticas.etiqueta(actual?.opcionPolitica);
                 this.mostrarNotificacion(
-                    `${quien} ya había marcado ${window.opcionesPoliticas.etiqueta(respuesta.actual?.opcionPolitica)} en esta fila`,
+                    propio && actual?.actualizadoPor === propio
+                        ? `Ya habías guardado ${etiqueta} en esta fila, quizás en otra pestaña. Se muestra lo guardado.`
+                        : `${actual?.actualizadoPor || 'Otra persona'} ya había marcado ${etiqueta} en esta fila`,
                     'warning'
                 );
                 // Se recarga para que la fila muestre lo que hay, no lo que se clickeó.
@@ -1327,6 +1362,7 @@ class PadronComponent {
             // esto, corregir la misma fila antes de recargar la tabla mandaba la versión
             // vieja y la persona chocaba con un 409 contra su propio cambio.
             const guardado = respuesta?.relevamiento;
+            if (guardado?.version !== undefined) this.fichas.recordar(dni, guardado.version);
             if (item && guardado?.version !== undefined) {
                 item.relevamiento = {
                     ...(item.relevamiento || {}),

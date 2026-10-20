@@ -258,11 +258,15 @@
                 });
             });
 
-            // Pagination events
-            const btnAnterior = document.getElementById('btn-pag-anterior');
-            const btnSiguiente = document.getElementById('btn-pag-siguiente');
-            if (btnAnterior) btnAnterior.addEventListener('click', () => this.cambiarPagina(-1));
-            if (btnSiguiente) btnSiguiente.addEventListener('click', () => this.cambiarPagina(1));
+            // Paginación (lib/paginacion.js): botones por data-pagina, campo "Ir a" por enlazar.
+            const nav = document.querySelector('.auditoria-paginacion');
+            if (nav) {
+                nav.addEventListener('click', (e) => {
+                    const btn = e.target.closest('[data-pagina]');
+                    if (btn && !btn.disabled) this.irAPagina(Number(btn.dataset.pagina));
+                });
+                window.paginacion.enlazar(nav, (pagina) => this.irAPagina(pagina));
+            }
         }
 
         renderFila(registro) {
@@ -298,15 +302,11 @@
         renderPaginacion() {
             const { paginaActual, totalPaginas } = this.paginacion;
             return `
-                <div class="auditoria-paginacion">
-                    <button type="button" class="btn-pag" id="btn-pag-anterior" ${paginaActual <= 1 ? 'disabled' : ''}>
-                        <i class="fas fa-chevron-left" aria-hidden="true"></i> Anterior
-                    </button>
-                    <span class="pag-info" aria-live="polite">Página ${paginaActual} de ${totalPaginas}</span>
-                    <button type="button" class="btn-pag" id="btn-pag-siguiente" ${paginaActual >= totalPaginas ? 'disabled' : ''}>
-                        Siguiente <i class="fas fa-chevron-right" aria-hidden="true"></i>
-                    </button>
-                </div>
+                <div class="auditoria-paginacion">${window.paginacion.render({
+                    pagina: paginaActual,
+                    totalPaginas,
+                    etiqueta: 'Paginación de auditoría'
+                })}</div>
             `;
         }
 
@@ -413,8 +413,7 @@
             this.cargarDatos();
         }
 
-        cambiarPagina(delta) {
-            const nuevaPagina = this.paginacion.paginaActual + delta;
+        irAPagina(nuevaPagina) {
             if (nuevaPagina < 1 || nuevaPagina > this.paginacion.totalPaginas) return;
             this.filtros.page = nuevaPagina;
             this.cargarRegistros();

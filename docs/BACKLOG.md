@@ -141,7 +141,8 @@ Spec y plan: [specs/012-multiusuario/](../specs/012-multiusuario/spec.md).
 en producción y el 409 con versión vieja se confirmó a mano. Fase 3: ya hay tres cuentas
 personales activas (`admin1`, `DaianaMontenegro`, `augusto`), cada una con su rol. Falta
 sólo **3.6**: mirar los 409 logueados después de una semana de uso real y decidir 014 con
-ese número.
+ese número. Dato para esa cuenta: la tanda del 2026-10-15 (~23:11–23:14, una sola cuenta)
+fueron 18 escrituras, todas 200, ningún 409.
 
 ---
 
@@ -179,6 +180,27 @@ número que 012 (paso 3.6) usa para decidir 014**: hasta que esto cierre, los 40
 
 Spec: [specs/026-pantalla-coherente-con-servidor/](../specs/026-pantalla-coherente-con-servidor/spec.md).
 
+**Estado (2026-10-15):** spec aprobada; plan, tareas e implementación en el cliente hechos
+(registro único de versiones y cola por DNI en `lib/fichas.js`, relectura tras timeout, 409
+propio explicado). Falta la prueba de comportamiento con Playwright (tarea 6) y el criterio
+de producción: una semana sin 409 propio.
+
+---
+
+### 🔴 028 — Avisar que hay una versión nueva del sistema · **S**
+
+Un arreglo en el frontend no llega a una pestaña que ya está abierta: el HTML se pidió al
+cargar y los `?v=` de los scripts quedan fijos hasta recargar. El 2026-10-15 una relevadora
+siguió chocando con 409 propios después del arreglo de 026 porque cargaba el padrón desde
+una sola pestaña, durante horas, con el JS viejo. Sólo se vio en los logs.
+
+Criterios candidatos: el servidor expone la versión de los assets (el hash del
+`index.html`, por ejemplo en `/api/health` o en un header); la vigilancia de cambios que ya
+corre cada 30 s la compara con la que cargó la pestaña y, si difiere, muestra un aviso no
+bloqueante: "Hay una versión nueva. Recargá cuando termines la ficha". Nunca recarga sola
+(se perdería lo escrito en el panel) y se calla si el panel tiene cambios sin guardar. Un
+test cubre que el aviso aparece al cambiar la versión y no antes.
+
 ---
 
 ### 🔴 027 — Diagnosticar un reporte sin depender del relato · **S**
@@ -200,6 +222,33 @@ un endpoint que reciba los errores del cliente, sin datos del votante y con rate
 ---
 
 ## P0 — Seguridad. Nada nuevo antes de esto.
+
+### 🔴 029 — Producción corre con `NODE_ENV=development` · **S**
+
+Los logs de Render del 2026-10-15 (relevamiento de ~23:11) arrancan con
+`ÁGORA escuchando en el puerto 8080 {"entorno":"development"}`, y las líneas salen en el
+formato con colores de desarrollo, no en el JSON de `logger.js:41`. El `Dockerfile` fija
+`NODE_ENV=production` y `render.yaml` también, pero el servicio real no sigue el blueprint
+(ya pasa con `dockerCommand`): la variable del dashboard de Render es la que manda.
+
+En ese modo, según el código: los 500 devuelven `error.message` al navegador
+(`core/errors.js:113`); CORS acepta `localhost:3000` y `localhost:8080` (`config.js:145`);
+`CacheResultados` y el caché del mapa viven 5 s en vez de 60 s (`padron/module.js:28`,
+`territorio/module.js:32`), más agregaciones sobre todo el padrón contra Supabase; los
+estáticos se comprimen por request y sin caché en vez de servir los `.br`/`.gz` del build
+(`estaticos.js:118,176`); `LOG_LEVEL` por defecto es `debug`; y las validaciones de arranque
+se aflojan (`JWT_SECRET` corto pasa a ser un aviso, `DATABASE_URL` no se exige).
+
+Ahora porque es un cambio de una variable y hoy filtra detalles internos en cada error.
+
+Criterios candidatos: `NODE_ENV=production` en el dashboard de Render; el arranque loguea
+`"entorno":"production"` en JSON; un `GET /api/...` que falle no trae `detail`. Revisar en
+la misma pasada el resto de las variables del dashboard contra `render.yaml` — por ejemplo
+`DATABASE_URL` apunta al pooler en `:5432` (modo sesión) y el blueprint recomienda `:6543`.
+Opcional: que el servidor se niegue a arrancar (o avise fuerte) si detecta Render
+(`RENDER=true`) sin `NODE_ENV=production`.
+
+---
 
 ### ⬛ 001 — Escapar los datos del votante en el padrón · **S**
 
@@ -1063,6 +1112,43 @@ lugar.
 **Hecho (2026-10-07).** Se borraron de `CLAUDE.md` las tres entradas falsas (páginas de debug,
 "páginas sin backend" de fiscales/comicio, "sin tests de integración") y se corrigió el
 conteo de tests. El resto de las entradas ya apuntaba a este backlog.
+
+---
+
+### 🔴 030 — La paginación del padrón pide páginas de más · **S**
+
+En los logs del 2026-10-15 el frontend pidió `votantes?pagina=0` justo después de
+`pagina=1`, y `pagina=2` dos veces seguidas. No rompe nada —el servicio corrige la página a
+1 (`padron/service.js:86`) y el duplicado responde 304—, pero son consultas al padrón que no
+hacían falta, y una de ellas fue la "consulta lenta" de 535 ms de esa noche.
+
+Hipótesis a confirmar en la spec: el botón "Anterior" de la página 1 lleva
+`data-pagina="0"` (`lib/paginacion.js:63`) y algo llega a la delegación aunque esté
+`disabled`; y un doble clic en "Siguiente" antes de que la tabla se vuelva a dibujar manda
+la misma página dos veces. `PadronComponent.irAPagina` (≈`:1383`) no acota la página ni
+ignora la que ya está en curso.
+
+Criterios candidatos: `irAPagina` ignora páginas fuera de `1..totalPaginas` y la página
+actual o ya pedida; un test de la delegación con el botón "Anterior" deshabilitado.
+
+---
+
+### 🔴 031 — Entender los reinicios del servicio en Render · **S**
+
+Al terminar el relevamiento del 2026-10-15 el log muestra un `SIGTERM` con una sesión
+activa (se persistió bien: `Actividad de 1 sesion(es) persistida al cerrar`), un arranque
+completo que recibe otro `SIGTERM` apenas termina de montar los módulos, y un tercer
+arranque. Los logs pegados no tienen hora, así que no se sabe si fue el apagado por
+inactividad del plan free (15 min sin tráfico), un redeploy o un reciclado de Render.
+
+Ahora porque un reinicio en medio de una carga corta requests en vuelo y vacía la caché de
+sesiones; si el plan free duerme el servicio entre una tanda y otra, el primer request de
+la siguiente paga el arranque en frío (conexión a Supabase ~0,7 s más el resto).
+
+Criterios candidatos: cruzar con el historial de eventos/deploys de Render para esa hora;
+si es el apagado por inactividad, decidir entre aceptarlo, un plan pago o un ping
+periódico; documentar en `docs/DIAGNOSTICO.md` (027) cómo distinguir cada tipo de
+reinicio en el log.
 
 ---
 

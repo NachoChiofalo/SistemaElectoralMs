@@ -135,7 +135,11 @@ class ApiService {
         } catch (error) {
             console.error('❌ Error en API:', error);
             if (error.name === 'AbortError') {
-                throw new Error('La solicitud tardó demasiado y se canceló. Probá de nuevo.');
+                // `timeout` distingue "no hubo respuesta" de un rechazo: en una escritura el
+                // servidor pudo haber guardado igual, y quien llama tiene que releer.
+                const demora = new Error('La solicitud tardó demasiado y se canceló. Probá de nuevo.');
+                demora.timeout = true;
+                throw demora;
             }
             throw error;
         } finally {

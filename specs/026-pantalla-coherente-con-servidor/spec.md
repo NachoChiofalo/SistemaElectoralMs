@@ -1,6 +1,6 @@
 # 026 — La pantalla no contradice al servidor
 
-> Estado: borrador
+> Estado: aprobada (2026-10-15); implementada en el cliente, falta la prueba con Playwright
 > Tamaño estimado: M
 
 ## Problema

@@ -24,6 +24,8 @@ module.exports = {
   'plus': 'plus',
   'chevron-left': 'chevron-left',
   'chevron-right': 'chevron-right',
+  'angle-double-left': 'chevrons-left',
+  'angle-double-right': 'chevrons-right',
   'caret-down': 'chevron-down',
   'sort': 'chevrons-up-down',
   'sort-up': 'chevron-up',
